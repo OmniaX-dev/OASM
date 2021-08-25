@@ -32,7 +32,7 @@ namespace Omnia
 		{
 			public:
 				inline static Interpreter& instance(void) { return *Interpreter::s_instance; }
-				int32 run(int argc, char** argv);
+				int64 run(int argc, char** argv);
 
 			private:
 				static Interpreter* s_instance;

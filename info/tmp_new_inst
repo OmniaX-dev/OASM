@@ -1,5 +1,5 @@
-str_cpy			AddrMode			---				addr/reg				addr/reg			---
-add_str			AddrMode			Flags			addr/reg				addr/reg			---
+str_cpy			---					---				addr/reg				addr/reg			---
+add_str			AddrMode			---				addr/reg				addr/reg			---
 				* set R31 to new str address
 				* Flags
 					-Add String pointer to String pointer

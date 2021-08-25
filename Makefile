@@ -3,7 +3,7 @@
 # Version
 #---------
 OASM_MAJOR_VERSION ?= 0
-OASM_MINOR_VERSION ?= 0
+OASM_MINOR_VERSION ?= 1
 
 # Targets
 #----------
@@ -93,7 +93,7 @@ debug-vm:
 	LD_LIBRARY_PATH='$(shell pwd)/$(BUILD_DIR)/$(BUILD_LIB_DIR)/' gdb $(BUILD_DIR)/$(FRONTEND_BUILD_DIR)/$(T_VM_EXEC) $(run_args)
 
 run-vm-step_exec:
-	LD_LIBRARY_PATH='$(shell pwd)/$(BUILD_DIR)/$(BUILD_LIB_DIR)/' ./$(BUILD_DIR)/$(FRONTEND_BUILD_DIR)/$(T_VM_EXEC) --step-execution
+	LD_LIBRARY_PATH='$(shell pwd)/$(BUILD_DIR)/$(BUILD_LIB_DIR)/' ./$(BUILD_DIR)/$(FRONTEND_BUILD_DIR)/$(T_VM_EXEC) $(run_args) --step-execution
 
 .PHONY: clean
 .PHONY: __save_bnr

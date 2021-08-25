@@ -284,12 +284,12 @@ $(function(){
 		new InstOperand("<p class=\"value\">***</p>"),
 	"lda_str instruction", "<p class=\"value\">***</p>");
 
-	addInstruction("str_cpy", "1009", "0x****", IOps.NoOperand, 
+	addInstruction("str_cpy", "1009", IOps.NoOperand, IOps.NoOperand, 
 		new InstOperand().add(IOps.Addr).add(IOps.Reg),
 		new InstOperand().add(IOps.Addr).add(IOps.Reg),
 	"str_cpy instruction");
 
-	addInstruction("add_str", "100A", "0x****", "0x****", 
+	addInstruction("add_str", "100A", IOps.NoOperand, "0x****", 
 		new InstOperand().add(IOps.Addr).add(IOps.Reg),
 		new InstOperand().add(IOps.ConstStream).add(IOps.Addr).add(IOps.Reg),
 	"add_str instruction");

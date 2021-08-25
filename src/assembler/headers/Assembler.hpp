@@ -12,7 +12,7 @@ namespace Omnia
 		{
 			public:
 				inline static Assembler& instance(void) { return *Assembler::s_instance; }
-				int32 run(int argc, char** argv);
+				int64 run(int argc, char** argv);
 
 			private:
 				static Assembler* s_instance;

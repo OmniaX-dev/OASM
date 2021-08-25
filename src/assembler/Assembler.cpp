@@ -5,7 +5,7 @@ namespace Omnia
 {
 	namespace oasm
 	{
-		int32 Assembler::run(int argc, char** argv)
+		int64 Assembler::run(int argc, char** argv)
 		{
 			OutputManager& out = *getOutputHandler();
 			for (uint16 i = 0; i < argc; i++)

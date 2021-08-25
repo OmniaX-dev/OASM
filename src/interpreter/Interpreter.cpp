@@ -29,15 +29,18 @@ namespace Omnia
 
 
 
-		int32 Interpreter::run(int argc, char **argv)
+		int64 Interpreter::run(int argc, char **argv)
 		{
 			bool p__step_exec = false;
+			bool p__print_memory = false;
 			if (argc > 1)
 			{
 				for (int i = 1; i < argc; i++)
 				{
 					if (String(argv[i]).trim().equals("--step-execution", true))
 						p__step_exec = true;
+					else if (String(argv[i]).trim().equals("--print-memory", true))
+						p__print_memory = true;
 				}
 			}
 
@@ -61,9 +64,8 @@ namespace Omnia
 			proc.m_codeAddr = D__MEMORY_START;
 
 			MemAddress var_1 = heap_addr++;
-			//ram.set(proc, var_1, eMemCellType::Heap, eMemState::Free, eMemCellFlag::UsedSingleHeapCell);
 			MemAddress var_2 = heap_addr++;
-			//ram.set(proc, var_2, eMemCellType::Heap, eMemState::Free, eMemCellFlag::UsedSingleHeapCell);
+			MemAddress var_3 = heap_addr++;
 
 			//----------------------------------------------------------------------------------------
 			TMemoryList str = BitEditor::stringToConstSream("Hello World!");
@@ -82,13 +84,23 @@ p_inst(mem),		p_addr(ConstToAddr),										2,										0xfabc,
 
 p_inst(lda_str),	str[0],str[1],str[2],str[3],str[4],str[5],str[6],
 p_inst(mem), 		p_addr(RegToAddr),											var_1,									p_reg(R31),
-p_inst(alloc),		p_addr(SingleOp_const),										7,
+p_inst(alloc),		p_addr(SingleOp_const),										14,
 p_inst(mem), 		p_addr(RegToAddr),											var_2,									p_reg(R31),
-p_inst(str_cpy),	var_1,														var_2,
+p_inst(str_cpy),	var_2,														var_1,
 p_inst(free),		p_addr(SingleOp_addr),										var_1,
 p_inst(cmd),		p_addr(ConstAddr),											p_cmd(PrintStringToConsole),			var_2,
+p_inst(cmd),		p_addr(ConstConst),											p_cmd(PrintNewLineToConsole),			0,
 
-p_inst(mem),		p_addr(ConstToRegPtr),										p_reg(R1),								0xaaaa,
+
+p_inst(lda_str),	str[3],str[1],str[5],str[4],str[6],
+p_inst(mem), 		p_addr(RegToAddr),											var_3,									p_reg(R31),
+p_inst(cmd),		p_addr(ConstAddr),											p_cmd(PrintStringToConsole),			var_3,
+p_inst(cmd),		p_addr(ConstConst),											p_cmd(PrintNewLineToConsole),			0,
+
+//p_inst(mem),		p_addr(ConstToRegPtr),										p_reg(R1),								0xaaaa,
+p_inst(add_str),	p_flg(add_str_str_ptr),										var_2,									var_3,
+p_inst(cmd),		p_addr(ConstAddr),											p_cmd(PrintStringToConsole),			var_2,
+p_inst(cmd),		p_addr(ConstConst),											p_cmd(PrintNewLineToConsole),			0,
 
 
 /*p_inst(mem),		p_addr(RegToAddr),											var_1,									p_reg(R31),
@@ -120,7 +132,7 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 			while (vm.getCPU().clock_tick()) ;
 			ErrorCode __err = vm.getCPU().getLastErrorCode();
 
-			if (!p__step_exec && __err == D__NO_ERROR)
+			if (p__print_memory && __err == D__NO_ERROR)
 				vm.getCPU().printMemory(out, 4, 4, 16, false);
 
 			return __err;
@@ -880,7 +892,7 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 						return false;
 					}
 					m_dec_op1 = (word)m_raw_2;
-					m_dec_op1 = (word)m_raw_3;
+					m_dec_op2 = (word)m_raw_3;
 					m_inst_size = 3;
 					return true;
 				}
@@ -901,19 +913,13 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 						pushError(D__CPU_ERR__INST_ERR_STEP_4);
 						return false;
 					}
-					if (m_err_5 != D__NO_ERROR)
-					{
-						pushError(D__CPU_ERR__INST_ERR_STEP_5);
-						return false;
-					}
-					m_dec_addrMode = (eAddressingModes)m_raw_2;
-					decode_addr_mode();
-					m_dec_flags = (eFlags)m_raw_3;
-					m_dec_op1 = (word)m_raw_4;
-					m_dec_op1 = (word)m_raw_5;
-					m_inst_size = 5;
+					m_dec_flags = (eFlags)m_raw_2;
+					m_dec_op1 = (word)m_raw_3;
+					m_dec_op2 = (word)m_raw_4;
+					m_inst_size = 4;
 					return true;
 				}
+				
 
 				pushError(D__CPU_ERR__UNKNOWN_INSTRUCTION);
 				return false;
@@ -2042,8 +2048,6 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 						pushError(D__CPU_ERR__READ_FAILED);
 						__return_and_set_ip(false, m_old_pc_val)
 					}
-					std::cout << Utils::intToHexStr(__op1_val.val()).cpp() << "\n";
-					std::cout << Utils::intToHexStr(__op2_val.val()).cpp() << "\n";
 					String __tmp_str;
 					if (!_ram.readStringFromStream(__op2_val.val(), __tmp_str))
 					{
@@ -2051,6 +2055,44 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 						__return_and_set_ip(false, m_old_pc_val)
 					}
 					if (!_ram.writeStringToStream(__op1_val.val(), __tmp_str))
+					{
+						pushError(D__CPU_ERR__WRITE_STR_STREAM_FAILED);
+						__return_and_set_ip(false, m_old_pc_val)
+					}
+					__return_and_set_ip(true, m_old_pc_val + m_inst_size)
+				}
+				else if (m_dec_opCode == eInstructionSet::add_str)
+				{
+					BitEditor __op1_val, __op2_val;
+					if (!_ram.read(offsetHeapAddress(m_dec_op1.val()), __op1_val))
+					{
+						pushError(D__CPU_ERR__READ_FAILED);
+						__return_and_set_ip(false, m_old_pc_val)
+					}
+					String __tmp_str_1, __tmp_str_2;
+					if (!_ram.readStringFromStream(__op1_val.val(), __tmp_str_1))
+					{
+						pushError(D__CPU_ERR__READ_STR_STREAM_FAILED);
+						__return_and_set_ip(false, m_old_pc_val)
+					}
+					if (((word)m_dec_flags & (word)eFlags::add_str_str_ptr) == (word)eFlags::add_str_str_ptr)
+					{
+						if (!_ram.read(offsetHeapAddress(m_dec_op2.val()), __op2_val))
+						{
+							pushError(D__CPU_ERR__READ_FAILED);
+							__return_and_set_ip(false, m_old_pc_val)
+						}
+						if (!_ram.readStringFromStream(__op2_val.val(), __tmp_str_2))
+						{
+							pushError(D__CPU_ERR__READ_STR_STREAM_FAILED);
+							__return_and_set_ip(false, m_old_pc_val)
+						}
+					}
+					else if (((word)m_dec_flags & (word)eFlags::add_str_const_stream) == (word)eFlags::add_str_const_stream)
+					{
+					}
+					__tmp_str_1 = __tmp_str_1.add(__tmp_str_2);
+					if (!_ram.writeStringToStream(__op1_val.val(), __tmp_str_1))
 					{
 						pushError(D__CPU_ERR__WRITE_STR_STREAM_FAILED);
 						__return_and_set_ip(false, m_old_pc_val)
