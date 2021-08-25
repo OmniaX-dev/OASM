@@ -1,1 +1,1 @@
-# OASM
+# OASM Scripting language
