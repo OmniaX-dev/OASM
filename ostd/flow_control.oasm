@@ -1,0 +1,47 @@
+.include_guard(__flow_control)
+
+.alias _GREATER_THEN = jle
+.alias _LESS_THEN = jge
+.alias _GREATER_EQ = jl
+.alias _LESS_EQ = jg
+.alias _EQUALS = jne
+.alias _NOT_EQUALS = jeq
+
+.macro _if(__op1, __operator, __op2) cmp $(__op1), $(__op2) "&#" $(__operator) @(_gen_next_end_if)
+//.macro _else() .label @(_gen_next_else)
+.macro _end_if() .label @(_get_last_end_if)
+
+.macro _while_not(__op1, __operator, __op2) cmp $(__op1), $(__op2) "&#" $(__operator) @(_get_last_loop) "&#" .label @(_gen_next_end_loop)
+.macro _loop() .label @(_gen_next_loop) "&#" @(_clear_last_end_loop)
+.macro _break_loop() jmp @(_get_last_end_loop) "&#" @(_clear_last_loop)
+.macro _while_true() jmp @(_get_last_loop)
+
+
+
+//----------Examples------------
+
+/*
+//If statement
+@_if ($_n1, #_GREATER_THEN, $_n2)
+	//
+	//
+@_end_if
+
+//Do_while loop
+@_loop
+	//
+	//
+@_while_not ($_n1, #_GREATER_THEN, $_n2)
+
+
+//While loop
+@_loop
+	@_if ($_n1, #_GREATER_THEN, $_n2)
+		@_break_loop
+	@_end_if
+	//
+	//
+@_while_true
+*/
+
+.close_include_guard

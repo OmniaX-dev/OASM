@@ -1,0 +1,29 @@
+.include_guard(__aliases_oasm)
+
+.include [ostd/com_aliases.oasm]
+.include [ostd/flg_aliases.oasm]
+
+.alias _word  = 0x00
+.alias _byte1 = 0x01
+.alias _byte2 = 0x02
+.alias _byte3 = 0x03
+.alias _byte4 = 0x04
+
+.alias _PackDataSize = 0
+.alias _AutoMemorySetup = .memory_setup(local=#_PackDataSize, heap=200, stack=200)
+
+.alias _MajorVersion = #_byte4 $__oasm_version__
+.alias _MinorVersion = #_byte3 $__oasm_version__
+.alias _BetaVersion = #_byte2 $__oasm_version__
+.alias _AlphaVersion = #_byte1 $__oasm_version__
+
+.alias true = 1
+.alias false = 0
+.alias nullptr = 0
+
+.alias _ExitSuccess = 0x00
+
+.alias _StackRead = 0x40
+.alias _StackPop = 0x00
+
+.close_include_guard

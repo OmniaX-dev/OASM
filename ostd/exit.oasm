@@ -1,0 +1,9 @@
+.include_guard(__exit_oasm)
+.include [ostd/aliases.oasm]
+
+//Normal exit code
+.label end_script
+flg #_ResetFlags
+end #_ExitSuccess
+
+.close_include_guard

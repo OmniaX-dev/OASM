@@ -1,0 +1,114 @@
+.DEFAULT_GOAL := all
+
+# Targets
+#----------
+T_VM_LIB ?= liboasm-vm.so
+T_AS_LIB ?= liboasm-as.so
+T_VM_EXEC ?= oasm-vm
+T_AS_EXEC ?= oasm-as
+
+
+# Directories
+#--------------
+BUILD_DIR ?= ./bin/linux
+BUILD_LIB_DIR ?= shared
+FRONTEND_BUILD_DIR ?= frontend
+SRC_DIRS ?= ./src
+BNR_FILE = build.nr
+
+LIB_DIR = $(BUILD_DIR)/$(BUILD_LIB_DIR)
+
+
+# Magic
+#--------
+SRCS := $(shell find $(SRC_DIRS) -name *.cpp)
+OBJS := $(SRCS:%=$(BUILD_DIR)/%.o)
+DEPS := $(OBJS:.o=.d)
+INC_DIRS := $(shell find $(SRC_DIRS) -type d)
+INC_FLAGS := $(addprefix -I,$(INC_DIRS))
+
+
+# Options
+#----------
+COMMON_SRC = $(SRC_DIRS)/common
+VM_SRC = $(SRC_DIRS)/interpreter
+AS_SRC = $(SRC_DIRS)/assembler
+FRONTEND_SRC = $(SRC_DIRS)/frontend
+DBG_FLAGS = -D__DEBUG__ -g
+CXX = g++
+APP_ARGS = -std=c++17
+BNR = $(shell ./inc_bnr.sh $(BNR_FILE))
+BNR_DEF = -D__BUILD_NUMBER__=$(BNR)
+LDFLAGS = $(APP_ARGS) $(DBG_FLAGS) $(BNR_DEF)
+MAKE_LIB  = -shared -fPIC 
+CPPFLAGS = -m32 $(INC_FLAGS) -MMD -MP $(LDFLAGS) -Wall
+COMPILE_AS = -D__COMPILE_AS__
+COMPILE_VM = -D__COMPILE_VM__
+
+
+
+
+$(BUILD_DIR)/$(BUILD_LIB_DIR)/$(T_VM_LIB): $(OBJS)
+	$(RM) $(BUILD_DIR)/$(BUILD_LIB_DIR)/$(T_VM_LIB)
+	$(MKDIR_P) $(BUILD_DIR)/$(BUILD_LIB_DIR)
+	$(CXX) $(MAKE_LIB) -o $@ $(OBJS) $(CPPFLAGS)
+	echo $(BNR) > $(BNR_FILE)
+
+$(BUILD_DIR)/$(FRONTEND_BUILD_DIR)/$(T_VM_EXEC): $(OBJS)
+	$(RM) $(BUILD_DIR)/$(FRONTEND_BUILD_DIR)/$(T_VM_EXEC)
+	$(MKDIR_P) $(BUILD_DIR)/$(FRONTEND_BUILD_DIR)
+	$(CXX) $(COMPILE_VM) -o $@ $(OBJS) $(CPPFLAGS) -L$(LIB_DIR) -l$(T_VM_EXEC)
+	echo $(BNR) > $(BNR_FILE)
+
+$(BUILD_DIR)/$(BUILD_LIB_DIR)/$(T_AS_LIB): $(OBJS)
+	$(RM) $(BUILD_DIR)/$(BUILD_LIB_DIR)/$(T_AS_LIB)
+	$(MKDIR_P) $(BUILD_DIR)/$(BUILD_LIB_DIR)
+	$(CXX) $(MAKE_LIB) -o $@ $(OBJS) $(CPPFLAGS)
+	echo $(BNR) > $(BNR_FILE)
+
+$(BUILD_DIR)/$(FRONTEND_BUILD_DIR)/$(T_AS_EXEC): $(OBJS)
+	$(RM) $(BUILD_DIR)/$(FRONTEND_BUILD_DIR)/$(T_AS_EXEC)
+	$(MKDIR_P) $(BUILD_DIR)/$(FRONTEND_BUILD_DIR)
+	$(CXX) $(COMPILE_AS) -o $@ $(OBJS) $(CPPFLAGS) -L$(LIB_DIR) -l$(T_AS_EXEC)
+	echo $(BNR) > $(BNR_FILE)
+
+
+
+
+# c++ source
+$(BUILD_DIR)/%.cpp.o: %.cpp
+	$(MKDIR_P) $(dir $@)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
+vm-lib: $(BUILD_DIR)/$(BUILD_LIB_DIR)/$(T_VM_LIB)
+	$(CXX) $(MAKE_LIB) $(VM_SRC)/*.cpp $(COMMON_SRC)/*.cpp -o $(BUILD_DIR)/$(BUILD_LIB_DIR)/$(T_VM_LIB) $(CPPFLAGS)
+	echo $(BNR) > $(BNR_FILE)
+
+vm: $(BUILD_DIR)/$(FRONTEND_BUILD_DIR)/$(T_VM_EXEC)
+	$(CXX) $(COMPILE_VM) $(FRONTEND_SRC)/*.cpp $(COMMON_SRC)/*.cpp -o $(BUILD_DIR)/$(FRONTEND_BUILD_DIR)/$(T_VM_EXEC) -L$(LIB_DIR) -l$(T_VM_EXEC) $(CPPFLAGS)
+	echo $(BNR) > $(BNR_FILE)
+
+as-lib: $(BUILD_DIR)/$(BUILD_LIB_DIR)/$(T_AS_LIB)
+	$(CXX) $(MAKE_LIB) $(AS_SRC)/*.cpp $(COMMON_SRC)/*.cpp -o $(BUILD_DIR)/$(BUILD_LIB_DIR)/$(T_AS_LIB) $(CPPFLAGS)
+	echo $(BNR) > $(BNR_FILE)
+
+as: $(BUILD_DIR)/$(FRONTEND_BUILD_DIR)/$(T_AS_EXEC)
+	$(CXX) $(COMPILE_AS) $(FRONTEND_SRC)/*.cpp $(COMMON_SRC)/*.cpp -o $(BUILD_DIR)/$(FRONTEND_BUILD_DIR)/$(T_AS_EXEC) -L$(LIB_DIR) -l$(T_AS_EXEC) $(CPPFLAGS)
+	echo $(BNR) > $(BNR_FILE)
+
+run-vm:
+	LD_LIBRARY_PATH='$(shell pwd)/$(BUILD_DIR)/$(BUILD_LIB_DIR)/' ./$(BUILD_DIR)/$(FRONTEND_BUILD_DIR)/$(T_VM_EXEC)
+
+run-as:
+	LD_LIBRARY_PATH='$(shell pwd)/$(BUILD_DIR)/$(BUILD_LIB_DIR)/' ./$(BUILD_DIR)/$(FRONTEND_BUILD_DIR)/$(T_AS_EXEC)
+
+.PHONY: clean
+
+clean:
+	$(RM) -r $(BUILD_DIR)
+
+all: vm-lib as-lib vm as
+
+-include $(DEPS)
+
+MKDIR_P ?= mkdir -p

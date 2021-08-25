@@ -1,0 +1,33 @@
+.include_guard(__com_aliases_oasm)
+
+.alias _PrintInt         =   0x0002
+.alias _PrintString      =   0x0003
+.alias _PrintNewLine     =   0x0004
+.alias _StrLen           =   0x0005
+.alias _GetArgsData      =   0x0006
+.alias _ReadString		 =	 0x0007
+.alias _ReadInt			 =	 0x0008
+.alias _ExtCom           =   0x9000
+
+.alias _ExtCom1          =   0x9001
+.alias _ExtCom2          =   0x9002
+.alias _ExtCom3          =   0x9003
+.alias _ExtCom4          =   0x9004
+.alias _ExtCom5          =   0x9005
+.alias _ExtCom6          =   0x9006
+.alias _ExtCom7          =   0x9007
+.alias _ExtCom8          =   0x9008
+.alias _ExtCom9          =   0x9009
+.alias _ExtCom10         =   0x900A
+.alias _ExtCom11         =   0x900B
+.alias _ExtCom12         =   0x900C
+.alias _ExtCom13         =   0x900D
+.alias _ExtCom14         =   0x900E
+.alias _ExtCom15         =   0x900F
+.alias _ExtCom16         =   0x9010
+.alias _ExtCom17         =   0x9011
+.alias _ExtCom18         =   0x9012
+.alias _ExtCom19         =   0x9013
+.alias _ExtCom20         =   0x9014
+
+.close_include_guard

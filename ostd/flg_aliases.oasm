@@ -1,0 +1,12 @@
+.include_guard(__flg_aliases_oasm)
+
+.alias _DestDereference = 0x1000
+.alias _ResetFlags = 0xFFFFFF
+.alias _RestoreFlags = 0x0000
+
+.alias _IntConcat = 0x00001000
+.alias _StringConcat = 0x00001100
+.alias _CharConcat = 0x00001200
+.alias _ConstStrConcat = 0x00001300
+
+.close_include_guard

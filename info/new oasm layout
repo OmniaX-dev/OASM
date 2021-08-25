@@ -1,0 +1,79 @@
+INSTRUCTIONS
+------------------------------------------
+instruction		addressing		flags		addr_1		addr_2
+mv_to_mem		0x0000			0x0000		mem_dest	value/addr/reg
+mv_to_reg		0x0000			0x0000		reg_dest	value/addr/reg
+
+
+Addressing modes:
+0x0000 - (addr, const_val) 		- const_val to addr
+0x0001 - ([addr] , const_val) 	- const_val to mem pointed by addr content
+0x0002 - (reg , const_val) 		- const_val to reg
+0x0003 - ([reg] , const_val) 	- const_val to mem pointed by reg content
+
+0x0004 - (addr1, addr2)	   		- addr2 content to addr1
+0x0005 - ([addr1], addr2)	   	- addr2 content to mem pointed by addr1 content
+0x0006 - (reg, addr)	 		- addr content to reg
+0x0007 - ([reg], addr)			- addr content to mem pointed by reg content
+
+0x0008 - (addr1, [addr2])		- mem pointed by addr2 content to addr1
+0x0009 - ([addr1], [addr2])		- mem pointed by addr2 content to mem pointed by addr1 content
+0x000A - (reg, [addr])			- mem pointed by addr content to reg
+0x000B - ([reg], [addr])		- mem pointed by addr content to mem pointed by reg content
+
+
+
+
+Invalid     =   0xF0F0,
+
+mv_to_mem   =   0x1000,
+mv_to_reg	=	0x1001,
+push        =   0x1002,
+pop         =   0x1003,
+
+inc         =   0x0003,
+dec         =   0x0007,
+add         =   0x0008,
+sub         =   0x0009,
+mul         =   0x000A,
+div         =   0x000B,
+cmp         =   0x0004,
+
+jmp         =   0x0005,
+call        =   0x000E,
+ret         =   0x0011,
+
+cat         =   0x0006,
+flg         =   0x000C,
+
+com         =   0x0002,
+
+req_local   =   0x3000,
+req_heap    =   0x3001,
+req_stack   =   0x3002,
+alloc_h     =   0x3100,
+free_h      =   0x3101,
+
+end         =   0xFFFF
+
+
+
+flags
+-----------
+req
+	0b00000000 00000000 - (0x0000) - Request stack
+	0b00000000 00000001 - (0x0001) - Request Heap
+	0b00000000 00000010 - (0x0002) - Request Local
+	0b00000000 00000011 - (0x0003) - Request All (auto local)
+
+jmp
+	0b00000000 00000000 - (0x0000) - Unconditional Jump
+	0b00000000 00000001 - (0x0001) - Jump if greater
+	0b00000000 00000010 - (0x0002) - Jump if less
+	0b00000000 00000011 - (0x0003) - Jump if equals
+	0b00000000 00000100 - (0x0004) - Jump if not equals
+	0b00000000 00000101 - (0x0005) - Jump if greater or equals
+	0b00000000 00000110 - (0x0006) - Jump if less or equals
+
+*_m
+	0b******** ******** - (0x****) - Bit-Mask
