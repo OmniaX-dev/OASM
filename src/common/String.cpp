@@ -346,11 +346,17 @@ namespace Omnia
 			return res;
 		}
 
-		/*String String::replaceAll(String search, String replace)
+		String String::replaceAll(String search, String replace)
 		{
-			std::string data = string;
-			data = std::regex_replace(data, std::regex(search.cpp()), replace.cpp());
-			return String(data);
-		}*/
+			_string s = string;
+			for (size_t pos = 0; ; pos += replace.length())
+			{
+				pos = s.find(search.cpp(), pos);
+				if (pos == std::string::npos) break;
+				s.erase(pos, search.length());
+				s.insert(pos, replace.cpp());
+			}
+			return String(s);
+		}
 	}
 }

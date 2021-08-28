@@ -1,5 +1,6 @@
 #include "Interpreter.hpp"
 #include <iostream>
+#include "Assembler.hpp"
 
 namespace Omnia
 {
@@ -24,6 +25,11 @@ namespace Omnia
 			iomgr.getOutputHandler()->newLine();
 			return true;
 		}
+		bool EC_PrintInt_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
+		{
+			iomgr.getOutputHandler()->print(param.val());
+			return true;
+		}
 		//----------------------------------------------------------------------------------------------------------
 
 
@@ -31,8 +37,12 @@ namespace Omnia
 
 		int64 Interpreter::run(int argc, char **argv)
 		{
+			OutputManager &out = *getOutputHandler();
+
 			bool p__step_exec = false;
 			bool p__print_memory = false;
+			bool p__assemble = false;
+			String p__input_file_path = "";
 			if (argc > 1)
 			{
 				for (int i = 1; i < argc; i++)
@@ -41,85 +51,45 @@ namespace Omnia
 						p__step_exec = true;
 					else if (String(argv[i]).trim().equals("--print-memory", true))
 						p__print_memory = true;
+					else if (String(argv[i]).trim().equals("--input-file") || String(argv[i]).trim().equals("-i"))
+					{
+						if (i + 1 >= argc)
+						{
+							out.print("Error: No input file specified.").newLine();
+							return 0xFFFF; //TODO: Add error code
+						}
+						i++;
+						p__input_file_path = String(argv[i]);
+					}
+					else if (String(argv[i]).trim().equals("--assemble"))
+					{
+						p__assemble = true;
+					}
 				}
 			}
 
 			EC_PrintChar_cmd __ec_printChar_cmd;
 			EC_PrintString_cmd __ec_prinString_cmd;
 			EC_PrintNewLine_cmd __ec_prinSNewLine_cmd;
+			EC_PrintInt_cmd __ec_printInt_cmd;
 			ECM::instance().addHandler((word)eComCodes::PrintCharToConsole, __ec_printChar_cmd);
 			ECM::instance().addHandler((word)eComCodes::PrintStringToConsole, __ec_prinString_cmd);
 			ECM::instance().addHandler((word)eComCodes::PrintNewLineToConsole, __ec_prinSNewLine_cmd);
+			ECM::instance().addHandler((word)eComCodes::PrintIntToConsole, __ec_printInt_cmd);
 
 			Flags::set(FLG__PRINT_ERROR_ON_PUSH);
-			OutputManager &out = *getOutputHandler();
 			VirtualMachine &vm = VirtualMachine::instance();
 			hw::RAM &ram = vm.getRAM();
 			vm.getCPU().setStepExecution(p__step_exec);
 
-			MemAddress heap_addr = 0;
 			Process proc;
 			proc.setID(2522);
 			proc.validate();
 			proc.m_codeAddr = D__MEMORY_START;
 
-			MemAddress var_1 = heap_addr++;
-			MemAddress var_2 = heap_addr++;
-			MemAddress var_3 = heap_addr++;
-
-			//----------------------------------------------------------------------------------------
-			TMemoryList str = BitEditor::stringToConstSream("Hello World!");
-			proc.m_code = {
-
-//-----CODE START-----
-p_inst(req), 		p_flg(req_heap), 											63,
-p_inst(req), 		p_flg(req_stack), 											63,
-
-p_inst(reserve), 	p_addr(SingleOp_reg),										p_reg(R0),
-p_inst(reserve), 	p_addr(SingleOp_reg),										p_reg(R1),
-p_inst(reserve), 	p_addr(SingleOp_reg),										p_reg(R2),
-p_inst(mem),		p_addr(RegToRegPtr),										p_reg(R0),								p_reg(R2),
-p_inst(mem),		p_addr(ConstToAddr),										2,										0xfabc,
-
-
-p_inst(lda_str),	str[0],str[1],str[2],str[3],str[4],str[5],str[6],
-p_inst(mem), 		p_addr(RegToAddr),											var_1,									p_reg(R31),
-p_inst(alloc),		p_addr(SingleOp_const),										14,
-p_inst(mem), 		p_addr(RegToAddr),											var_2,									p_reg(R31),
-p_inst(str_cpy),	var_2,														var_1,
-p_inst(free),		p_addr(SingleOp_addr),										var_1,
-p_inst(cmd),		p_addr(ConstAddr),											p_cmd(PrintStringToConsole),			var_2,
-p_inst(cmd),		p_addr(ConstConst),											p_cmd(PrintNewLineToConsole),			0,
-
-
-p_inst(lda_str),	str[3],str[1],str[5],str[4],str[6],
-p_inst(mem), 		p_addr(RegToAddr),											var_3,									p_reg(R31),
-p_inst(cmd),		p_addr(ConstAddr),											p_cmd(PrintStringToConsole),			var_3,
-p_inst(cmd),		p_addr(ConstConst),											p_cmd(PrintNewLineToConsole),			0,
-
-//p_inst(mem),		p_addr(ConstToRegPtr),										p_reg(R1),								0xaaaa,
-p_inst(add_str),	p_flg(add_str_str_ptr),										var_2,									var_3,
-p_inst(cmd),		p_addr(ConstAddr),											p_cmd(PrintStringToConsole),			var_2,
-p_inst(cmd),		p_addr(ConstConst),											p_cmd(PrintNewLineToConsole),			0,
-
-
-/*p_inst(mem),		p_addr(RegToAddr),											var_1,									p_reg(R31),
-p_inst(cmd),		p_addr(ConstAddr),											p_cmd(PrintStringToConsole),			var_1,
-p_inst(lda_str),	0x4142, 0x6100,
-p_inst(mem),		p_addr(RegToAddr),											var_2,									p_reg(R31),
-p_inst(cmd),		p_addr(ConstAddr),											p_cmd(PrintStringToConsole),			var_2,
-p_inst(realloc),	p_addr(ConstToPtr)	,										var_1,									8,
-p_inst(mem),		p_addr(RegToAddr),											var_1,									p_reg(R31),
-p_inst(cmd),		p_addr(ConstAddr),											p_cmd(PrintStringToConsole),			var_1,
-
-p_inst(free),		p_addr(SingleOp_addr),										var_1,
-p_inst(free),		p_addr(SingleOp_addr),										var_2,*/
-
-p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
-//-----CODE END-------
-
-			};
-			//----------------------------------------------------------------------------------------
+			if (p__assemble && p__input_file_path.trim() != "")
+				proc.m_code = Assembler::instance().assemble(p__input_file_path);
+			//TODO: Add option to load executable
 
 			vm.setCurrentProc(proc);
 			ram.disableProtectedMode();
@@ -129,6 +99,7 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 				ram.write((MemAddress)i, proc.m_code[i - proc.m_codeAddr]);
 			}
 			ram.enableProtectedMode();
+			proc.m_codeAllocated = true;
 			while (vm.getCPU().clock_tick()) ;
 			ErrorCode __err = vm.getCPU().getLastErrorCode();
 
@@ -185,6 +156,7 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 				m_variable_inst_size = false;
 				m_heap_reserve_count = 0;
 				m_next_single_heap = 0;
+				m_break_points.clear();
 
 				return *this;
 			}
@@ -913,10 +885,18 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 						pushError(D__CPU_ERR__INST_ERR_STEP_4);
 						return false;
 					}
-					m_dec_flags = (eFlags)m_raw_2;
-					m_dec_op1 = (word)m_raw_3;
-					m_dec_op2 = (word)m_raw_4;
-					m_inst_size = 4;
+					if (m_err_5 != D__NO_ERROR)
+					{
+						pushError(D__CPU_ERR__INST_ERR_STEP_5);
+						return false;
+					}
+					m_dec_addrMode = (eAddressingModes)m_raw_2;
+					decode_addr_mode();
+					m_dec_flags = (eFlags)m_raw_3;
+					m_dec_op1 = (word)m_raw_4;
+					m_dec_op2 = (word)m_raw_5;
+					m_inst_size = 5;
+					m_variable_inst_size = true;
 					return true;
 				}
 				
@@ -1614,6 +1594,7 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 						}
 					}
 					BitEditor __flags(m_raw_3);
+					__op1_val = offsetCodeAddress(__op1_val.val());
 					if (__flags.getMasked((word)eFlags::jmp_unconditional) == (word)eFlags::jmp_unconditional)
 					{
 						__return_and_set_ip(true, __op1_val)
@@ -1709,7 +1690,7 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 					{
 						__return_and_set_ip(false, m_old_pc_val)
 					}
-					__return_and_set_ip(true, __op1_val)
+					__return_and_set_ip(true, offsetCodeAddress(__op1_val.val()))
 				}
 				else if (m_dec_opCode == eInstructionSet::ret)
 				{
@@ -1934,12 +1915,16 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 							__return_and_set_ip(false, m_old_pc_val)
 						}
 					}
+					//TODO: More efficient realloc instruction
+					__op1_val = __localize_real_addr(__op1_val.val());
 					TMemoryList __stream;
 					if (!_ram.readFromPtr(__op1_val.val(), __stream, true))
 					{
 						pushError(D__CPU_ERR__READ_PTR_FAILED);
 						__return_and_set_ip(false, m_old_pc_val)
 					}
+					for (auto& __c : __stream)
+						std::cout << Utils::intToHexStr(__c.val()).cpp() << "\n";
 					if (outData2 <= _ram.m_memory[__op1_val.val() - 1] - __op1_val)
 					{
 						pushError(D__CPU_ERR__REALLOC_SIZE_TOO_SMALL);
@@ -2089,6 +2074,30 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 						}
 					}
 					else if (((word)m_dec_flags & (word)eFlags::add_str_const_stream) == (word)eFlags::add_str_const_stream)
+					{
+						m_inst_size--;
+						MemAddress __new_ip = m_old_pc_val + m_inst_size;
+						BitEditor __tmp_stream_cell;
+						TMemoryList __str_stream;
+						while (true)
+						{
+							//TODO: Add Reserved MemCell for string length
+							if (!_ram.read(__new_ip++, __tmp_stream_cell))
+							{
+								pushError(D__CPU_ERR__READ_FAILED);
+								__return_and_set_ip(false, m_old_pc_val)
+							}
+							__str_stream.push_back(__tmp_stream_cell);
+							m_inst_size++;
+							if (__tmp_stream_cell == 0 || __tmp_stream_cell.getLSB() == 0)
+								break;
+						}
+						__tmp_str_2 = BitEditor::constStreamToString(__str_stream);
+					}
+					else if (((word)m_dec_flags & (word)eFlags::add_str_char) == (word)eFlags::add_str_char)
+					{
+					}
+					else if (((word)m_dec_flags & (word)eFlags::add_str_int) == (word)eFlags::add_str_int)
 					{
 					}
 					__tmp_str_1 = __tmp_str_1.add(__tmp_str_2);
@@ -2630,6 +2639,38 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 				return __local_addr + __proc.m_heapAddr + 1;
 			}
 
+			MemAddress CPU::offsetCodeAddress(MemAddress __local_addr)
+			{
+				Process& __proc = VirtualMachine::instance().getCurrentProcess();
+				if (__proc.isInvalidProc())
+				{
+					pushError(D__CPU_ERR__OFFSET_CODE_INVALID_PROC);
+					return oasm_nullptr;
+				}
+				if (!__proc.m_codeAllocated)
+				{
+					pushError(D__CPU_ERR__OFFSET_CODE_NOT_REQUESTED);
+					return oasm_nullptr;
+				}
+				return __local_addr + __proc.m_codeAddr;
+			}
+
+			MemAddress CPU::__localize_real_addr(MemAddress __real_addr)
+			{
+				Process& __proc = VirtualMachine::instance().getCurrentProcess();
+				if (__proc.isInvalidProc())
+				{
+					pushError(D__CPU_ERR__OFFSET_HEAP_INVALID_PROC);
+					return oasm_nullptr;
+				}
+				if (!__proc.m_heapAllocated)
+				{
+					pushError(D__CPU_ERR__OFFSET_HEAP_NOT_REQUESTED);
+					return oasm_nullptr;
+				}
+				return __real_addr - (__proc.m_heapAddr + 1);
+			}
+
 			bool CPU::clock_tick(void)
 			{
 				VirtualMachine &_vm = VirtualMachine::instance();
@@ -2681,6 +2722,20 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 						out.newLine().print("  #[-cmd-]/> ");
 						_vm.getInputHandler()->read(m_cmd_command);
 					}
+					else if (!m_break_points.empty())
+					{
+						for (MemAddress __br = m_old_pc_val; __br < m_old_pc_val + m_inst_size; __br++)
+						{
+							if (STDVEC_CONTAINS(m_break_points, m_old_pc_val))
+							{
+								printMemory(out, 4, 4, 16, true);
+								out.newLine().print("  Press <Enter> to continue execution.").newLine();
+								out.newLine().print("  #[-cmd-]/> ");
+								_vm.getInputHandler()->read(m_cmd_command);
+								break;
+							}
+						}
+					}
 				}
 				return true;
 			}
@@ -2713,13 +2768,13 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 					tmp.add(Utils::mapInstruction((eInstructionSet)m_raw_1));
 				if (m_inst_size >= 2)
 					tmp.add(",   ").add(Utils::intToHexStr(m_raw_2));
-				if (m_inst_size >= 3 && !m_variable_inst_size)
+				if (m_inst_size >= 3)
 					tmp.add(",   ").add(Utils::intToHexStr(m_raw_3));
-				if (m_inst_size >= 4 && !m_variable_inst_size)
+				if (m_inst_size >= 4)
 					tmp.add(",   ").add(Utils::intToHexStr(m_raw_4));
-				if (m_inst_size >= 5 && !m_variable_inst_size)
+				if (m_inst_size >= 5)
 					tmp.add(",   ").add(Utils::intToHexStr(m_raw_5));
-				if (m_inst_size == 6 && !m_variable_inst_size)
+				if (m_inst_size >= 6)
 					tmp.add(",   ").add(Utils::intToHexStr(m_raw_6));
 				if (m_variable_inst_size)
 					tmp.add(",   (***)");
@@ -3168,7 +3223,7 @@ p_inst(end), 		p_addr(SingleOp_const), 									0xCACA
 							return false;
 					}
 				}
-				for (word i = ptr; i < __end_addr; i++)
+				for (word i = ptr; i <= __end_addr; i++)
 					outData.push_back(m_memory[i]);
 				return true;
 			}

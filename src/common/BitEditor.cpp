@@ -87,10 +87,9 @@ namespace Omnia
 				else cell.setMSB((ubyte)c);
 				__msb = !__msb;
 			}
-			if (!__msb)
-				result.push_back(cell);
-			else
-				result.push_back(0); //Null Termination character
+			result.push_back(cell);
+			if (cell != 0 && cell.getLSB() != 0)
+				result.push_back(0);
 			return result;
 		}
 

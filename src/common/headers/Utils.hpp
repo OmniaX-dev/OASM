@@ -173,8 +173,10 @@ namespace Omnia
             jmp_greater_eq          =   0b0000000000010000,
             jmp_less_eq             =   0b0000000000100000,
 
-            add_str_const_stream    =   0b0000000000000000,
-            add_str_str_ptr         =   0b0000000000000001
+            add_str_const_stream    =   0b0000000000000001,
+            add_str_str_ptr         =   0b0000000000000010,
+            add_str_int             =   0b0000000000000100,
+            add_str_char            =   0b0000000000001000
         };
         enum class eMemState
         {
@@ -298,21 +300,7 @@ namespace Omnia
             Minor = __MINOR_VER__,
             Build = __BUILD_NUMBER__
         };
-        enum class eAssemblerDirectives
-        {
-            Include = 0,
-            IncludeGuard,
-            CloseIncludeGuard,
-            SubRoutine,
-            CloseSubRoutine,
-            Low,
-            Alias,
-            Label,
-            Var,
-            MemorySetup,
-
-            Invalid
-        };
+        
         enum class eAssemblerErrors
         {
             NoError = 0,
@@ -433,14 +421,7 @@ namespace Omnia
             LSB = 0b0000000011111111,
             Invert = 0xFFFF
         };        
-        enum class eByte
-        {
-            One     = 0x01,
-            Two     = 0x02,
-            Three   = 0x03,
-            Four    = 0x04,
-            All     = 0x00
-        };
+
 
         class Protectable
         {

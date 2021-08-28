@@ -24,6 +24,11 @@ namespace Omnia
             public:
                 bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
         };
+		class EC_PrintInt_cmd : public ExtComHandler
+        {
+            public:
+                bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
+        };
 		//----------------------------------------------------------------------------------------------------------
 
 
@@ -59,11 +64,13 @@ namespace Omnia
 					void printMemory(OutputManager& out, word __stack_rows = 4, word __heap_rows = 4, word __code_rows = 8, bool __print_instruction_data = false);
 					bool pushToStack(BitEditor __data);
 					MemAddress offsetHeapAddress(MemAddress __local_addr);
+					MemAddress offsetCodeAddress(MemAddress __local_addr);
 
 					bool clock_tick(void);
 
 					inline void setStepExecution(bool __se) { m_step_execution = __se; }
 					inline bool stepExecutionEnabled(void) { return m_step_execution; }
+					inline void addBreakPoint(MemAddress __brp_addr) { m_break_points.push_back(offsetHeapAddress(__brp_addr)); }
 
 					void pushError(ErrorCode __err_code);
 
@@ -77,50 +84,52 @@ namespace Omnia
 					BitEditor __logic_op(BitEditor op1, BitEditor op2, eInstructionSet inst);
 					bool __next_single_heap_cell(MemAddress& outAddr);
 					bool __free_single_heap_cell(MemAddress __local_addr);
+					MemAddress __localize_real_addr(MemAddress __real_addr);
 
 				private:
-					uint8 				m_ipc;
-					MemAddress 			m_old_pc_val;
-					uint8 				m_inst_mode;
-					bool				m_single_op_inst;
-					bool				m_process_end;
-					uint8				m_inst_size;
-					word				m_m_param;
-					eSingleAddrModes	m_op1_addr_mode;
-					eSingleAddrModes	m_op2_addr_mode;
-					bool				m_const_op1;
-					bool				m_pop_r_flg;
+					uint8 						m_ipc;
+					MemAddress 					m_old_pc_val;
+					uint8 						m_inst_mode;
+					bool						m_single_op_inst;
+					bool						m_process_end;
+					uint8						m_inst_size;
+					word						m_m_param;
+					eSingleAddrModes			m_op1_addr_mode;
+					eSingleAddrModes			m_op2_addr_mode;
+					bool						m_const_op1;
+					bool						m_pop_r_flg;
 
-					bool				m_step_execution;
-					uint8				m_current_ipc;
-					String				m_cmd_command;
-					bool				m_variable_inst_size;
-					word				m_heap_reserve_count;
-					MemAddress			m_next_single_heap;
+					bool						m_step_execution;
+					uint8						m_current_ipc;
+					String						m_cmd_command;
+					bool						m_variable_inst_size;
+					word						m_heap_reserve_count;
+					MemAddress					m_next_single_heap;
+					std::vector<MemAddress>		m_break_points;
 
-					word 				m_raw_1;
-					word 				m_raw_2;
-					word 				m_raw_3;
-					word 				m_raw_4;
-					word 				m_raw_5;
-					word 				m_raw_6;
+					word 						m_raw_1;
+					word 						m_raw_2;
+					word 						m_raw_3;
+					word 						m_raw_4;
+					word 						m_raw_5;
+					word 						m_raw_6;
 
-					eInstructionSet 	m_dec_opCode;
-					eAddressingModes 	m_dec_addrMode;
-					eFlags 				m_dec_flags;
-					BitEditor 			m_dec_op1;
-					BitEditor 			m_dec_op2;
-					BitEditor 			m_dec_extra;
-					BitEditor			m_dec_bitmask;
+					eInstructionSet 			m_dec_opCode;
+					eAddressingModes 			m_dec_addrMode;
+					eFlags 						m_dec_flags;
+					BitEditor 					m_dec_op1;
+					BitEditor 					m_dec_op2;
+					BitEditor 					m_dec_extra;
+					BitEditor					m_dec_bitmask;
 
-					ErrorCode 			m_err_1;
-					ErrorCode 			m_err_2;
-					ErrorCode 			m_err_3;
-					ErrorCode 			m_err_4;
-					ErrorCode 			m_err_5;
-					ErrorCode 			m_err_6;
+					ErrorCode 					m_err_1;
+					ErrorCode 					m_err_2;
+					ErrorCode 					m_err_3;
+					ErrorCode 					m_err_4;
+					ErrorCode 					m_err_5;
+					ErrorCode 					m_err_6;
 
-					static CPU* 		s_instance;
+					static CPU* 				s_instance;
 			};
 			inline CPU* CPU::s_instance = new CPU();
 

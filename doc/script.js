@@ -289,7 +289,7 @@ $(function(){
 		new InstOperand().add(IOps.Addr).add(IOps.Reg),
 	"str_cpy instruction");
 
-	addInstruction("add_str", "100A", IOps.NoOperand, "0x****", 
+	addInstruction("add_str", "100A", "0x****", "0x****", 
 		new InstOperand().add(IOps.Addr).add(IOps.Reg),
 		new InstOperand().add(IOps.ConstStream).add(IOps.Addr).add(IOps.Reg),
 	"add_str instruction");
@@ -613,8 +613,10 @@ $(function(){
 	addFlags("00000000 00010000", "000F", "jmp", "Jump if greater or equals", "Test long desc");
 	addFlags("00000000 00100000", "0020", "jmp", "Jump if less or equals", "Test long desc");
 	addSeparator("flags-table");
-	addFlags("00000000 00000000", "0000", "add_str", "String pointer Op2", "Test long desc");
 	addFlags("00000000 00000001", "0001", "add_str", "const_stream Op2", "Test long desc");
+	addFlags("00000000 00000010", "0002", "add_str", "String pointer Op2", "Test long desc");
+	addFlags("00000000 00000100", "0004", "add_str", "integer op2", "Test long desc");
+	addFlags("00000000 00001000", "0008", "add_str", "single character (integer) op2", "Test long desc");
 
 
 	$("div.table-container").hide();

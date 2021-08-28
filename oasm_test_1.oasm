@@ -1,0 +1,41 @@
+.include_guard(oasm_test_1)
+
+.command(request, all=63)
+
+.data = reserve(max, _t1, _t2, next, i, text)
+.data = load_string(text, "Fibonacci series:")
+
+cmd,			Const_Addr,			PrintStringToConsole,		text
+cmd,			Const_Const,		PrintNewLineToConsole,		0
+
+cmd,			Const_Const,		PrintIntToConsole,			0
+cmd,			Const_Const,		PrintNewLineToConsole,		0
+
+cmd,			Const_Const,		PrintIntToConsole,			1
+cmd,			Const_Const,		PrintNewLineToConsole,		0
+
+cmd,			Const_Const,		PrintIntToConsole,			2
+cmd,			Const_Const,		PrintNewLineToConsole,		0
+
+mem,			Addr_Const,			i,							3
+mem,			Addr_Const,			_t1,						1
+mem,			Addr_Const,			_t2,						2
+
+mem,			Addr_Const,			max,						15
+
+:for_loop:
+	cmp,		Addr_Addr,			i,							max
+	jmp,		Single_Const,		JMP_GREATER,				end_loop
+	inc,		Single_Addr,		i
+	mem,		Addr_Addr,			next,						_t1
+	add,		Addr_Addr,			next,						_t2
+	mem,		Addr_Addr,			_t1,						_t2
+	mem,		Addr_Addr,			_t2,						next
+	cmd,		Const_Addr,			PrintIntToConsole,			next
+	cmd,		Const_Const,		PrintNewLineToConsole,		0
+	jmp,		Single_Const,		JMP_UNCONDITIONAL,			for_loop
+:end_loop:
+
+end,			Single_Const,		0xCACA
+
+.close_include_guard

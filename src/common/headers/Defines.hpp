@@ -46,6 +46,7 @@
 #define MIN(n1, n2) (n1 < n2 ? n1 : n2)
 #define PROPORTION(w, x, y) ((x * w) / y)
 #define STDVEC_REMOVE(vec, index) vec.erase(vec.begin() + index)
+#define STDVEC_CONTAINS(vec, elem) (std::find(vec.begin(), vec.end(), elem) != vec.end())
 
 //Memory management macros
 #define new_sh(type) std::make_shared<type>

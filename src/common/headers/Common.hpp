@@ -198,6 +198,8 @@ namespace Omnia
 					{ D__CPU_ERR__RESERVE_SINGLE_FAILED, "Failed to reserve single heap cell." },
 					{ D__CPU_ERR__READ_STR_STREAM_FAILED, "Failed to read string from stream." },
 					{ D__CPU_ERR__WRITE_STR_STREAM_FAILED, "Failed to write string to stream." },
+					{ D__CPU_ERR__OFFSET_CODE_INVALID_PROC, "Failed to offset code address: invalid current process." },
+					{ D__CPU_ERR__OFFSET_CODE_NOT_REQUESTED, "Failed to offset heap address: code block not allocated." },
 
 					{ D__RAM_ERR__IO_FAILED_INVALID_PROC, "I/O failed: Invalid current process." },
 					{ D__RAM_ERR__READ_FAILED_RESERVED_CELL, "Read failed: Trying to access reserved memory cell." },

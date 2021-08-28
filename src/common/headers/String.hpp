@@ -71,7 +71,7 @@ namespace Omnia
 			StringTokens splitExc(char exc = '\"', bool trim = true);
 			bool equals(String str2, bool ignoreCase = false);
 			String remove(char c);
-			//String replaceAll(String search, String replace);
+			String replaceAll(String search, String replace);
 			inline void set(String str) { string = str.cpp(); }
 
 		protected:

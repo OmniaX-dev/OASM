@@ -7,7 +7,7 @@
 #endif
 
 #define __exit_verbose(__base_instance, __err_code) \
-	__base_instance.getOutputHandler()->newLine().print(" [system]:/ Exit_Error ").print(__err_code).newLine(); \
+	__base_instance.getOutputHandler()->newLine().newLine().newLine().print(" [system]:/ Exit_Error ").print(__err_code).newLine(); \
 	return __err_code;
 
 int main(int argc, char** argv)
