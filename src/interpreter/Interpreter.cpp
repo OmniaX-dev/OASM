@@ -3105,11 +3105,6 @@ namespace Omnia
 					pushError(D__RAM_ERR__WRITE_CODE, *VirtualMachine::instance().getOutputHandler(), "VirtualRAM Error", addr);
 					return false;
 				}
-				if (m_memCells[addr].flag != eMemCellFlag::UsedSingleHeapCell)
-				{
-					pushError(D__RAM_ERR__WRITE_FAILED_UNALLOCATED, *VirtualMachine::instance().getOutputHandler(), "VirtualRAM Error", addr);
-					return false;
-				}
 				Process &cellProc = *m_memCells[addr].proc;
 				if (__proc.getID() != cellProc.getID() || cellProc.isInvalidProc())
 				{
@@ -3117,7 +3112,14 @@ namespace Omnia
 					return false;
 				}
 				if (addr >= D__HEAP_SPACE_START && addr < D__STACK_SPACE_START)
+				{
+					if (m_memCells[addr].flag != eMemCellFlag::UsedSingleHeapCell)
+					{
+						pushError(D__RAM_ERR__WRITE_FAILED_UNALLOCATED, *VirtualMachine::instance().getOutputHandler(), "VirtualRAM Error", addr);
+						return false;
+					}
 					m_memCells[addr].flag = eMemCellFlag::UsedSingleHeapCell;
+				}
 				m_memory[addr] = data;
 				return true;
 			}
@@ -3142,7 +3144,7 @@ namespace Omnia
 						pushError(D__RAM_ERR__WRITE_USED, *VirtualMachine::instance().getOutputHandler(), "VirtualRAM Error", addr);
 						return false;
 					}
-					if (m_memCells[addr].flag != eMemCellFlag::UsedSingleHeapCell)
+					if (m_memCells[addr].flag != eMemCellFlag::UsedSingleHeapCell) //TODO: this will fail when instructions try to access stack via this method
 					{
 						pushError(D__RAM_ERR__WRITE_FAILED_UNALLOCATED, *VirtualMachine::instance().getOutputHandler(), "VirtualRAM Error", addr);
 						return false;

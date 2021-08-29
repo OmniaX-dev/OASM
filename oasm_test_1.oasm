@@ -5,37 +5,48 @@
 .data = reserve(max, _t1, _t2, next, i, text)
 .data = load_string(text, "Fibonacci series:")
 
-cmd,			Const_Addr,			PrintStringToConsole,		text
-cmd,			Const_Const,		PrintNewLineToConsole,		0
+jmp,				Single_Const,		JMP_UNCONDITIONAL,			main_prog
+//--------------------------------------------------------------------------------------
+:fibonacci_series:
+	cmd,			Const_Addr,			PrintStringToConsole,		text
+	cmd,			Const_Const,		PrintNewLineToConsole,		0
 
-cmd,			Const_Const,		PrintIntToConsole,			0
-cmd,			Const_Const,		PrintNewLineToConsole,		0
+	cmd,			Const_Const,		PrintIntToConsole,			0
+	cmd,			Const_Const,		PrintNewLineToConsole,		0
 
-cmd,			Const_Const,		PrintIntToConsole,			1
-cmd,			Const_Const,		PrintNewLineToConsole,		0
+	cmd,			Const_Const,		PrintIntToConsole,			1
+	cmd,			Const_Const,		PrintNewLineToConsole,		0
 
-cmd,			Const_Const,		PrintIntToConsole,			2
-cmd,			Const_Const,		PrintNewLineToConsole,		0
+	cmd,			Const_Const,		PrintIntToConsole,			2
+	cmd,			Const_Const,		PrintNewLineToConsole,		0
 
-mem,			Addr_Const,			i,							3
-mem,			Addr_Const,			_t1,						1
-mem,			Addr_Const,			_t2,						2
+	mem,			Addr_Const,			i,							3
+	mem,			Addr_Const,			_t1,						1
+	mem,			Addr_Const,			_t2,						2
 
-mem,			Addr_Const,			max,						15
+	:for_loop:
+		cmp,		Addr_Addr,			i,							max
+		jmp,		Single_Const,		JMP_GREATER_OR_EQUALS,		end_loop
+		inc,		Single_Addr,		i
+		mem,		Addr_Addr,			next,						_t1
+		add,		Addr_Addr,			next,						_t2
+		mem,		Addr_Addr,			_t1,						_t2
+		mem,		Addr_Addr,			_t2,						next
+		cmd,		Const_Addr,			PrintIntToConsole,			next
+		cmd,		Const_Const,		PrintNewLineToConsole,		0
+		jmp,		Single_Const,		JMP_UNCONDITIONAL,			for_loop
+	:end_loop:
+	ret,			Single_Const,		0
+//----------------------------END FIBONACCI_SERIES--------------------------------------
 
-:for_loop:
-	cmp,		Addr_Addr,			i,							max
-	jmp,		Single_Const,		JMP_GREATER,				end_loop
-	inc,		Single_Addr,		i
-	mem,		Addr_Addr,			next,						_t1
-	add,		Addr_Addr,			next,						_t2
-	mem,		Addr_Addr,			_t1,						_t2
-	mem,		Addr_Addr,			_t2,						next
-	cmd,		Const_Addr,			PrintIntToConsole,			next
-	cmd,		Const_Const,		PrintNewLineToConsole,		0
-	jmp,		Single_Const,		JMP_UNCONDITIONAL,			for_loop
-:end_loop:
+:main_prog:
+	mem,				Addr_Const,			max,						8
+	call,				Const_Const,		fibonacci_series,			0
+	mem,				Addr_Const,			max,						16
+	call,				Const_Const,		fibonacci_series,			0
+	mem,				Addr_Const,			max,						20
+	call,				Const_Const,		fibonacci_series,			0
 
-end,			Single_Const,		0xCACA
+	end,			Single_Const,		0xCACA
 
 .close_include_guard
