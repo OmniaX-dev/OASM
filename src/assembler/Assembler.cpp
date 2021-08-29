@@ -514,6 +514,17 @@ namespace Omnia
 					__code.push_back(Utils::strToInt(__data));
 				}
 			}
+            MemAddress __main_addr = oasm_nullptr;
+            if (isLabel("__main__", __main_addr))
+            {
+                __code.insert(__code.begin(), __main_addr);
+            }
+            else 
+            {
+                //TODO: Error
+                getOutputHandler()->print("No entry poin found.").newLine();
+                return TMemoryList();
+            }
 			return __code;
 		}
 		
@@ -524,8 +535,8 @@ namespace Omnia
 			OmniaString __data = "";
 			OmniaString::StringTokens __st;
 			StringBuilder __new_line;
-			MemAddress __addr = 0;
-            for (auto& l : lines)
+			MemAddress __addr = 1;
+            for (auto& l : lines) //Resolve labels
             {
                 l = l.trim();
 				if (l.startsWith(":") && l.endsWith(":"))

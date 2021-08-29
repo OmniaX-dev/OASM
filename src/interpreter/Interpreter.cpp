@@ -100,6 +100,10 @@ namespace Omnia
 			}
 			ram.enableProtectedMode();
 			proc.m_codeAllocated = true;
+			proc.m_codeSize = proc.m_code.size();
+			vm.getREG().disableProtectedMode();
+			vm.getREG().write(eRegisters::IP, proc.m_code[0] + proc.m_codeAddr);
+			vm.getREG().enableProtectedMode();
 			while (vm.getCPU().clock_tick()) ;
 			ErrorCode __err = vm.getCPU().getLastErrorCode();
 
@@ -1824,7 +1828,7 @@ namespace Omnia
 					}
 					BitEditor __tmp_result;
 					if (!ECM::instance().execHandler(__op1_val.val(), __op2_val, VirtualMachine::instance(), __tmp_result))
-					{
+					{//TODO: Diversify his error
 						pushError(D__CPU_ERR__UNKNOWN_CMD_CODE);
 						__return_and_set_ip(false, m_old_pc_val)
 					}
