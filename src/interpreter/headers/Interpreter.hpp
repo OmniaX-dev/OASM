@@ -42,6 +42,22 @@ namespace Omnia
 
 			private:
 				static Interpreter* s_instance;
+
+				bool p__step_exec;
+				bool p__print_memory;
+				bool p__assemble;
+				bool p__debugger_call;
+				OmniaString p__input_file_path;
+
+				Process proc;
+
+				//Command handlers
+				EC_PrintChar_cmd __ec_printChar_cmd;
+				EC_PrintString_cmd __ec_prinString_cmd;
+				EC_PrintNewLine_cmd __ec_prinSNewLine_cmd;
+				EC_PrintInt_cmd __ec_printInt_cmd;
+
+				friend class Debugger;
 		};
 
 		inline Interpreter* Interpreter::s_instance = new Interpreter();
@@ -66,6 +82,8 @@ namespace Omnia
 					bool pushToStack(BitEditor __data);
 					MemAddress offsetHeapAddress(MemAddress __local_addr);
 					MemAddress offsetCodeAddress(MemAddress __local_addr);
+					uint8 getIPC(void) { return m_ipc; }
+					void setIPC(uint8 ipc) { m_ipc = ipc; }
 
 					bool clock_tick(void);
 
@@ -131,6 +149,8 @@ namespace Omnia
 					ErrorCode 					m_err_6;
 
 					static CPU* 				s_instance;
+
+					friend class Debugger;
 			};
 			inline CPU* CPU::s_instance = new CPU();
 
@@ -141,6 +161,8 @@ namespace Omnia
 
 				private:
 					static GPU* s_instance;
+
+					friend class Debugger;
 			};
 			inline GPU* GPU::s_instance = new GPU();
 
@@ -189,6 +211,7 @@ namespace Omnia
 					inline static RAM& instance(void) { return *RAM::s_instance; }
 
 					friend class CPU;
+					friend class Debugger;
 
 				private:
 					MemAddress requestFrom(MemAddress start, word size, MemAddress max, bool __alloc = true);
@@ -262,6 +285,7 @@ namespace Omnia
 					static REG* s_instance;
 
 					friend class CPU;
+					friend class Debugger;
 			};
 			inline REG* REG::s_instance = new REG();
 
@@ -289,6 +313,8 @@ namespace Omnia
 				inline static hw::RAM& m_ram = hw::RAM::instance();
 				inline static hw::REG& m_reg = hw::REG::instance();
 				static VirtualMachine* s_instance;
+
+				friend class Debugger;
 		};
 
 		inline VirtualMachine* VirtualMachine::s_instance = new VirtualMachine();

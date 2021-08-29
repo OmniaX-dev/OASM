@@ -39,11 +39,12 @@ namespace Omnia
 		{
 			OutputManager &out = *getOutputHandler();
 
-			bool p__step_exec = false;
-			bool p__print_memory = false;
-			bool p__assemble = false;
-			bool p__debugger_call = false;
-			OmniaString p__input_file_path = "";
+			p__step_exec = false;
+			p__print_memory = false;
+			p__assemble = false;
+			p__debugger_call = false;
+			p__input_file_path = "";
+			proc = Process();
 			if (argc > 1)
 			{
 				for (int i = 1; i < argc; i++)
@@ -71,23 +72,18 @@ namespace Omnia
 				}
 			}
 
-			EC_PrintChar_cmd __ec_printChar_cmd;
-			EC_PrintString_cmd __ec_prinString_cmd;
-			EC_PrintNewLine_cmd __ec_prinSNewLine_cmd;
-			EC_PrintInt_cmd __ec_printInt_cmd;
 			ECM::instance().addHandler((word)eComCodes::PrintCharToConsole, __ec_printChar_cmd);
 			ECM::instance().addHandler((word)eComCodes::PrintStringToConsole, __ec_prinString_cmd);
 			ECM::instance().addHandler((word)eComCodes::PrintNewLineToConsole, __ec_prinSNewLine_cmd);
 			ECM::instance().addHandler((word)eComCodes::PrintIntToConsole, __ec_printInt_cmd);
 
 			Flags::set(FLG__PRINT_ERROR_ON_PUSH);
+
 			VirtualMachine &vm = VirtualMachine::instance();
 			hw::RAM &ram = vm.getRAM();
 			vm.getCPU().setStepExecution(p__step_exec);
 
-			Process proc;
 			proc.setID(2522); //TODO: change
-			//proc.m_codeAddr = D__MEMORY_START;
 
 			if (p__assemble && p__input_file_path.trim() != "")
 				proc.m_code = Assembler::instance().assemble(p__input_file_path);
@@ -2751,7 +2747,7 @@ namespace Omnia
 				Process& proc = _vm.getCurrentProcess();
 				RAM &ram = _vm.getRAM();
 				REG &reg = _vm.getREG();
-				for (uint8 i = 0; i <= m_ipc; i++)
+				for (uint8 i = 0; i < m_ipc; i++)
 				{
 					reg.enableProtectedMode();
 					m_current_ipc = i;

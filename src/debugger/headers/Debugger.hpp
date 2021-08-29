@@ -16,7 +16,8 @@ namespace Omnia
 
 			private:
 				std::map<_string, MemAddress> m_labels;
-				
+				OmniaString m_cmd_input;
+				BufferedOutput m_vm_buff;
 				static Debugger* s_instance;
 		};
 
