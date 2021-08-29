@@ -4,6 +4,8 @@
 	#include "Assembler.hpp"
 #elif defined(__COMPILE_VM__)  //Interpreter frontend
 	#include "Interpreter.hpp"
+#elif defined(__COMPILE_DBG__)  //Debugger frontend
+	#include "Debugger.hpp"
 #endif
 
 #define __exit_verbose(__base_instance, __err_code) \
@@ -31,6 +33,16 @@ int main(int argc, char** argv)
 	Omnia::common::ErrorCode __err = Omnia::oasm::Interpreter::instance().run(argc, argv);
 
 	__exit_verbose(Omnia::oasm::Interpreter::instance(), __err)
+
+#elif defined(__COMPILE_DBG__)  //Debugger frontend
+
+	Omnia::oasm::Debugger::instance().getOutputHandler()->newLine().newLine().print("[system]:/ oasm_vm: version ")
+	.print((long int)Omnia::eVersion::Major).print(".").print((long int)Omnia::eVersion::Minor)
+	.print(".").print((long int)Omnia::eVersion::Build).newLine().newLine();
+
+	Omnia::common::ErrorCode __err = Omnia::oasm::Debugger::instance().run(argc, argv);
+
+	__exit_verbose(Omnia::oasm::Debugger::instance(), __err)
 
 #endif
 #include "Defines.hpp"
