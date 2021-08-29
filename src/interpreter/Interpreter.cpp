@@ -2789,7 +2789,7 @@ namespace Omnia
 				StringBuilder tmp;
 				out.newLine();
 				tmp.add(Utils::duplicateChar(' ', 35)).add(Utils::duplicateChar(__sep_c, w - 70)).add(Utils::duplicateChar(' ', 35));
-				Utils::printMemoryBlock(D__STACK_SPACE_START, D__STACK_SPACE_START + (__stack_rows * 16), "Stack", out);
+				Utils::printMemoryBlock(D__STACK_SPACE_START, D__STACK_SPACE_START + (__stack_rows * 16), "Stack", out, VirtualMachine::instance().getREG().SP().val());
 				out.newLine().print(tmp.get());
 				Utils::printRegisters(out);
 				out.newLine().print(tmp.get());
