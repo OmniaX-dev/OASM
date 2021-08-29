@@ -230,7 +230,7 @@ namespace Omnia
 			return str;
 		}
 
-		StringTokens String::tokenize(String sep, bool trim)
+		String::StringTokens String::tokenize(String sep, bool trim)
 		{
 			std::vector<String> tokens;
 			bool done = false;
@@ -305,7 +305,7 @@ namespace Omnia
 			return res;
 		}
 
-		StringTokens String::splitExc(char exc, bool trim)
+		String::StringTokens String::splitExc(char exc, bool trim)
 		{
 			std::istringstream iss(cpp());
 			std::vector<String> v;
@@ -357,6 +357,68 @@ namespace Omnia
 				s.insert(pos, replace.cpp());
 			}
 			return String(s);
+		}
+
+
+
+		String::StringTokens::StringTokens(void)
+		{
+			create(10);
+		}
+
+		String::StringTokens::StringTokens(int length)
+		{
+			create(length);
+		}
+
+		void String::StringTokens::create(int length)
+		{
+			tokens.reserve(length);
+			current = 0;
+		}
+
+		String String::StringTokens::next(void)
+		{
+			if (hasNext())
+				return tokens[current++];
+			return "";
+		}
+
+		String String::StringTokens::previous(void)
+		{
+			if (hasPrevious())
+				return tokens[--current];
+			return "";
+		}
+
+		int String::String::StringTokens::count(void)
+		{
+			return tokens.size();
+		}
+
+		void String::StringTokens::add(String token)
+		{
+			tokens.push_back(token);
+		}
+
+		bool String::StringTokens::hasNext(void)
+		{
+			return (unsigned)current < tokens.size();
+		}
+
+		bool String::StringTokens::hasPrevious(void)
+		{
+			return current > 0;
+		}
+
+		void String::StringTokens::cycle(void)
+		{
+			current = 0;
+		}
+
+		std::vector<String> String::StringTokens::array(void)
+		{
+			return tokens;
 		}
 	}
 }

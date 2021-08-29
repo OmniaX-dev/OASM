@@ -69,7 +69,7 @@ namespace Omnia
                     return std::vector<String>();
                 }
                 line = line.substr(1, line.length() - 1).trim();
-				StringTokens __st = line.tokenize(",", true);
+				String::StringTokens __st = line.tokenize(",", true);
 				if (__st.count() < 2)
 				{
 					//TODO: Add error
@@ -123,7 +123,7 @@ namespace Omnia
                     return std::vector<String>();
                 }
                 line = line.substr(1).trim();
-				StringTokens __st;
+				String::StringTokens __st;
 				if (line.toLowerCase().startsWith("reserve"))
 				{
 					line = line.substr(7).trim();
@@ -268,7 +268,7 @@ namespace Omnia
                             found = true;
                         }
                         if (!found) continue;
-                        StringTokens st = line.tokenize("\"&#\"");
+                        String::StringTokens st = line.tokenize("\"&#\"");
                         if (st.count() < 2) continue;
                         int32 el = 0;
                         line = "";
@@ -428,7 +428,7 @@ namespace Omnia
             if (expansion == "") return;
             if (p != "")
             {
-                StringTokens st = p.tokenize(",", true);
+                String::StringTokens st = p.tokenize(",", true);
                 while (st.hasNext()) params.push_back(st.next());
             }
             validate();
@@ -439,7 +439,7 @@ namespace Omnia
             if (!isValid()) return "";
             if (line == "" || expansion == "") return "";
             String exp = expansion.trim();
-            StringTokens st = line.tokenize(",", true);
+            String::StringTokens st = line.tokenize(",", true);
             for (auto param : params)
             {
                 if (!st.hasNext()) return "";
@@ -497,7 +497,7 @@ namespace Omnia
 		TMemoryList Assembler::assemble(std::vector<String>& __source)
 		{
 			TMemoryList __code;
-			StringTokens __sb;
+			String::StringTokens __sb;
 			String __data = "";
 			for (auto& __line : __source)
 			{
@@ -522,7 +522,7 @@ namespace Omnia
 		{
             std::vector<String> code;
 			String __data = "";
-			StringTokens __st;
+			String::StringTokens __st;
 			StringBuilder __new_line;
 			MemAddress __addr = 0;
             for (auto& l : lines)
