@@ -376,7 +376,8 @@ $(function(){
 	addInstruction("call", "1201", "0x****", IOps.NoOperand, 
 		new InstOperand().add(IOps.ConstVal).add(IOps.Addr).add(IOps.Reg),
 		new InstOperand().add(IOps.ConstVal).add(IOps.Addr).add(IOps.Reg),
-	"call instruction - first operand is code addr, second operand is param count");
+	"call instruction - first operand is code addr, second operand is param count <br /> Following, a list of all parameters with addressing mode for each. <br /> VirtualCPU Flags: variable_inst_size", 
+		"<p style=\"color: orange; font-weight: bold;\">***</p>");
 
 	addInstruction("ret", "1202", "0x****", IOps.NoOperand, 
 		new InstOperand().add(IOps.ConstVal).add(IOps.Addr).add(IOps.Reg),

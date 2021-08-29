@@ -8,6 +8,8 @@
 jmp,				Single_Const,		JMP_UNCONDITIONAL,			main_prog
 //--------------------------------------------------------------------------------------
 :fibonacci_series:
+	pop,			Single_Reg,			R0
+
 	cmd,			Const_Addr,			PrintStringToConsole,		text
 	cmd,			Const_Const,		PrintNewLineToConsole,		0
 
@@ -25,7 +27,7 @@ jmp,				Single_Const,		JMP_UNCONDITIONAL,			main_prog
 	mem,			Addr_Const,			_t2,						2
 
 	:for_loop:
-		cmp,		Addr_Addr,			i,							max
+		cmp,		Addr_Reg,			i,							R0
 		jmp,		Single_Const,		JMP_GREATER_OR_EQUALS,		end_loop
 		inc,		Single_Addr,		i
 		mem,		Addr_Addr,			next,						_t1
@@ -40,12 +42,9 @@ jmp,				Single_Const,		JMP_UNCONDITIONAL,			main_prog
 //----------------------------END FIBONACCI_SERIES--------------------------------------
 
 :main_prog:
-	mem,				Addr_Const,			max,						8
-	call,				Const_Const,		fibonacci_series,			0
-	mem,				Addr_Const,			max,						16
-	call,				Const_Const,		fibonacci_series,			0
-	mem,				Addr_Const,			max,						20
-	call,				Const_Const,		fibonacci_series,			0
+	call,				Const_Const,		fibonacci_series,			1,			Single_Const,10
+	call,				Const_Const,		fibonacci_series,			1,			Single_Const,15
+	call,				Const_Const,		fibonacci_series,			1,			Single_Const,20
 
 	end,			Single_Const,		0xCACA
 

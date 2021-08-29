@@ -702,6 +702,7 @@ namespace Omnia
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_op2 = (word)m_raw_4;
 					m_inst_size = 4;
+					m_variable_inst_size = true;
 					return true;
 				}
 				else if (m_dec_opCode == eInstructionSet::ret || m_dec_opCode == eInstructionSet::ret_m)
@@ -1661,7 +1662,7 @@ namespace Omnia
 					BitEditor __op1_val, __op2_val;
 					if (m_const_op1)
 					{
-						__op1_val = map_op1_to_m_param(outData1);
+						__op1_val = outData1;
 						__op2_val = outData2;
 					}
 					else if (__reg_op1)
@@ -1682,13 +1683,64 @@ namespace Omnia
 						}
 						__op2_val = outData2;
 					}
-					if (!pushToStack(m_old_pc_val + m_inst_size))
+					MemAddress __new_ip = m_old_pc_val + m_inst_size;
+					BitEditor __param_addr_mode, __param_data, __out_param_data, __param_data_val;
+					TMemoryList __params;
+
+					for (word __param_count = 0; __param_count < __op2_val.val(); __param_count++)
+					{
+						if (!_ram.read(__new_ip++, __param_addr_mode))
+						{
+							pushError(D__CPU_ERR__READ_FAILED);
+							__return_and_set_ip(false, m_old_pc_val)
+						}
+						if (!_ram.read(__new_ip++, __param_data))
+						{
+							pushError(D__CPU_ERR__READ_FAILED);
+							__return_and_set_ip(false, m_old_pc_val)
+						}
+						if (!map_addr_mode(_ram, _reg, (eAddressingModes)__param_addr_mode.val(), __param_data, __param_data, __out_param_data, __out_param_data, __reg_op1))
+						{
+							pushError(D__CPU_ERR__MAP_ADDR_MODE_FAILED);
+							__return_and_set_ip(false, m_old_pc_val)
+						}
+						if (m_const_op1)
+						{
+							__param_data_val = __out_param_data;
+						}
+						else if (__reg_op1)
+						{
+							if (!_reg.__read(__out_param_data.val(), __param_data_val))
+							{
+								pushError(D__CPU_ERR__READ_REG_FAILED);
+								__return_and_set_ip(false, m_old_pc_val)
+							}
+						}
+						else
+						{
+							if (!_ram.read(__out_param_data.val(), __param_data_val))
+							{
+								pushError(D__CPU_ERR__READ_FAILED);
+								__return_and_set_ip(false, m_old_pc_val)
+							}
+						}
+						__params.push_back(__param_data_val);
+						m_inst_size += 2;
+					}
+					if (!pushToStack(__new_ip))
 					{
 						__return_and_set_ip(false, m_old_pc_val)
 					}
 					if (!pushToStack(__op2_val))
 					{
 						__return_and_set_ip(false, m_old_pc_val)
+					}
+					for (auto& __p : __params)
+					{
+						if (!pushToStack(__p))
+						{
+							__return_and_set_ip(false, m_old_pc_val)
+						}
 					}
 					__return_and_set_ip(true, offsetCodeAddress(__op1_val.val()))
 				}
@@ -1722,28 +1774,15 @@ namespace Omnia
 							__return_and_set_ip(false, m_old_pc_val)
 						}
 					}
-					if (_reg.SP() > VirtualMachine::instance().getCurrentProcess().m_stackAddr + 1)
-						_reg.rw_SP()--;
+					if (_reg.SP() > VirtualMachine::instance().getCurrentProcess().m_stackAddr + 2)
+						_reg.rw_SP() -= 2;
 					BitEditor __data;
 					if (!_ram.read(_reg.SP().val(), __data))
 					{
 						pushError(D__CPU_ERR__READ_FAILED);
 						__return_and_set_ip(false, m_old_pc_val)
 					}
-					uint8 __param_count = (uint8)__data.val();
-					if (_reg.SP() > VirtualMachine::instance().getCurrentProcess().m_stackAddr + 1)
-						_reg.rw_SP()--;
-					if (!_ram.read(_reg.SP().val(), __data))
-					{
-						pushError(D__CPU_ERR__READ_FAILED);
-						__return_and_set_ip(false, m_old_pc_val)
-					}
-					MemAddress __new_pc_val = (uint8)__data.val();
-					for (uint8 i = 0; i < __param_count; i++)
-					{
-						if (_reg.SP() > VirtualMachine::instance().getCurrentProcess().m_stackAddr + 1)
-							_reg.rw_SP()--;
-					}
+					MemAddress __new_pc_val = __data.val();
 					_reg.rw_RV() = __op1_val;
 					__return_and_set_ip(true, __new_pc_val)
 				}
