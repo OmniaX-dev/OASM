@@ -2,6 +2,7 @@
 #include "Interpreter.hpp"
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
 namespace Omnia
 {
@@ -19,6 +20,8 @@ namespace Omnia
             vm.setOutputHandler(&m_vm_buff);
             Interpreter::instance().setOutputHandler(&out);
 			OmniaString p__input_file_path = "";
+			OmniaString p__input_sym_table_path = "";
+			m_use_sym_table = false;
 			if (argc > 1)
 			{
 				for (int i = 1; i < argc; i++)
@@ -33,6 +36,18 @@ namespace Omnia
 						i++;
 						p__input_file_path = OmniaString(argv[i]);
 					}
+					else if (OmniaString(argv[i]).trim().equals("--debug-table") || OmniaString(argv[i]).trim().equals("-dt"))
+					{
+						if (i + 1 >= argc)
+						{
+							out.print("Error: No input debug table file specified.").newLine();
+							return 0xFFFF; //TODO: Add error code
+						}
+						i++;
+						p__input_sym_table_path = OmniaString(argv[i]);
+						m_use_sym_table = true;
+					}
+
 				}
 			}
             if (p__input_file_path.trim() == "")
@@ -40,6 +55,14 @@ namespace Omnia
                 out.print("Error: No input file specified.").newLine();
                 return 0xFFFE; //TODO: Add error code
             }
+			OmniaString __tmp_input_file_name = p__input_file_path.substr(0, p__input_file_path.lastIndexOf("."));
+			__tmp_input_file_name = __tmp_input_file_name.add(".odb");
+			if (std::filesystem::exists(__tmp_input_file_name.cpp()))
+			{
+				out.tab().print("Symbol table file found: ").print(__tmp_input_file_name).newLine();
+				m_use_sym_table = true;
+				p__input_sym_table_path = __tmp_input_file_name;
+			}
             OmniaString __param3 = "--input-file ";
             __param3 = __param3.add(p__input_file_path);
             cpu.setIPC(1);

@@ -49,6 +49,7 @@ namespace Omnia
             return finalCode;
         }
 
+
 		std::vector<OmniaString> PreProcessor::resolveCommandDirective(std::vector<OmniaString> lines)
 		{
             std::vector<OmniaString> code;
@@ -143,6 +144,7 @@ namespace Omnia
 						m_dataSection.push_back(StringBuilder("reserve, 0x001A, 0x002E").get());
 						//code.push_back(StringBuilder("mem, 0x0014, ").add(Utils::intToHexStr(m_reserveCount++)).add(", 0x002E").get());
 						m_reserves[param.cpp()] = (MemAddress)(m_reserveCount++);
+                        m_symTable.m_reserves[(MemAddress)(m_reserveCount - 1)] = param;
 					}
 				}
 				else if (line.toLowerCase().startsWith("load_string"))
@@ -184,7 +186,6 @@ namespace Omnia
 			}
 			return code;
 		}
-
 
 
         std::vector<OmniaString> PreProcessor::resolveAliases(std::vector<OmniaString> lines)
@@ -457,9 +458,10 @@ namespace Omnia
 		int64 Assembler::run(int argc, char** argv)
 		{
 			OutputManager &out = *getOutputHandler();
-
-			OmniaString p__input_file_path = "";
-            OmniaString p__output_file_path = "";
+            p__dbg_symbol_table = false;
+			p__input_file_path = "";
+            p__output_file_path = "";
+            p__output_file_dbg_table = "";
 			if (argc > 1)
 			{
 				for (int i = 1; i < argc; i++)
@@ -484,15 +486,37 @@ namespace Omnia
 						i++;
 						p__output_file_path = OmniaString(argv[i]);
 					}
+                    else if (OmniaString(argv[i]).trim().equals("--debug-table") || OmniaString(argv[i]).trim().equals("-dt"))
+					{
+						if (++i >= argc && p__output_file_path.trim() != "")
+                            p__output_file_dbg_table = p__output_file_path.substr(0, p__output_file_path.lastIndexOf(".")).add(".odb");
+                        else if (i < argc)
+						    p__output_file_dbg_table = OmniaString(argv[i]);
+                        else
+                        {
+							out.print("Error: Output file must be specified before the --debug-table option, if you intend to not specify a file for it.").newLine();
+							return 0xFFF9; //TODO: Add error code
+                        }
+                        p__dbg_symbol_table = true;
+                    }
 				}
 			}
 			if (p__input_file_path.trim() == "") return 0xFFFE; //TODO: Error
 			if (p__output_file_path.trim() == "") return 0xFFFD; //TODO: Error
+            if (p__dbg_symbol_table && p__output_file_dbg_table.trim() == "") return 0xFFFC; //TODO: Error
 			TMemoryList __program = assemble("oasm_test_1.oasm");
             if (!createExecutableFile(p__output_file_path, __program))
             {
                 out.print("Error: Failed to create executable.").newLine();
-                return 0xCFCFCF; //TODO: Add error code
+                return 0xCFCF; //TODO: Add error code
+            }
+            if (p__dbg_symbol_table)
+            {
+                if (!createDebugTableFile(p__output_file_dbg_table))
+                {
+                    out.print("Error: Failed to create debug table file.").newLine();
+                    return 0xAFAF; //TODO: Add error code
+                }
             }
 			return 0;
 		}
@@ -503,6 +527,28 @@ namespace Omnia
             std::ofstream writeFile;
             writeFile.open(__outputFile.cpp(), std::ios::out | std::ios::binary);
             writeFile.write((char*)(&__program[0]), __program.size() * sizeof(word));
+            writeFile.close();
+            return true;
+        }
+
+        bool Assembler::createDebugTableFile(OmniaString __outputFile)
+        {
+            StringBuilder __sb;
+            std::ofstream writeFile;
+            writeFile.open(__outputFile.cpp());
+            for (auto& __label : PreProcessor::instance().m_symTable.m_labels)
+            {
+                __sb.add(".label ").add(__label.second).add(" = ").add(Utils::intToHexStr(__label.first));
+                writeFile << __sb.get().cpp() << "\n";
+                __sb = StringBuilder();
+            }
+            for (auto& __reserve : PreProcessor::instance().m_symTable.m_reserves)
+            {
+                __sb.add(".data ").add(__reserve.second).add(" = ").add(Utils::intToHexStr(__reserve.first));
+                writeFile << __sb.get().cpp() << "\n";
+                __sb = StringBuilder();
+            }
+            writeFile.close();
             return true;
         }
 
@@ -541,6 +587,7 @@ namespace Omnia
 
 		std::vector<OmniaString> Assembler::resolveKeyWords(std::vector<OmniaString> lines)
 		{
+            PreProcessor& PP = PreProcessor::instance();
             std::vector<OmniaString> code;
 			OmniaString __data = "";
 			OmniaString::StringTokens __st;
@@ -558,6 +605,8 @@ namespace Omnia
 						return std::vector<OmniaString>();
 					}
 					m_labels[l.cpp()] = __addr;
+                    if (p__dbg_symbol_table)
+                        PP.m_symTable.m_labels[__addr] = l;
 				}
 				else
 				{
@@ -593,9 +642,9 @@ namespace Omnia
 						for (auto& __mc : __str_stream)
 							__new_line.add(Utils::intToHexStr(__mc.val())).add(",");
 					}
-					else if (PreProcessor::instance().hasReserved(__data.cpp()))
+					else if (PP.hasReserved(__data.cpp()))
 					{
-						__new_line.add(Utils::intToHexStr(PreProcessor::instance().m_reserves[__data.cpp()])).add(",");
+						__new_line.add(Utils::intToHexStr(PP.m_reserves[__data.cpp()])).add(",");
 					}
 					else if (isLabel(__data.cpp(), __addr))
 					{

@@ -19,6 +19,8 @@ namespace Omnia
 				OmniaString m_cmd_input;
 				BufferedOutput m_vm_buff;
 				static Debugger* s_instance;
+				SymbolTable m_sym_table;
+				bool m_use_sym_table;
 		};
 
 		inline Debugger* Debugger::s_instance = new Debugger();

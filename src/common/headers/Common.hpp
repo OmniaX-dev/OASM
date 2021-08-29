@@ -97,6 +97,33 @@ namespace Omnia
 
         inline ECM ECM::s_instance;
 
+		class SymbolTable
+		{
+			public:
+				inline bool isLabel(MemAddress __addr, OmniaString& outLabel)
+				{
+					if (m_labels.count(__addr) != 0)
+					{
+						outLabel = m_labels[__addr];
+						return true;
+					}
+					return false;
+				}
+				inline bool isReserve(MemAddress __addr, OmniaString& outVarName)
+				{
+					if (m_reserves.count(__addr) != 0)
+					{
+						outVarName = m_reserves[__addr];
+						return true;
+					}
+					return false;
+				}
+
+			public:
+				std::map<MemAddress, OmniaString> m_labels;
+				std::map<MemAddress, OmniaString> m_reserves;
+
+		};
 		
 		class ErrorReciever
 		{

@@ -9,7 +9,6 @@
 
 
 //--------------------------------------------------------------------------------------
-//jmp,				Single_Const,		JMP_UNCONDITIONAL,			__main__
 :fibonacci_series:
 	pop,			Single_Reg,			R0
 
@@ -47,7 +46,6 @@
 
 
 //--------------------------------------------------------------------------------------
-//jmp,				Single_Const,		JMP_UNCONDITIONAL,			__main__
 :sum_numbers:
 	pop,			Single_Reg,			R0
 	pop,			Single_Reg,			R1
@@ -58,7 +56,6 @@
 
 
 //--------------------------------------------------------------------------------------
-//jmp,				Single_Const,		JMP_UNCONDITIONAL,			__main__
 :power_r:
 	pop,			Single_Reg,			R0		//Power
 	pop,			Single_Reg,			R1		//Base
@@ -88,7 +85,7 @@
 
 	call,				Const_Const,		fibonacci_series,			1,			Single_Const,20
 
-	end,			Single_Const,		0xCACA
+	end,				Single_Const,		0xCACA
 //------------------------------------END __MAIN__--------------------------------------
 
 

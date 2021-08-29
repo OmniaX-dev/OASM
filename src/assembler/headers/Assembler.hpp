@@ -82,6 +82,7 @@ namespace Omnia
 
             public:
                 static PreProcessor s_instance;
+				SymbolTable m_symTable;
 
 				friend class Assembler;
 
@@ -96,6 +97,7 @@ namespace Omnia
 				int64 run(int argc, char** argv);
 
 				bool createExecutableFile(OmniaString __outputFile, TMemoryList __program);
+				bool createDebugTableFile(OmniaString __outputFile);
 				TMemoryList assemble(std::vector<OmniaString>& __source);
 				TMemoryList assemble(OmniaString __source_file_path);
 				std::vector<OmniaString> resolveKeyWords(std::vector<OmniaString> lines);
@@ -120,7 +122,12 @@ namespace Omnia
 
 			private:
 				std::map<_string, MemAddress> m_labels;
-				
+
+				bool p__dbg_symbol_table;
+				OmniaString p__input_file_path;
+				OmniaString p__output_file_path;
+				OmniaString p__output_file_dbg_table;
+
 				static Assembler* s_instance;
 
 				inline static std::map<const _string, const word> m_keyWords = {
