@@ -5,9 +5,9 @@ namespace Omnia
 {
 	namespace common
 	{
-		String BitEditor::binaryStr(bool prefix)
+		OmniaString BitEditor::binaryStr(bool prefix)
 		{
-			String binStr = "";
+			OmniaString binStr = "";
 			eBit _bit = eBit::One;
 			uint8 i = 0;
 			while (_bit != eBit::Low)
@@ -69,7 +69,7 @@ namespace Omnia
 			return bit;
 		}
 
-		TMemoryList BitEditor::stringToConstSream(String __str)
+		TMemoryList BitEditor::stringToConstSream(OmniaString __str)
 		{
 			TMemoryList result;
 			BitEditor cell = 0;
@@ -93,7 +93,7 @@ namespace Omnia
 			return result;
 		}
 
-		String BitEditor::constStreamToString(TMemoryList __stream)
+		OmniaString BitEditor::constStreamToString(TMemoryList __stream)
 		{
 			StringBuilder __sb;
 			BitEditor __tmp_cell;

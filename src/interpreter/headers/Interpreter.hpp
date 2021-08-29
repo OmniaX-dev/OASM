@@ -101,7 +101,7 @@ namespace Omnia
 
 					bool						m_step_execution;
 					uint8						m_current_ipc;
-					String						m_cmd_command;
+					OmniaString						m_cmd_command;
 					bool						m_variable_inst_size;
 					word						m_heap_reserve_count;
 					MemAddress					m_next_single_heap;
@@ -171,8 +171,8 @@ namespace Omnia
 					bool write_m(MemAddress addr, BitEditor data, word __m_param);
 					bool writeToPtr(MemAddress ptr, std::vector<BitEditor> data, bool __safe = false);
 					bool readFromPtr(MemAddress ptr, std::vector<BitEditor>& outData, bool __safe = false);
-					bool readStringFromStream(MemAddress __stream_addr, String& outStr);
-					bool writeStringToStream(MemAddress __stream_addr, String str);
+					bool readStringFromStream(MemAddress __stream_addr, OmniaString& outStr);
+					bool writeStringToStream(MemAddress __stream_addr, OmniaString str);
 					inline TMemoryList_c& getAsReadOnly(void) { return m_memory; }
 					inline TMemCellList_c& getReadOnlyMemState(void) { return m_memCells; }
 

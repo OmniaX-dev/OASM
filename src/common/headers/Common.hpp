@@ -2,7 +2,7 @@
 #define __COMMON_HPP__
 
 #include "Flags.hpp"
-#include "StringTokens.hpp"
+
 #include "BitEditor.hpp"
 #include "Defines.hpp"
 #include "IOManager.hpp"
@@ -108,12 +108,12 @@ namespace Omnia
 			protected:
 				inline bool __empty(void) { return m_errorQueue.size() == 0; }
 				inline virtual void pushError(ErrorCode __err_code) {  }
-				inline void pushError(ErrorCode __err_code, OutputManager& out, String __extra_text = "", MemAddress __addr = oasm_nullptr, word __op_code = (word)eInstructionSet::no_op)
+				inline void pushError(ErrorCode __err_code, OutputManager& out, OmniaString __extra_text = "", MemAddress __addr = oasm_nullptr, word __op_code = (word)eInstructionSet::no_op)
 				{
 					m_errorQueue.push_back(__err_code);
 					if (Flags::isset(FLG__PRINT_ERROR_ON_PUSH))
 					{
-						String __err_text = __error_map[__err_code];
+						OmniaString __err_text = __error_map[__err_code];
 						out.print(Utils::duplicateChar('=', 50)).newLine();
 						out.print("Error ").print(Utils::intToHexStr(__err_code));
 						out.print(": ").print(__err_text).newLine();
@@ -159,7 +159,7 @@ namespace Omnia
 			protected:
 				std::vector<ErrorCode> m_errorQueue;
 
-				inline static std::map<const ErrorCode, const String> __error_map = {
+				inline static std::map<const ErrorCode, const OmniaString> __error_map = {
 					{ D__NO_ERROR, "" },
 
 					{ D__EXIT_ERR__NO_FRONTEND_SPECIFIED, "Unable to start system: No frontend specified." },

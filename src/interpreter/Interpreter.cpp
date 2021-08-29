@@ -9,12 +9,12 @@ namespace Omnia
 		//-----------------------------------------------CMD HANDLERS-----------------------------------------------
 		bool EC_PrintChar_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
 		{
-			iomgr.getOutputHandler()->print(String() + (char)param.val());
+			iomgr.getOutputHandler()->print(OmniaString() + (char)param.val());
 			return true;
 		}
 		bool EC_PrintString_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
 		{
-			String __str = "";
+			OmniaString __str = "";
 			if (!VirtualMachine::instance().getRAM().readStringFromStream(param.val(), __str))
 				return false;
 			iomgr.getOutputHandler()->print(__str);
@@ -42,16 +42,16 @@ namespace Omnia
 			bool p__step_exec = false;
 			bool p__print_memory = false;
 			bool p__assemble = false;
-			String p__input_file_path = "";
+			OmniaString p__input_file_path = "";
 			if (argc > 1)
 			{
 				for (int i = 1; i < argc; i++)
 				{
-					if (String(argv[i]).trim().equals("--step-execution", true))
+					if (OmniaString(argv[i]).trim().equals("--step-execution", true))
 						p__step_exec = true;
-					else if (String(argv[i]).trim().equals("--print-memory", true))
+					else if (OmniaString(argv[i]).trim().equals("--print-memory", true))
 						p__print_memory = true;
-					else if (String(argv[i]).trim().equals("--input-file") || String(argv[i]).trim().equals("-i"))
+					else if (OmniaString(argv[i]).trim().equals("--input-file") || OmniaString(argv[i]).trim().equals("-i"))
 					{
 						if (i + 1 >= argc)
 						{
@@ -59,9 +59,9 @@ namespace Omnia
 							return 0xFFFF; //TODO: Add error code
 						}
 						i++;
-						p__input_file_path = String(argv[i]);
+						p__input_file_path = OmniaString(argv[i]);
 					}
-					else if (String(argv[i]).trim().equals("--assemble"))
+					else if (OmniaString(argv[i]).trim().equals("--assemble"))
 					{
 						p__assemble = true;
 					}
@@ -2033,7 +2033,7 @@ namespace Omnia
 						pushError(D__CPU_ERR__READ_FAILED);
 						__return_and_set_ip(false, m_old_pc_val)
 					}
-					String __tmp_str;
+					OmniaString __tmp_str;
 					if (!_ram.readStringFromStream(__op2_val.val(), __tmp_str))
 					{
 						pushError(D__CPU_ERR__READ_STR_STREAM_FAILED);
@@ -2054,7 +2054,7 @@ namespace Omnia
 						pushError(D__CPU_ERR__READ_FAILED);
 						__return_and_set_ip(false, m_old_pc_val)
 					}
-					String __tmp_str_1, __tmp_str_2;
+					OmniaString __tmp_str_1, __tmp_str_2;
 					if (!_ram.readStringFromStream(__op1_val.val(), __tmp_str_1))
 					{
 						pushError(D__CPU_ERR__READ_STR_STREAM_FAILED);
@@ -2687,7 +2687,7 @@ namespace Omnia
 					if (!fetch(ram, reg))
 					{
 						pushError(D__CPU_ERR__FETCH_STEP_FAILED);
-						String __tmp = "";
+						OmniaString __tmp = "";
 						out.newLine().print("   Press <Enter> to show additional info on the last instruction.");
 						out.newLine().newLine();
 						_vm.getInputHandler()->read(__tmp);
@@ -2697,7 +2697,7 @@ namespace Omnia
 					if (!decode(ram, reg))
 					{
 						pushError(D__CPU_ERR__DECODE_STEP_FAILED);
-						String __tmp = "";
+						OmniaString __tmp = "";
 						out.newLine().print("   Press <Enter> to show additional info on the last instruction.");
 						out.newLine().newLine();
 						_vm.getInputHandler()->read(__tmp);
@@ -2707,7 +2707,7 @@ namespace Omnia
 					if (!execute(ram, reg))
 					{
 						pushError(D__CPU_ERR__EXECUTE_STEP_FAILED);
-						String __tmp = "";
+						OmniaString __tmp = "";
 						out.newLine().print("   Press <Enter> to show additional info on the last instruction.");
 						out.newLine().newLine();
 						_vm.getInputHandler()->read(__tmp);
@@ -3230,7 +3230,7 @@ namespace Omnia
 				return true;
 			}
 
-			bool RAM::readStringFromStream(MemAddress __stream_addr, String& out)
+			bool RAM::readStringFromStream(MemAddress __stream_addr, OmniaString& out)
 			{
 				TMemoryList __stream;
 				if (!readFromPtr(__stream_addr, __stream, true)) return false;
@@ -3238,7 +3238,7 @@ namespace Omnia
 				return true;
 			}
 
-			bool RAM::writeStringToStream(MemAddress __stream_addr, String str)
+			bool RAM::writeStringToStream(MemAddress __stream_addr, OmniaString str)
 			{
 				TMemoryList __str_stream = BitEditor::stringToConstSream(str);
 				return writeToPtr(__stream_addr, __str_stream, true);

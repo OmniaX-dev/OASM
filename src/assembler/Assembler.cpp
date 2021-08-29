@@ -1,24 +1,24 @@
 #include "Assembler.hpp"
 #include <iostream>
-#include "StringTokens.hpp"
+
 #include <fstream>
 
 namespace Omnia
 {
 	namespace oasm
 	{
-		std::vector<String> PreProcessor::open(String fileName, PreProcessorOptions options)
+		std::vector<OmniaString> PreProcessor::open(OmniaString fileName, PreProcessorOptions options)
         {
-            std::vector<String> lines;
+            std::vector<OmniaString> lines;
             if (!Utils::readFile(fileName, lines))
             {
-                error(ePreProcessorErrors::FailedToOpenFile, String("Failed to open source file: ").add(fileName), true);
-                return std::vector<String>();
+                error(ePreProcessorErrors::FailedToOpenFile, OmniaString("Failed to open source file: ").add(fileName), true);
+                return std::vector<OmniaString>();
             }
             if (lines.size() == 0)
             {
-                error(ePreProcessorErrors::EmptyFile, String("Empty source file provided: ").add(fileName), true);
-                return std::vector<String>();
+                error(ePreProcessorErrors::EmptyFile, OmniaString("Empty source file provided: ").add(fileName), true);
+                return std::vector<OmniaString>();
             }
 			_line = "";
 			m_reserveCount = 0;
@@ -29,10 +29,10 @@ namespace Omnia
             return process(lines, options);
         }
 
-        std::vector<String> PreProcessor::process(std::vector<String> lines, PreProcessorOptions options)
+        std::vector<OmniaString> PreProcessor::process(std::vector<OmniaString> lines, PreProcessorOptions options)
         {
             m_options = options;
-            std::vector<String> finalCode = resolveIncludes(lines, currentFile);
+            std::vector<OmniaString> finalCode = resolveIncludes(lines, currentFile);
             finalCode = removeComments(finalCode);
             finalCode = resolveAliases(finalCode);
 			finalCode = resolveCommandDirective(finalCode);
@@ -47,9 +47,9 @@ namespace Omnia
             return finalCode;
         }
 
-		std::vector<String> PreProcessor::resolveCommandDirective(std::vector<String> lines)
+		std::vector<OmniaString> PreProcessor::resolveCommandDirective(std::vector<OmniaString> lines)
 		{
-            std::vector<String> code;
+            std::vector<OmniaString> code;
             lineNumber = 0;
             currentFile = "Processed_file";
 			for (auto& l : lines)
@@ -62,28 +62,28 @@ namespace Omnia
                     code.push_back(l);
                     continue;
                 }
-                String line = l.substr(8).trim();
+                OmniaString line = l.substr(8).trim();
                 if (!line.startsWith("(") || !line.endsWith(")"))
                 {
 					//TODO: Add error
-                    return std::vector<String>();
+                    return std::vector<OmniaString>();
                 }
                 line = line.substr(1, line.length() - 1).trim();
-				String::StringTokens __st = line.tokenize(",", true);
+				OmniaString::StringTokens __st = line.tokenize(",", true);
 				if (__st.count() < 2)
 				{
 					//TODO: Add error
-					return std::vector<String>();
+					return std::vector<OmniaString>();
 				}
-				String __cmd = __st.next().toLowerCase();
-				String param = "", value = "";
+				OmniaString __cmd = __st.next().toLowerCase();
+				OmniaString param = "", value = "";
 				while (__st.hasNext())
 				{
 					param = __st.next().toLowerCase();
 					if (!param.contains("="))
 					{
 						//TODO: Add error
-						return std::vector<String>();
+						return std::vector<OmniaString>();
 					}
 					value = param.substr(param.indexOf("=") + 1).trim();
 					param = param.substr(0, param.indexOf("=")).trim();
@@ -101,9 +101,9 @@ namespace Omnia
 			return code;
 		}
 
-		std::vector<String> PreProcessor::resolveDataDirective(std::vector<String> lines)
+		std::vector<OmniaString> PreProcessor::resolveDataDirective(std::vector<OmniaString> lines)
 		{
-            std::vector<String> code;
+            std::vector<OmniaString> code;
             lineNumber = 0;
             currentFile = "Processed_file";
 			for (auto& l : lines)
@@ -116,25 +116,25 @@ namespace Omnia
                     code.push_back(l);
                     continue;
                 }
-                String line = l.substr(5).trim();
+                OmniaString line = l.substr(5).trim();
                 if (!line.startsWith("="))
                 {
 					//TODO: Add error
-                    return std::vector<String>();
+                    return std::vector<OmniaString>();
                 }
                 line = line.substr(1).trim();
-				String::StringTokens __st;
+				OmniaString::StringTokens __st;
 				if (line.toLowerCase().startsWith("reserve"))
 				{
 					line = line.substr(7).trim();
                 	if (!line.startsWith("(") || !line.endsWith(")"))
 					{
 						//TODO: Add error
-						return std::vector<String>();
+						return std::vector<OmniaString>();
 					}
                 	line = line.substr(1, line.length() - 1).trim();
 					__st = line.tokenize(",", true);
-					String param = "", value = "";
+					OmniaString param = "", value = "";
 					while (__st.hasNext())
 					{
 						param = __st.next().toLowerCase();
@@ -149,26 +149,26 @@ namespace Omnia
                 	if (!line.startsWith("(") || !line.endsWith(")"))
 					{
 						//TODO: Add error
-						return std::vector<String>();
+						return std::vector<OmniaString>();
 					}
                 	line = line.substr(1, line.length() - 1).trim();
 					__st = line.tokenize(",", true);
 					if (__st.count() != 2)
 					{
 						//TODO: Add error
-						return std::vector<String>();
+						return std::vector<OmniaString>();
 					}
-					String param = __st.next();
-					String __str = __st.next();
+					OmniaString param = __st.next();
+					OmniaString __str = __st.next();
 					if (!__str.endsWith("\"") || !__str.startsWith("\""))
 					{
 						//TODO: Add error
-						return std::vector<String>();
+						return std::vector<OmniaString>();
 					}
 					if (!hasReserved(param))
 					{
 						//TODO: Add error
-						return std::vector<String>();
+						return std::vector<OmniaString>();
 					}
 					__str = __str.substr(1, __str.length() - 1);
 					TMemoryList __str_stream = BitEditor::stringToConstSream(__str);
@@ -185,9 +185,9 @@ namespace Omnia
 
 
 
-        std::vector<String> PreProcessor::resolveAliases(std::vector<String> lines)
+        std::vector<OmniaString> PreProcessor::resolveAliases(std::vector<OmniaString> lines)
         {
-            std::vector<String> code;
+            std::vector<OmniaString> code;
             lineNumber = 0;
             currentFile = "Processed_file";
             for (auto& l : lines) //Aliases round
@@ -200,30 +200,30 @@ namespace Omnia
                     code.push_back(l);
                     continue;
                 }
-                String line = l.substr(7).trim();
+                OmniaString line = l.substr(7).trim();
                 if (!line.contains("="))
                 {
                     error(ePreProcessorErrors::WrongAliasDir, "Wrong .alias directive.");
-                    return std::vector<String>();
+                    return std::vector<OmniaString>();
                 }
-                String alias = line.substr(0, line.indexOf("=")).trim();
+                OmniaString alias = line.substr(0, line.indexOf("=")).trim();
                 line = line.substr(line.indexOf("=") + 1).trim();
-                m_aliases[String("#").add(alias).cpp()] = line.cpp();
+                m_aliases[OmniaString("#").add(alias).cpp()] = line.cpp();
             }
             for (uint16 i = 0; i < m_options.passes; i++)
             {
                 for (auto& line : code) //Replacing aliases
                 {
                     for (auto& al : m_aliases)
-                        line = Utils::replaceAllVarName(line, String(al.first), String(al.second));
+                        line = Utils::replaceAllVarName(line, OmniaString(al.first), OmniaString(al.second));
                 }
             }
             return code;
         }
 
-        std::vector<String> PreProcessor::resolveMacros(std::vector<String> lines)
+        std::vector<OmniaString> PreProcessor::resolveMacros(std::vector<OmniaString> lines)
         {
-            std::vector<String> code;
+            std::vector<OmniaString> code;
             lineNumber = 0;
             currentFile = "Processed_file";
             for (auto& l : lines) //Macros round
@@ -236,12 +236,12 @@ namespace Omnia
                     code.push_back(l);
                     continue;
                 }
-                String line = l.substr(7).trim();
+                OmniaString line = l.substr(7).trim();
                 Macro mac(line);
                 if (!mac.isValid())
                 {
                     //TODO: Error
-                    return std::vector<String>();
+                    return std::vector<OmniaString>();
                 }
                 m_macros.push_back(mac);
             }
@@ -252,7 +252,7 @@ namespace Omnia
                 {
                     for (auto& m : m_macros)
                     {
-                        String mname = String("@").add(m.name);
+                        OmniaString mname = OmniaString("@").add(m.name);
                         mname = mname.add("(");
                         bool found = false;
                         while (line.contains(mname))
@@ -260,15 +260,15 @@ namespace Omnia
                             int32 cp = line.indexOf(")");
                             int32 ep = line.indexOf(mname);
                             if (ep + mname.length() > cp) break;
-                            String plist = line.substr(ep + mname.length(), cp).trim();
-                            String line_p1 = line.substr(0, ep);
-                            String line_p2 = line.substr(cp + 1);
+                            OmniaString plist = line.substr(ep + mname.length(), cp).trim();
+                            OmniaString line_p1 = line.substr(0, ep);
+                            OmniaString line_p2 = line.substr(cp + 1);
                             line = line_p1.add(m.expand(plist));
                             line = line.add(line_p2);
                             found = true;
                         }
                         if (!found) continue;
-                        String::StringTokens st = line.tokenize("\"&#\"");
+                        OmniaString::StringTokens st = line.tokenize("\"&#\"");
                         if (st.count() < 2) continue;
                         int32 el = 0;
                         line = "";
@@ -281,9 +281,9 @@ namespace Omnia
             return code;
         }
 
-        std::vector<String> PreProcessor::removeComments(std::vector<String> lines)
+        std::vector<OmniaString> PreProcessor::removeComments(std::vector<OmniaString> lines)
         {
-            std::vector<String> code;
+            std::vector<OmniaString> code;
             bool multiLineComment = false, newRound = false;
             for (auto& line : lines)
             {
@@ -294,8 +294,8 @@ namespace Omnia
                 {
                     if (line.contains("*/"))
                     {
-                        String lp1 = line.substr(0, line.indexOf("/*"));
-                        String lp2 = line.substr(line.indexOf("*/") + 2);
+                        OmniaString lp1 = line.substr(0, line.indexOf("/*"));
+                        OmniaString lp2 = line.substr(line.indexOf("*/") + 2);
                         line = lp1.add(lp2);
                     }
                     else
@@ -318,10 +318,10 @@ namespace Omnia
             return code;
         }
 
-        std::vector<String> PreProcessor::resolveIncludes(std::vector<String> mainFile, String curFile)
+        std::vector<OmniaString> PreProcessor::resolveIncludes(std::vector<OmniaString> mainFile, OmniaString curFile)
         {
-            std::vector<String> ilines = resolveIncludes_r(mainFile, curFile);
-            std::vector<String> nlines;
+            std::vector<OmniaString> ilines = resolveIncludes_r(mainFile, curFile);
+            std::vector<OmniaString> nlines;
             bool include_skip = false;
             uint32 grdCount = 0;
             for (auto& line : ilines)
@@ -364,13 +364,13 @@ namespace Omnia
             return nlines;
         }
         
-        std::vector<String> PreProcessor::resolveIncludes_r(std::vector<String> mainFile, String curFile)
+        std::vector<OmniaString> PreProcessor::resolveIncludes_r(std::vector<OmniaString> mainFile, OmniaString curFile)
         {
             _line = "";
             lineNumber = 0;
             currentFile = curFile;
-            std::vector<String> incl;
-            std::vector<String> tmp;
+            std::vector<OmniaString> incl;
+            std::vector<OmniaString> tmp;
             for (auto& l : mainFile) //Includes round
             {
                 _line = l;
@@ -380,21 +380,21 @@ namespace Omnia
                     tmp.push_back(l);
                     continue;
                 }
-                String line = l.substr(9).trim();
+                OmniaString line = l.substr(9).trim();
                 if (!line.startsWith("[") || !line.endsWith("]"))
                 {
                     error(ePreProcessorErrors::WrongInclDirective, "Wrong .include directive.", true);
-                    return std::vector<String>();
+                    return std::vector<OmniaString>();
                 }
                 line = line.substr(1, line.length() - 1).trim();
                 if (!Utils::readFile(line, incl))
                 {
-                    error(ePreProcessorErrors::FailedToOpenFile, String("File in .include directive could not be found.").add(line), true);
-                    return std::vector<String>();
+                    error(ePreProcessorErrors::FailedToOpenFile, OmniaString("File in .include directive could not be found.").add(line), true);
+                    return std::vector<OmniaString>();
                 }
                 if (incl.size() > 0)
                 {
-                    std::vector<String> nincl = resolveIncludes_r(incl, line);
+                    std::vector<OmniaString> nincl = resolveIncludes_r(incl, line);
                     tmp.insert(tmp.end(), nincl.begin(), nincl.end());
                 }
             }
@@ -402,7 +402,7 @@ namespace Omnia
         }
         
 		//TODO: Replace with ErrorReciever methods
-        void PreProcessor::error(ePreProcessorErrors err, String msg, bool skipFileInfo)
+        void PreProcessor::error(ePreProcessorErrors err, OmniaString msg, bool skipFileInfo)
         {
             m_out->newLine().print("PreProcessor Error ").print((int32)err).newLine().print(msg).newLine();
             if (!skipFileInfo)
@@ -415,7 +415,7 @@ namespace Omnia
 
 
 
-        Macro::Macro(String line)
+        Macro::Macro(OmniaString line)
         {
             invalidate();
             line = line.trim();
@@ -423,27 +423,27 @@ namespace Omnia
             if (!line.contains("(") || !line.contains(")")) return;
             name = line.substr(0, line.indexOf("(")).trim();
             if (name == "") return;
-            String p = line.substr(line.indexOf("(") + 1, line.indexOf(")")).trim();
+            OmniaString p = line.substr(line.indexOf("(") + 1, line.indexOf(")")).trim();
             expansion = line.substr(line.indexOf(")") + 1).trim();
             if (expansion == "") return;
             if (p != "")
             {
-                String::StringTokens st = p.tokenize(",", true);
+                OmniaString::StringTokens st = p.tokenize(",", true);
                 while (st.hasNext()) params.push_back(st.next());
             }
             validate();
         }
 
-        String Macro::expand(String line)
+        OmniaString Macro::expand(OmniaString line)
         {
             if (!isValid()) return "";
             if (line == "" || expansion == "") return "";
-            String exp = expansion.trim();
-            String::StringTokens st = line.tokenize(",", true);
+            OmniaString exp = expansion.trim();
+            OmniaString::StringTokens st = line.tokenize(",", true);
             for (auto param : params)
             {
                 if (!st.hasNext()) return "";
-                String p = String("$(").add(param);
+                OmniaString p = OmniaString("$(").add(param);
                 p = p.add(")");
                 exp = exp.replaceAll(p, st.next());
             }
@@ -456,12 +456,12 @@ namespace Omnia
 		{
 			OutputManager &out = *getOutputHandler();
 
-			String p__input_file_path = "";
+			OmniaString p__input_file_path = "";
 			if (argc > 1)
 			{
 				for (int i = 1; i < argc; i++)
 				{
-					if (String(argv[i]).trim().equals("--input-file") || String(argv[i]).trim().equals("-i"))
+					if (OmniaString(argv[i]).trim().equals("--input-file") || OmniaString(argv[i]).trim().equals("-i"))
 					{
 						if (i + 1 >= argc)
 						{
@@ -469,7 +469,7 @@ namespace Omnia
 							return 0xFFFF; //TODO: Add error code
 						}
 						i++;
-						p__input_file_path = String(argv[i]);
+						p__input_file_path = OmniaString(argv[i]);
 					}
 				}
 			}
@@ -484,9 +484,9 @@ namespace Omnia
 			return 0;
 		}
 
-		TMemoryList Assembler::assemble(String __source_file_path)
+		TMemoryList Assembler::assemble(OmniaString __source_file_path)
 		{
-			std::vector<String> code = resolveKeyWords(PreProcessor::instance().open(__source_file_path));
+			std::vector<OmniaString> code = resolveKeyWords(PreProcessor::instance().open(__source_file_path));
 			/*for (auto& __line : code)
 			{
 				std::cout << __line.cpp() << "\n";
@@ -494,11 +494,11 @@ namespace Omnia
 			return assemble(code);
 		}
 
-		TMemoryList Assembler::assemble(std::vector<String>& __source)
+		TMemoryList Assembler::assemble(std::vector<OmniaString>& __source)
 		{
 			TMemoryList __code;
-			String::StringTokens __sb;
-			String __data = "";
+			OmniaString::StringTokens __sb;
+			OmniaString __data = "";
 			for (auto& __line : __source)
 			{
 				__sb = __line.tokenize(",", true);
@@ -518,11 +518,11 @@ namespace Omnia
 		}
 		
 
-		std::vector<String> Assembler::resolveKeyWords(std::vector<String> lines)
+		std::vector<OmniaString> Assembler::resolveKeyWords(std::vector<OmniaString> lines)
 		{
-            std::vector<String> code;
-			String __data = "";
-			String::StringTokens __st;
+            std::vector<OmniaString> code;
+			OmniaString __data = "";
+			OmniaString::StringTokens __st;
 			StringBuilder __new_line;
 			MemAddress __addr = 0;
             for (auto& l : lines)
@@ -534,7 +534,7 @@ namespace Omnia
 					if (l.contains(" ") || l.contains("\t"))
 					{
 						//TODO: Error
-						return std::vector<String>();
+						return std::vector<OmniaString>();
 					}
 					m_labels[l.cpp()] = __addr;
 				}
@@ -586,7 +586,7 @@ namespace Omnia
 						std::cout << "Unknown symbol: ";
 						std::cout << __data.cpp() << "\n";
 						std::cout << "\n\t" << l.cpp() << "\n";
-						return std::vector<String>();
+						return std::vector<OmniaString>();
 					}
 				}
 				code.push_back(__new_line.get());

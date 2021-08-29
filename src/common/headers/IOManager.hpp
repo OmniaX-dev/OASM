@@ -11,26 +11,26 @@ namespace Omnia
         {
             public:
                 inline virtual ~OutputManager(void) = default;
-                inline virtual OutputManager& print(String s) { return *this; }
+                inline virtual OutputManager& print(OmniaString s) { return *this; }
                 inline virtual OutputManager& print(int32 i) { return *this; }
                 inline virtual OutputManager& print(int64 i) { return *this; }
                 inline virtual OutputManager& newLine(void) { return *this; }
                 inline virtual OutputManager& tab(void) { return *this; }
 
-                inline virtual std::vector<String> flush(void) { return std::vector<String>(); }
+                inline virtual std::vector<OmniaString> flush(void) { return std::vector<OmniaString>(); }
         };
 
         class InputManager
         {
             public:
                 inline virtual ~InputManager(void) = default;
-                inline virtual InputManager& read(String& in) { return *this; } //TODO: make this always blocking
+                inline virtual InputManager& read(OmniaString& in) { return *this; } //TODO: make this always blocking
         };
 
         class StandardConsoleOutput : public OutputManager
         {
             public:
-                inline virtual OutputManager& print(String s) { std::cout << s.cpp(); return *this; }
+                inline virtual OutputManager& print(OmniaString s) { std::cout << s.cpp(); return *this; }
                 inline virtual OutputManager& print(int32 i) { std::cout << (int32)i; return *this; }
                 inline virtual OutputManager& print(int64 i) { std::cout << (int64)i; return *this; }
                 inline virtual OutputManager& newLine(void) { std::cout << "\n"; return *this; }
@@ -40,24 +40,24 @@ namespace Omnia
         class BufferedOutput : public OutputManager
         {
             public:
-                inline virtual OutputManager& print(String s) { m_buffer.push_back(s); return *this; }
-                inline virtual OutputManager& print(int32 i) { m_buffer.push_back(String().addInt(i)); return *this; }
-                inline virtual OutputManager& newLine(void) { m_buffer.push_back(String("\n")); return *this; }
-                inline virtual OutputManager& tab(void) { m_buffer.push_back(String("    ")); return *this; }
-                inline std::vector<String> flush(void) { std::vector<String> tmp = m_buffer; m_buffer.clear(); return tmp;}
+                inline virtual OutputManager& print(OmniaString s) { m_buffer.push_back(s); return *this; }
+                inline virtual OutputManager& print(int32 i) { m_buffer.push_back(OmniaString().addInt(i)); return *this; }
+                inline virtual OutputManager& newLine(void) { m_buffer.push_back(OmniaString("\n")); return *this; }
+                inline virtual OutputManager& tab(void) { m_buffer.push_back(OmniaString("    ")); return *this; }
+                inline std::vector<OmniaString> flush(void) { std::vector<OmniaString> tmp = m_buffer; m_buffer.clear(); return tmp;}
             
             private:
-                std::vector<String> m_buffer;
+                std::vector<OmniaString> m_buffer;
         };
 
         class StandardConsoleInput : public InputManager
         {
             public:
-                inline virtual InputManager& read(String& io)
+                inline virtual InputManager& read(OmniaString& io)
                 {
                     _string str;
                     std::getline(std::cin, str);
-                    io = String(str);
+                    io = OmniaString(str);
                     return *this;
                 }
         };
@@ -66,17 +66,17 @@ namespace Omnia
         {
             public:
                 inline TextFileOutput(void) { fileName = ""; }
-                inline TextFileOutput(String fname) { fileName = fname; }
+                inline TextFileOutput(OmniaString fname) { fileName = fname; }
                 inline void openOutputFile(void) { m_file.open(fileName.cpp()); }
                 inline void closeOutputFile(void) { m_file.close(); }
 
-                inline virtual OutputManager& print(String s) { m_file << s.cpp(); return *this; }
+                inline virtual OutputManager& print(OmniaString s) { m_file << s.cpp(); return *this; }
                 inline virtual OutputManager& print(int32 i) { m_file << (int32)i; return *this; }
                 inline virtual OutputManager& newLine(void) { m_file << "\n"; return *this; }
                 inline virtual OutputManager& tab(void) { m_file << "    "; return *this; }
 
             public:
-                String fileName;
+                OmniaString fileName;
             private:
                 std::ofstream m_file;
         };

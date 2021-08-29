@@ -1,6 +1,6 @@
-#include "String.hpp"
+#include "OmniaString.hpp"
 #include <math.h>
-#include "StringTokens.hpp"
+
 #include <algorithm>
 #include <cctype>
 #include <locale>
@@ -13,17 +13,17 @@ namespace Omnia
 {
 	namespace common
 	{
-		String String::floatToStr(float n, int sigd)
+		OmniaString OmniaString::floatToStr(float n, int sigd)
 		{
 			int i = (int)(n);
 			float f = n - i;
 			int _f = (int)(f * pow(10, sigd));
 			(_f < 0 ? _f *= -1 : _f = _f);
-			String str = String("") + (i != 0 ? "" : (n < 0 ? "-" : "")) + String::intToStr(i) + "." + String::intToStr(_f);
+			OmniaString str = OmniaString("") + (i != 0 ? "" : (n < 0 ? "-" : "")) + OmniaString::intToStr(i) + "." + OmniaString::intToStr(_f);
 			return str;
 		}
 
-		String String::intToStr(int n)
+		OmniaString OmniaString::intToStr(int n)
 		{
 			int nn = n;
 			bool neg = false;
@@ -33,7 +33,7 @@ namespace Omnia
 				neg = true;
 			}
 			int r = 0;
-			String str = "";
+			OmniaString str = "";
 			while (nn >= 10)
 			{
 				r = nn % 10;
@@ -44,17 +44,17 @@ namespace Omnia
 			return str.add((neg ? "-" : "")).reverse();
 		}
 
-		int String::indexOf(char c)
+		int OmniaString::indexOf(char c)
 		{
 			return indexOf(c, 0, length());
 		}
 
-		int String::indexOf(char c, int start)
+		int OmniaString::indexOf(char c, int start)
 		{
 			return indexOf(c, start, length());
 		}
 
-		int String::indexOf(char c, int start, int end)
+		int OmniaString::indexOf(char c, int start, int end)
 		{
 			if (start < 0)
 				start = 0;
@@ -72,17 +72,17 @@ namespace Omnia
 			return -1;
 		}
 
-		int String::indexOf(String str)
+		int OmniaString::indexOf(OmniaString str)
 		{
 			return indexOf(str, 0, length());
 		}
 
-		int String::indexOf(String str, int start)
+		int OmniaString::indexOf(OmniaString str, int start)
 		{
 			return indexOf(str, start, length());
 		}
 
-		int String::indexOf(String str, int start, int end)
+		int OmniaString::indexOf(OmniaString str, int start, int end)
 		{
 			if (start < 0)
 				start = 0;
@@ -115,7 +115,7 @@ namespace Omnia
 			return -1;
 		}
 
-		int String::lastIndexOf(char c)
+		int OmniaString::lastIndexOf(char c)
 		{
 			_string tmp = string;
 			string = reverse().cpp();
@@ -124,7 +124,7 @@ namespace Omnia
 			return length() - index - 1;
 		}
 
-		int String::lastIndexOf(String str)
+		int OmniaString::lastIndexOf(OmniaString str)
 		{
 			_string tmp = string;
 			string = reverse().cpp();
@@ -133,7 +133,7 @@ namespace Omnia
 			return length() - index - str.length();
 		}
 
-		String String::trim(void)
+		OmniaString OmniaString::trim(void)
 		{
 			_string s = cpp();
 			s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
@@ -142,17 +142,17 @@ namespace Omnia
 			s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
 				return !std::isspace(ch);
 			}).base(), s.end());
-			return String(s).remove('\n');
+			return OmniaString(s).remove('\n');
 		}
 
-		int String::toInt(void)
+		int OmniaString::toInt(void)
 		{
 			if (!isNumeric())
 				return -1;
 			return std::atoi(trim().c_str());
 		}
 
-		float String::toFloat(void)
+		float OmniaString::toFloat(void)
 		{
 			std::istringstream iss(cpp());
 			float f = 0;
@@ -162,7 +162,7 @@ namespace Omnia
 			return 0;
 		}
 
-		bool String::isNumeric(bool decimal)
+		bool OmniaString::isNumeric(bool decimal)
 		{
 			int len = trim().length();
 			if (len == 0) return false;
@@ -181,60 +181,60 @@ namespace Omnia
 			return true;
 		}
 
-		String String::substr(int start)
+		OmniaString OmniaString::substr(int start)
 		{
 			return subString(start, length() - start);
 		}
 
-		String String::substr(int start, int end)
+		OmniaString OmniaString::substr(int start, int end)
 		{
 			return subString(start, end - start);
 		}
 
-		String String::subString(int start, int nchars)
+		OmniaString OmniaString::subString(int start, int nchars)
 		{
-			String res = "";
+			OmniaString res = "";
 			if (start < 0 || nchars < 0 || start + nchars > length())
-				return String();
+				return OmniaString();
 			for (int i = start; i < start + nchars; i++)
 				res.add(at(i));
 			return res;
 		}
 
-		bool String::contains(char c)
+		bool OmniaString::contains(char c)
 		{
 			return indexOf(c) >= 0;
 		}
 
-		bool String::contains(String str)
+		bool OmniaString::contains(OmniaString str)
 		{
 			return indexOf(str) >= 0;
 		}
 
-		bool String::startsWith(String str)
+		bool OmniaString::startsWith(OmniaString str)
 		{
 			return indexOf(str) == 0;
 		}
 
-		bool String::endsWith(String str)
+		bool OmniaString::endsWith(OmniaString str)
 		{
 			int index = lastIndexOf(str);
 			return index >= 0 && index == length() - str.length();
 		}
 
-		String String::reverse(void)
+		OmniaString OmniaString::reverse(void)
 		{
-			String str = "";
+			OmniaString str = "";
 			for (int j = length() - 1; j >= 0; j--)
 				str = str + at(j);
 			return str;
 		}
 
-		String::StringTokens String::tokenize(String sep, bool trim)
+		OmniaString::StringTokens OmniaString::tokenize(OmniaString sep, bool trim)
 		{
-			std::vector<String> tokens;
+			std::vector<OmniaString> tokens;
 			bool done = false;
-			String token = "";
+			OmniaString token = "";
 			for (int i = 0; i < length(); i++)
 			{
 				for (int j = i; j < i + sep.length(); j++)
@@ -266,7 +266,7 @@ namespace Omnia
 			return t;
 		}
 
-		void String::split(char c, String* part1, String* part2, bool trim)
+		void OmniaString::split(char c, OmniaString* part1, OmniaString* part2, bool trim)
 		{
 			if (indexOf(c) == -1)
 				return;
@@ -279,9 +279,9 @@ namespace Omnia
 			}
 		}
 
-		String String::toLowerCase(void)
+		OmniaString OmniaString::toLowerCase(void)
 		{
-			String res = "";
+			OmniaString res = "";
 			for (int i = 0; i < length(); i++)
 			{
 				if (at(i) >= 'A' && at(i) <= 'Z')
@@ -292,9 +292,9 @@ namespace Omnia
 			return res;
 		}
 
-		String String::toUpperCase(void)
+		OmniaString OmniaString::toUpperCase(void)
 		{
-			String res = "";
+			OmniaString res = "";
 			for (int i = 0; i < length(); i++)
 			{
 				if (at(i) >= 'a' && at(i) <= 'z')
@@ -305,13 +305,13 @@ namespace Omnia
 			return res;
 		}
 
-		String::StringTokens String::splitExc(char exc, bool trim)
+		OmniaString::StringTokens OmniaString::splitExc(char exc, bool trim)
 		{
 			std::istringstream iss(cpp());
-			std::vector<String> v;
+			std::vector<OmniaString> v;
 			std::string s;
 			while (iss >> std::quoted(s, exc))
-				v.push_back(String(s));
+				v.push_back(OmniaString(s));
 			StringTokens st(v.size());
 			for (auto& ss : v)
 			{
@@ -322,11 +322,11 @@ namespace Omnia
 			return st;
 		}
 
-		bool String::equals(String str2, bool ignoreCase)
+		bool OmniaString::equals(OmniaString str2, bool ignoreCase)
 		{
 			if (str2.length() != length())
 				return false;
-			String str1 = (ignoreCase ? toLowerCase() : cpp());
+			OmniaString str1 = (ignoreCase ? toLowerCase() : cpp());
 			if (ignoreCase)
 				str2 = str2.toLowerCase();
 			for (int i = 0; i < length(); i++)
@@ -337,16 +337,16 @@ namespace Omnia
 			return true;
 		}
 
-		String String::remove(char c)
+		OmniaString OmniaString::remove(char c)
 		{
-			String res = "";
+			OmniaString res = "";
 			for (int i = 0; i < length(); i++)
 				if (at(i) != c)
 					res.add(at(i));
 			return res;
 		}
 
-		String String::replaceAll(String search, String replace)
+		OmniaString OmniaString::replaceAll(OmniaString search, OmniaString replace)
 		{
 			_string s = string;
 			for (size_t pos = 0; ; pos += replace.length())
@@ -356,67 +356,67 @@ namespace Omnia
 				s.erase(pos, search.length());
 				s.insert(pos, replace.cpp());
 			}
-			return String(s);
+			return OmniaString(s);
 		}
 
 
 
-		String::StringTokens::StringTokens(void)
+		OmniaString::StringTokens::StringTokens(void)
 		{
 			create(10);
 		}
 
-		String::StringTokens::StringTokens(int length)
+		OmniaString::StringTokens::StringTokens(int length)
 		{
 			create(length);
 		}
 
-		void String::StringTokens::create(int length)
+		void OmniaString::StringTokens::create(int length)
 		{
 			tokens.reserve(length);
 			current = 0;
 		}
 
-		String String::StringTokens::next(void)
+		OmniaString OmniaString::StringTokens::next(void)
 		{
 			if (hasNext())
 				return tokens[current++];
 			return "";
 		}
 
-		String String::StringTokens::previous(void)
+		OmniaString OmniaString::StringTokens::previous(void)
 		{
 			if (hasPrevious())
 				return tokens[--current];
 			return "";
 		}
 
-		int String::String::StringTokens::count(void)
+		int OmniaString::OmniaString::StringTokens::count(void)
 		{
 			return tokens.size();
 		}
 
-		void String::StringTokens::add(String token)
+		void OmniaString::StringTokens::add(OmniaString token)
 		{
 			tokens.push_back(token);
 		}
 
-		bool String::StringTokens::hasNext(void)
+		bool OmniaString::StringTokens::hasNext(void)
 		{
 			return (unsigned)current < tokens.size();
 		}
 
-		bool String::StringTokens::hasPrevious(void)
+		bool OmniaString::StringTokens::hasPrevious(void)
 		{
 			return current > 0;
 		}
 
-		void String::StringTokens::cycle(void)
+		void OmniaString::StringTokens::cycle(void)
 		{
 			current = 0;
 		}
 
-		std::vector<String> String::StringTokens::array(void)
+		std::vector<OmniaString> OmniaString::StringTokens::array(void)
 		{
 			return tokens;
 		}

@@ -6,40 +6,40 @@ namespace Omnia
 {
 	namespace common
 	{
-		bool Utils::isHex(String hex)
+		bool Utils::isHex(OmniaString hex)
 		{
 			_string s = hex.toLowerCase().cpp();
 			return s.compare(0, 2, "0x") == 0 &&
 					s.size() > 2 &&
 					s.find_first_not_of("0123456789abcdef", 2) == std::string::npos;
 		}
-		bool Utils::isBin(String bin)
+		bool Utils::isBin(OmniaString bin)
 		{
 			_string s = bin.toLowerCase().cpp();
 			return s.compare(0, 2, "0b") == 0 &&
 					s.size() > 2 &&
 					s.find_first_not_of("01", 2) == std::string::npos;
 		}
-		bool Utils::isInt(String str)
+		bool Utils::isInt(OmniaString str)
 		{
 			return Utils::isHex(str) || Utils::isBin(str) || str.isNumeric();
 		}
-		int32 Utils::strToInt(String str)
+		int32 Utils::strToInt(OmniaString str)
 		{
 			if (!Utils::isInt(str)) return 0;
 			return (int32)strtol(str.trim().toLowerCase().c_str(), NULL, 0);
 		}
-		bool Utils::readFile(String fileName, std::vector<String>& lines)
+		bool Utils::readFile(OmniaString fileName, std::vector<OmniaString>& lines)
 		{
 			_string line;
 			std::ifstream file(fileName.cpp());
 			if (file.fail()) return false;
 			lines.clear();
 			while (std::getline(file, line))
-				lines.push_back(String(line));
+				lines.push_back(OmniaString(line));
 			return true;
 		}
-		String Utils::replaceAllVarName(String str, String search, String replace)
+		OmniaString Utils::replaceAllVarName(OmniaString str, OmniaString search, OmniaString replace)
 		{
 			_string s = str.trim().cpp();
 			for (size_t pos = 0; ; pos += replace.length())
@@ -76,32 +76,32 @@ namespace Omnia
 				s.erase(pos, search.length());
 				s.insert(pos, replace.cpp());
 			}
-			return String(s);
+			return OmniaString(s);
 		}
-		String Utils::intToHexStr(word i, bool prefix)
+		OmniaString Utils::intToHexStr(word i, bool prefix)
 		{
 			char buff[5];
 			sprintf(buff, "%04X", i);
-			String m = "";
+			OmniaString m = "";
 			for (uint16 j = 0; j < 4; j++)
 				m = m.add(buff[j]);
-			if (prefix) return String("0x").add(m);
+			if (prefix) return OmniaString("0x").add(m);
 			return m;
 		}
-		String Utils::intToBinStr(word i, bool prefix)
+		OmniaString Utils::intToBinStr(word i, bool prefix)
 		{
-			String m(std::bitset<sizeof(i) * 8>(i).to_string());
-			if (prefix) return String("0b").add(m);
+			OmniaString m(std::bitset<sizeof(i) * 8>(i).to_string());
+			if (prefix) return OmniaString("0b").add(m);
 			return m;
 		}
-		String Utils::duplicateChar(unsigned char c, uint16 count)
+		OmniaString Utils::duplicateChar(unsigned char c, uint16 count)
 		{
-			String str = "";
+			OmniaString str = "";
 			for (uint16 i = 0; i < count; i++)
 				str = str.add(c);
 			return str;
 		}
-		void Utils::printMemoryBlock(MemAddress start, MemAddress end, String text, OutputManager& out, MemAddress highlight, uint8 inst_len)
+		void Utils::printMemoryBlock(MemAddress start, MemAddress end, OmniaString text, OutputManager& out, MemAddress highlight, uint8 inst_len)
 		{
 			if (end == 0) return;
 			uint16 w = 107;
@@ -113,7 +113,7 @@ namespace Omnia
 			out.print(tmp.get()).print(Utils::duplicateChar(' ', w - tmp.get().length() - 1)).print("|");
 			out.newLine().print(Utils::duplicateChar('=', w)).newLine();
 			out.print("|").print(Utils::intToHexStr(start)).print("| |").print((highlight != oasm_nullptr && start == highlight ? "<" : " "));
-			String __lc = " ", __rc = " ";
+			OmniaString __lc = " ", __rc = " ";
 			for (MemAddress i = start; i < end; i++)
 			{
 				__lc = (highlight != oasm_nullptr && highlight == i - 1 ? "<" : " ");
@@ -143,7 +143,7 @@ namespace Omnia
 
 		void Utils::printRegisters(OutputManager& out)
 		{
-			String text = "Registers";
+			OmniaString text = "Registers";
 			uint8 hcount = 16;
 			MemAddress start = 0x0000;
 			MemAddress end = (MemAddress)eRegisters::Count;
@@ -179,7 +179,7 @@ namespace Omnia
 			out.print(" |").newLine().print(Utils::duplicateChar('=', w));
 		}
 
-		String Utils::mapInstruction(eInstructionSet __inst)
+		OmniaString Utils::mapInstruction(eInstructionSet __inst)
 		{
 			switch (__inst)
 			{
@@ -244,7 +244,7 @@ namespace Omnia
 			return "INVALID_OP_CODE";
 		}
 
-		String Utils::mapAddressingMode(eAddressingModes __mode)
+		OmniaString Utils::mapAddressingMode(eAddressingModes __mode)
 		{
 			switch (__mode)
 			{
@@ -297,7 +297,7 @@ namespace Omnia
 			return "NO_ADDR_MODE";
 		}
 
-        String Utils::mapMaskParam(word __m_param)
+        OmniaString Utils::mapMaskParam(word __m_param)
 		{
 			switch (__m_param)
 			{

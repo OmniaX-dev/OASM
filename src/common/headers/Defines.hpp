@@ -31,8 +31,8 @@
 #define FLG__PRINT_ERROR_ON_PUSH 0
 
 //Macro functions
-#define ERROR_DATA() String(CPP_STR(__LINE__)), String(__FILE__)
-#define CPP_STR(val) String::intToStr(val).cpp()
+#define ERROR_DATA() OmniaString(CPP_STR(__LINE__)), OmniaString(__FILE__)
+#define CPP_STR(val) OmniaString::intToStr(val).cpp()
 #define STR_BOOL(b) (b ? "true" : "false")
 #define INT_BOOL(i) (i == 0 ? false : true)
 #define ZERO(n) (n > 0 ? n : 0)

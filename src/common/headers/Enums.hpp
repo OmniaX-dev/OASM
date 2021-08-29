@@ -16,7 +16,7 @@ namespace Omnia
 		
 		enum class eNamespaceMemberType {
 			Integer = 0,
-			String,
+			OmniaString,
 			Color,
 			Object,
 			

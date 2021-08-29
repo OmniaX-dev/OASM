@@ -3,7 +3,7 @@
 
 #include "Defines.hpp"
 #include "Enums.hpp"
-#include "String.hpp"
+#include "OmniaString.hpp"
 #include <memory>
 #include <vector>
 #include <map>
@@ -288,7 +288,7 @@ namespace Omnia
             Register,
             Variable,
             Integer,
-            String,
+            OmniaString,
             Char,
             VariablePointer,
             VariableRef,
@@ -459,43 +459,43 @@ namespace Omnia
         class Utils
         {
             public:
-                static bool isHex(String hex);
-                static bool isBin(String bin);
-                static bool isInt(String str);
-                static int32 strToInt(String str);
-                static bool readFile(String fileName, std::vector<String>& lines);
-                static String replaceAllVarName(String str, String search, String replace);
-                static String intToHexStr(word i, bool prefix = true);
-                static String intToBinStr(word i, bool prefix = true);
-                static String duplicateChar(unsigned char c, uint16 count);
-                static void printMemoryBlock(MemAddress start, MemAddress end, String text, OutputManager& out, MemAddress highlight = oasm_nullptr, uint8 inst_len = 0 );
+                static bool isHex(OmniaString hex);
+                static bool isBin(OmniaString bin);
+                static bool isInt(OmniaString str);
+                static int32 strToInt(OmniaString str);
+                static bool readFile(OmniaString fileName, std::vector<OmniaString>& lines);
+                static OmniaString replaceAllVarName(OmniaString str, OmniaString search, OmniaString replace);
+                static OmniaString intToHexStr(word i, bool prefix = true);
+                static OmniaString intToBinStr(word i, bool prefix = true);
+                static OmniaString duplicateChar(unsigned char c, uint16 count);
+                static void printMemoryBlock(MemAddress start, MemAddress end, OmniaString text, OutputManager& out, MemAddress highlight = oasm_nullptr, uint8 inst_len = 0 );
                 static void printRegisters(OutputManager& out);
-                static String mapInstruction(eInstructionSet __inst);
-                static String mapAddressingMode(eAddressingModes __mode);
-                static String mapMaskParam(word __m_param);
+                static OmniaString mapInstruction(eInstructionSet __inst);
+                static OmniaString mapAddressingMode(eAddressingModes __mode);
+                static OmniaString mapMaskParam(word __m_param);
         };		
 		class StringBuilder
 		{
 			public:
 				inline StringBuilder(void) { m_data = ""; }
-				inline StringBuilder(String str) { m_data = str; }
-				inline StringBuilder(int32 i) { m_data = String::intToStr(i); }
-				inline StringBuilder(int64 i) { m_data = String::intToStr(i); }
-				inline StringBuilder(float f) { m_data = String::floatToStr(f); }
-				inline StringBuilder(char c) { m_data = String().add(c); }
+				inline StringBuilder(OmniaString str) { m_data = str; }
+				inline StringBuilder(int32 i) { m_data = OmniaString::intToStr(i); }
+				inline StringBuilder(int64 i) { m_data = OmniaString::intToStr(i); }
+				inline StringBuilder(float f) { m_data = OmniaString::floatToStr(f); }
+				inline StringBuilder(char c) { m_data = OmniaString().add(c); }
 				inline StringBuilder(StringBuilder& sb) { m_data = sb.get(); }
 				
-				inline StringBuilder& add(String str) { m_data = m_data.add(str); return *this; }
+				inline StringBuilder& add(OmniaString str) { m_data = m_data.add(str); return *this; }
 				inline StringBuilder& add(int32 i) { m_data = m_data.addInt(i); return *this; }
 				inline StringBuilder& add(int64 i) { m_data = m_data.addInt(i); return *this; }
-				inline StringBuilder& add(float f) { m_data = m_data.add(String::floatToStr(f)); return *this; }
+				inline StringBuilder& add(float f) { m_data = m_data.add(OmniaString::floatToStr(f)); return *this; }
 				inline StringBuilder& add(char c) { m_data = m_data.add(c); return *this; }
 				inline StringBuilder& add(StringBuilder& sb) { m_data = sb.get(); return *this; }
 
-				inline String get(void) { return m_data; }
+				inline OmniaString get(void) { return m_data; }
 
 			private:
-				String m_data;
+				OmniaString m_data;
 		};
 	}
 }

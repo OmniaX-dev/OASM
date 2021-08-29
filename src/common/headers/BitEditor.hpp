@@ -44,7 +44,7 @@ namespace Omnia
 			public:
 				inline BitEditor(void) { m_data = 0; }
 				inline BitEditor(word data) { m_data = data; }
-				String binaryStr(bool prefix = true);
+				OmniaString binaryStr(bool prefix = true);
 				
 				inline word val(void) const { return m_data; }
 				inline bool bit(eBit b) { return m_data & (word)b; }
@@ -233,8 +233,8 @@ namespace Omnia
 					return *this;
 				}
 
-                static TMemoryList stringToConstSream(String __str);
-                static String constStreamToString(TMemoryList __stream);
+                static TMemoryList stringToConstSream(OmniaString __str);
+                static OmniaString constStreamToString(TMemoryList __stream);
 				static eBit& nextBit(eBit& bit, bool cycle = false);
 				friend std::ostream& operator<<(std::ostream& out, const BitEditor& be);
 				

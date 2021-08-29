@@ -11,13 +11,13 @@ namespace Omnia
         class PendingLabel
         {
             public:
-                inline PendingLabel(String n, MemAddress a, uint32 l, String ll) { name = n; addr = a; lineN = l; line = ll; pending = true; }
+                inline PendingLabel(OmniaString n, MemAddress a, uint32 l, OmniaString ll) { name = n; addr = a; lineN = l; line = ll; pending = true; }
 
-                String name;
+                OmniaString name;
                 MemAddress addr;
                 bool pending;
                 uint32 lineN;
-                String line;
+                OmniaString line;
         };
 
         class PreProcessorOptions
@@ -35,45 +35,45 @@ namespace Omnia
         {
             public:
                 inline Macro(void) { invalidate(); }
-                Macro(String line);
-                String expand(String line);
+                Macro(OmniaString line);
+                OmniaString expand(OmniaString line);
 
             
             public:
-                std::vector<String> params;
-                String expansion;
-                String name;
+                std::vector<OmniaString> params;
+                OmniaString expansion;
+                OmniaString name;
         };
 
         class PreProcessor : public IOReciever, public ErrorReciever
         {
             public:
                 inline static PreProcessor& instance(void) { return s_instance; }
-                std::vector<String> open(String fileName, PreProcessorOptions options = PreProcessorOptions());
-                inline bool hasAlias(String alias) { return (m_aliases.count(alias.cpp()) != 0); }
-                inline bool hasReserved(String res) { return (m_reserves.count(res.cpp()) != 0); }
+                std::vector<OmniaString> open(OmniaString fileName, PreProcessorOptions options = PreProcessorOptions());
+                inline bool hasAlias(OmniaString alias) { return (m_aliases.count(alias.cpp()) != 0); }
+                inline bool hasReserved(OmniaString res) { return (m_reserves.count(res.cpp()) != 0); }
 
             private:
                 inline PreProcessor(void) {  }
 
             private:
-                std::vector<String> process(std::vector<String> lines, PreProcessorOptions options);
-                std::vector<String> resolveIncludes(std::vector<String> mainFile, String curFile);
-                std::vector<String> resolveIncludes_r(std::vector<String> mainFile, String curFile);
-                std::vector<String> removeComments(std::vector<String> lines);
-                std::vector<String> resolveAliases(std::vector<String> lines);
-                std::vector<String> resolveMacros(std::vector<String> lines);
-				std::vector<String> resolveCommandDirective(std::vector<String> lines);
-				std::vector<String> resolveDataDirective(std::vector<String> lines);
+                std::vector<OmniaString> process(std::vector<OmniaString> lines, PreProcessorOptions options);
+                std::vector<OmniaString> resolveIncludes(std::vector<OmniaString> mainFile, OmniaString curFile);
+                std::vector<OmniaString> resolveIncludes_r(std::vector<OmniaString> mainFile, OmniaString curFile);
+                std::vector<OmniaString> removeComments(std::vector<OmniaString> lines);
+                std::vector<OmniaString> resolveAliases(std::vector<OmniaString> lines);
+                std::vector<OmniaString> resolveMacros(std::vector<OmniaString> lines);
+				std::vector<OmniaString> resolveCommandDirective(std::vector<OmniaString> lines);
+				std::vector<OmniaString> resolveDataDirective(std::vector<OmniaString> lines);
 
-                void error(ePreProcessorErrors err, String msg, bool skipFileInfo = false);
+                void error(ePreProcessorErrors err, OmniaString msg, bool skipFileInfo = false);
 
             private:
-                String _line;
+                OmniaString _line;
                 uint32 lineNumber;
-                String currentFile;
+                OmniaString currentFile;
 				word m_reserveCount;
-                std::vector<String> m_includeGuards;
+                std::vector<OmniaString> m_includeGuards;
                 std::map<_string, _string> m_aliases;
 				std::map<_string, MemAddress> m_reserves;
                 PreProcessorOptions m_options;
@@ -94,10 +94,10 @@ namespace Omnia
 				inline static Assembler& instance(void) { return *Assembler::s_instance; }
 				int64 run(int argc, char** argv);
 
-				TMemoryList assemble(std::vector<String>& __source);
-				TMemoryList assemble(String __source_file_path);
-				std::vector<String> resolveKeyWords(std::vector<String> lines);
-                inline static bool isKeyword(String __kw, word& outKeyword)
+				TMemoryList assemble(std::vector<OmniaString>& __source);
+				TMemoryList assemble(OmniaString __source_file_path);
+				std::vector<OmniaString> resolveKeyWords(std::vector<OmniaString> lines);
+                inline static bool isKeyword(OmniaString __kw, word& outKeyword)
 				{
 					if (Assembler::m_keyWords.count(__kw.cpp()) != 0)
 					{
@@ -106,7 +106,7 @@ namespace Omnia
 					}
 					return false;
 				}
-				inline bool isLabel(String __label, MemAddress& outAddr)
+				inline bool isLabel(OmniaString __label, MemAddress& outAddr)
 				{
 					if (m_labels.count(__label.cpp()) != 0)
 					{
