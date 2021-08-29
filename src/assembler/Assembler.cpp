@@ -459,6 +459,7 @@ namespace Omnia
 			OutputManager &out = *getOutputHandler();
 
 			OmniaString p__input_file_path = "";
+            OmniaString p__output_file_path = "";
 			if (argc > 1)
 			{
 				for (int i = 1; i < argc; i++)
@@ -473,18 +474,37 @@ namespace Omnia
 						i++;
 						p__input_file_path = OmniaString(argv[i]);
 					}
+                    else if (OmniaString(argv[i]).trim().equals("--output-file") || OmniaString(argv[i]).trim().equals("-o"))
+					{
+						if (i + 1 >= argc)
+						{
+							out.print("Error: No output file specified.").newLine();
+							return 0xFFFA; //TODO: Add error code
+						}
+						i++;
+						p__output_file_path = OmniaString(argv[i]);
+					}
 				}
 			}
 			if (p__input_file_path.trim() == "") return 0xFFFE; //TODO: Error
+			if (p__output_file_path.trim() == "") return 0xFFFD; //TODO: Error
 			TMemoryList __program = assemble("oasm_test_1.oasm");
-			//uint16 __tmp = 0;
-			/*for (auto cell : __program)
-			{
-				out.print(Utils::intToHexStr(cell.val())).print(",");
-				if (++__tmp % 16 == 0) out.newLine();
-			}*/
+            if (!createExecutableFile(p__output_file_path, __program))
+            {
+                out.print("Error: Failed to create executable.").newLine();
+                return 0xCFCFCF; //TODO: Add error code
+            }
 			return 0;
 		}
+
+        bool Assembler::createExecutableFile(OmniaString __outputFile, TMemoryList __program)
+        {
+            if (__program.size() == 0) return false;
+            std::ofstream writeFile;
+            writeFile.open(__outputFile.cpp(), std::ios::out | std::ios::binary);
+            writeFile.write((char*)(&__program[0]), __program.size() * sizeof(word));
+            return true;
+        }
 
 		TMemoryList Assembler::assemble(OmniaString __source_file_path)
 		{
@@ -492,10 +512,6 @@ namespace Omnia
             std::vector<OmniaString> source = PreProcessor::instance().m_dataSection;
             source.insert(source.end(), __source.begin(), __source.end());
 			std::vector<OmniaString> code = resolveKeyWords(source);
-			/*for (auto& __line : code)
-			{
-				std::cout << __line.cpp() << "\n";
-			}*/
 			return assemble(code);
 		}
 
@@ -519,17 +535,6 @@ namespace Omnia
 					__code.push_back(Utils::strToInt(__data));
 				}
 			}
-            /*MemAddress __main_addr = oasm_nullptr;
-            if (isLabel("__main__", __main_addr))
-            {
-                __code.insert(__code.begin(), __main_addr);
-            }
-            else 
-            {
-                //TODO: Error
-                getOutputHandler()->print("No entry poin found.").newLine();
-                return TMemoryList();
-            }*/
 			return __code;
 		}
 		

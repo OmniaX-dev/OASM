@@ -95,6 +95,7 @@ namespace Omnia
 				inline static Assembler& instance(void) { return *Assembler::s_instance; }
 				int64 run(int argc, char** argv);
 
+				bool createExecutableFile(OmniaString __outputFile, TMemoryList __program);
 				TMemoryList assemble(std::vector<OmniaString>& __source);
 				TMemoryList assemble(OmniaString __source_file_path);
 				std::vector<OmniaString> resolveKeyWords(std::vector<OmniaString> lines);

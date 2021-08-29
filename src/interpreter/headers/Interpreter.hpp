@@ -38,6 +38,7 @@ namespace Omnia
 			public:
 				inline static Interpreter& instance(void) { return *Interpreter::s_instance; }
 				int64 run(int argc, char** argv);
+				bool loadFromFile(OmniaString __oex_file, TMemoryList& outProgram);
 
 			private:
 				static Interpreter* s_instance;

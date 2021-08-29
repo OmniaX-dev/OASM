@@ -42,15 +42,18 @@ namespace Omnia
 			bool p__step_exec = false;
 			bool p__print_memory = false;
 			bool p__assemble = false;
+			bool p__debugger_call = false;
 			OmniaString p__input_file_path = "";
 			if (argc > 1)
 			{
 				for (int i = 1; i < argc; i++)
 				{
-					if (OmniaString(argv[i]).trim().equals("--step-execution", true))
+					if (OmniaString(argv[i]).trim().equals("--step-execution", true) || OmniaString(argv[i]).trim().equals("-S"))
 						p__step_exec = true;
 					else if (OmniaString(argv[i]).trim().equals("--print-memory", true))
 						p__print_memory = true;
+					else if (OmniaString(argv[i]).trim().equals("--debugger-internal-call", true))
+						p__debugger_call = true;
 					else if (OmniaString(argv[i]).trim().equals("--input-file") || OmniaString(argv[i]).trim().equals("-i"))
 					{
 						if (i + 1 >= argc)
@@ -61,7 +64,7 @@ namespace Omnia
 						i++;
 						p__input_file_path = OmniaString(argv[i]);
 					}
-					else if (OmniaString(argv[i]).trim().equals("--assemble"))
+					else if (OmniaString(argv[i]).trim().equals("--assemble") || OmniaString(argv[i]).trim().equals("-a"))
 					{
 						p__assemble = true;
 					}
@@ -83,27 +86,40 @@ namespace Omnia
 			vm.getCPU().setStepExecution(p__step_exec);
 
 			Process proc;
-			proc.setID(2522);
-			proc.validate();
-			proc.m_codeAddr = D__MEMORY_START;
+			proc.setID(2522); //TODO: change
+			//proc.m_codeAddr = D__MEMORY_START;
 
 			if (p__assemble && p__input_file_path.trim() != "")
 				proc.m_code = Assembler::instance().assemble(p__input_file_path);
-			//TODO: Add option to load executable
-
-			vm.setCurrentProc(proc);
-			ram.disableProtectedMode();
-			for (uint i = proc.m_codeAddr; i < proc.m_codeAddr + proc.m_code.size(); i++)
+			else if (!p__assemble && p__input_file_path.trim() != "")
 			{
-				ram.set(proc, (MemAddress)i, eMemCellType::Normal, eMemState::Allocated, eMemCellFlag::NoFlag);
-				ram.write((MemAddress)i, proc.m_code[i - proc.m_codeAddr]);
+				if (!loadFromFile(p__input_file_path, proc.m_code))
+					return 0xADAD; //TODO: Error
+			}
+			else
+			{
+				return 0xEBDB; //TODO: Error
+			}
+			proc.validate();
+			vm.setCurrentProc(proc);
+			MemAddress __tmp_code_addr;
+			if (!ram.request(proc.m_code.size(), __tmp_code_addr, eMemCellType::Normal, proc))
+			{
+				//TODO: Error
+				return 0xAFFA;
+			}
+			ram.disableProtectedMode();
+			proc.m_codeAddr = __tmp_code_addr; //TODO: This override needs to be implemented directly into RAM::request function
+			for (MemAddress i = proc.m_codeAddr; i < proc.m_codeAddr + proc.m_code.size(); i++)
+			{
+				//ram.set(proc, (MemAddress)i, eMemCellType::Normal, eMemState::Allocated, eMemCellFlag::NoFlag);
+				ram.write(i, proc.m_code[i - proc.m_codeAddr]);
 			}
 			ram.enableProtectedMode();
-			proc.m_codeAllocated = true;
-			proc.m_codeSize = proc.m_code.size();
 			vm.getREG().disableProtectedMode();
 			vm.getREG().write(eRegisters::IP, proc.m_codeAddr);
 			vm.getREG().enableProtectedMode();
+			if (p__debugger_call) return 0x0000;
 			while (vm.getCPU().clock_tick()) ;
 			ErrorCode __err = vm.getCPU().getLastErrorCode();
 
@@ -112,6 +128,17 @@ namespace Omnia
 
 			return __err;
 		}
+
+		bool Interpreter::loadFromFile(OmniaString __oex_file, TMemoryList& outProgram)
+        {
+            std::ifstream rf(__oex_file.cpp(), std::ios::out | std::ios::binary);
+            if(!rf) return false; //TODO: Error
+            word cell = 0;
+            while(rf.read((char*)&cell, sizeof(cell)))
+                outProgram.push_back(BitEditor(cell));
+            if (outProgram.size() == 0) return false; //TODO: Error
+            return true;
+        }
 
 
 
@@ -3021,6 +3048,22 @@ namespace Omnia
 					proc.m_stackAddr = _tmp;
 					proc.m_stackAllocated = true;
 					proc.m_stackSize = size;
+					outAddr = _tmp + 1;
+					return true;
+				}
+				else if (type == eMemCellType::Normal)
+				{
+					if (proc.m_codeAllocated)
+						return false;
+					_start = D__MEMORY_START;
+					_tmp = requestFrom(_start, size, D__HEAP_SPACE_START - 1, true);
+					if (_tmp == oasm_nullptr)
+						return false;
+					if (!allocate(proc, _tmp, size))
+						return false;
+					proc.m_codeAddr = _tmp;
+					proc.m_codeAllocated = true;
+					proc.m_codeSize = size;
 					outAddr = _tmp + 1;
 					return true;
 				}
