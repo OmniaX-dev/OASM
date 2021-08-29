@@ -2,15 +2,18 @@
 
 .command(request, all=63)
 
-.data = reserve(max, _t1, _t2, next, i, text)
-.data = load_string(text, "Fibonacci series:")
+.data = reserve(max, _t1, _t2, next, i, fibo_text, pow_text)
+.data = load_string(fibo_text, "Fibonacci series:")
+.data = load_string(pow_text, "  -->POWER = ")
 
-jmp,				Single_Const,		JMP_UNCONDITIONAL,			main_prog
+
+
 //--------------------------------------------------------------------------------------
+jmp,				Single_Const,		JMP_UNCONDITIONAL,			main_prog
 :fibonacci_series:
 	pop,			Single_Reg,			R0
 
-	cmd,			Const_Addr,			PrintStringToConsole,		text
+	cmd,			Const_Addr,			PrintStringToConsole,		fibo_text
 	cmd,			Const_Const,		PrintNewLineToConsole,		0
 
 	cmd,			Const_Const,		PrintIntToConsole,			0
@@ -41,11 +44,53 @@ jmp,				Single_Const,		JMP_UNCONDITIONAL,			main_prog
 	ret,			Single_Const,		0
 //----------------------------END FIBONACCI_SERIES--------------------------------------
 
+
+
+//--------------------------------------------------------------------------------------
+jmp,				Single_Const,		JMP_UNCONDITIONAL,			main_prog
+:sum_numbers:
+	pop,			Single_Reg,			R0
+	pop,			Single_Reg,			R1
+	add,			Reg_Reg,			R0,							R1
+	ret,			Single_Reg,			R0
+//----------------------------END FIBONACCI_SERIES--------------------------------------
+
+
+
+//--------------------------------------------------------------------------------------
+jmp,				Single_Const,		JMP_UNCONDITIONAL,			main_prog
+:power_r:
+	pop,			Single_Reg,			R0		//Power
+	pop,			Single_Reg,			R1		//Base
+	cmp,			Reg_Const,			R0,							0
+	jmp,			Single_Const,		JMP_EQUALS,					else
+	mem,			Reg_Reg,			R2,							R0			//Copy power
+	dec,			Single_Reg,			R2
+	call,			Const_Const,		power_r,					2,			Single_Reg,R1,		Single_Reg,R2
+	mem,			Reg_Reg,			R3,							R1			//Copy Base
+	mem,			Reg_Reg,			R4,							RV			//Copy return value
+	mul,			Reg_Reg,			R3,							R4
+	ret,			Single_Reg,			R3
+:else:
+	ret,			Single_Const,		1
+//----------------------------END FIBONACCI_SERIES--------------------------------------
+
+
+
+//--------------------------------------------------------------------------------------
 :main_prog:
 	call,				Const_Const,		fibonacci_series,			1,			Single_Const,10
-	call,				Const_Const,		fibonacci_series,			1,			Single_Const,15
+
+	call,				Const_Const,		power_r,					2,			Single_Const,2,		Single_Const,10
+	cmd,				Const_Addr,			PrintStringToConsole,		pow_text
+	cmd,				Const_Reg,			PrintIntToConsole,			RV
+	cmd,				Const_Const,		PrintNewLineToConsole,		0
+
 	call,				Const_Const,		fibonacci_series,			1,			Single_Const,20
 
 	end,			Single_Const,		0xCACA
+//------------------------------------END MAIN_PROG-------------------------------------
+
+
 
 .close_include_guard

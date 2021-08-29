@@ -1019,7 +1019,8 @@ namespace Omnia
 						pushError(D__CPU_ERR__MAP_ADDR_MODE_FAILED);
 						__return_and_set_ip(false, m_old_pc_val)
 					}
-					__return_if_const_op1(false) if (__reg_op1)
+					__return_if_const_op1(false)
+					if (__reg_op1)
 					{
 						BitEditor __op1_val;
 						if (!_reg.__read_m(outData1.val(), __op1_val, (word)m_op1_addr_mode))
@@ -1699,6 +1700,8 @@ namespace Omnia
 							pushError(D__CPU_ERR__READ_FAILED);
 							__return_and_set_ip(false, m_old_pc_val)
 						}
+						m_const_op1 = false;
+						__reg_op1 = false;
 						if (!map_addr_mode(_ram, _reg, (eAddressingModes)__param_addr_mode.val(), __param_data, __param_data, __out_param_data, __out_param_data, __reg_op1))
 						{
 							pushError(D__CPU_ERR__MAP_ADDR_MODE_FAILED);
@@ -3308,7 +3311,7 @@ namespace Omnia
 			bool REG::__read_m(word addr, BitEditor &outData, word __m_param)
 			{
 				if (!m_safe_mode || (addr >= (word)eRegisters::ES && addr <= (word)eRegisters::FL) ||
-					 (addr >= (word)eRegisters::R31 && addr <= (word)eRegisters::R31))
+					 (addr >= (word)eRegisters::R0 && addr <= (word)eRegisters::R31))
 				{
 					if (__m_param == (word)eSingleAddrModes::_2B)
 						outData = m_regs[addr];

@@ -197,7 +197,7 @@ namespace Omnia
 					{ "inc_m", (word)eInstructionSet::inc_m },
 					{ "dec", (word)eInstructionSet::dec },
 					{ "dec_m", (word)eInstructionSet::dec_m },
-					{ "add", (word)eInstructionSet::add_m },
+					{ "add", (word)eInstructionSet::add },
 					{ "add_m", (word)eInstructionSet::add_m },
 					{ "sub", (word)eInstructionSet::sub },
 					{ "sub_m", (word)eInstructionSet::sub_m },
