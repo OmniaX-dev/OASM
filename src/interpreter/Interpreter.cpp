@@ -102,7 +102,7 @@ namespace Omnia
 			proc.m_codeAllocated = true;
 			proc.m_codeSize = proc.m_code.size();
 			vm.getREG().disableProtectedMode();
-			vm.getREG().write(eRegisters::IP, proc.m_code[0] + proc.m_codeAddr);
+			vm.getREG().write(eRegisters::IP, proc.m_codeAddr);
 			vm.getREG().enableProtectedMode();
 			while (vm.getCPU().clock_tick()) ;
 			ErrorCode __err = vm.getCPU().getLastErrorCode();

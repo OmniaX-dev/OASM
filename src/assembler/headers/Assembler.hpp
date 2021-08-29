@@ -74,6 +74,7 @@ namespace Omnia
                 OmniaString currentFile;
 				word m_reserveCount;
                 std::vector<OmniaString> m_includeGuards;
+				std::vector<OmniaString> m_dataSection;
                 std::map<_string, _string> m_aliases;
 				std::map<_string, MemAddress> m_reserves;
                 PreProcessorOptions m_options;

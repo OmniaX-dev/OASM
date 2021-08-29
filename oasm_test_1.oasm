@@ -1,5 +1,12 @@
 .include_guard(oasm_test_1)
 
+.command(request, all=63)
+
+.data = reserve(max, _t1, _t2, next, i, fibo_text, pow_text)
+.data = load_string(fibo_text, "Fibonacci series:")
+.data = load_string(pow_text, "  -->POWER = ")
+
+
 
 //--------------------------------------------------------------------------------------
 //jmp,				Single_Const,		JMP_UNCONDITIONAL,			__main__
@@ -72,13 +79,6 @@
 
 //--------------------------------------------------------------------------------------
 :__main__:
-	.command(request, all=63)
-	.data = reserve(max, _t1, _t2, next, i, fibo_text, pow_text)
-	.data = load_string(fibo_text, "Fibonacci series:")
-	.data = load_string(pow_text, "  -->POWER = ")
-
-
-
 	call,				Const_Const,		fibonacci_series,			1,			Single_Const,10
 
 	call,				Const_Const,		power_r,					2,			Single_Const,2,		Single_Const,10
@@ -89,7 +89,7 @@
 	call,				Const_Const,		fibonacci_series,			1,			Single_Const,20
 
 	end,			Single_Const,		0xCACA
-//------------------------------------END MAIN_PROG-------------------------------------
+//------------------------------------END __MAIN__--------------------------------------
 
 
 

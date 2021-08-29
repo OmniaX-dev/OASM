@@ -25,6 +25,7 @@ namespace Omnia
 			if (!m_includeGuards.empty()) m_includeGuards.clear();
 			if (!m_aliases.empty()) m_aliases.clear();
 			if (!m_reserves.empty()) m_reserves.clear();
+            if (!m_dataSection.empty()) m_dataSection.clear();
             currentFile = fileName;
             return process(lines, options);
         }
@@ -35,15 +36,16 @@ namespace Omnia
             std::vector<OmniaString> finalCode = resolveIncludes(lines, currentFile);
             finalCode = removeComments(finalCode);
             finalCode = resolveAliases(finalCode);
+            finalCode = resolveMacros(finalCode);
 			finalCode = resolveCommandDirective(finalCode);
 			finalCode = resolveDataDirective(finalCode);
-            finalCode = resolveMacros(finalCode);
 			for (auto& _line : finalCode)
 			{
 				_line = _line.replaceAll(" ", "");
 				_line = _line.replaceAll("\t", "");
 				_line = _line.replaceAll("\n", "");
 			}
+            m_dataSection.push_back("0x1200,    0x0018,    0x003F,      __main__");
             return finalCode;
         }
 
@@ -90,11 +92,11 @@ namespace Omnia
 					if (__cmd.equals("request"))
 					{
 						if (param.equals("all") && Utils::isInt(value))
-							code.push_back(StringBuilder("req, ").add((word)eFlags::req_all).add(", ").add(value).get());
+							m_dataSection.push_back(StringBuilder("req, ").add((word)eFlags::req_all).add(", ").add(value).get());
 						else if (param.equals("stack") && Utils::isInt(value))
-							code.push_back(StringBuilder("req, ").add((word)eFlags::req_stack).add(", ").add(value).get());
+							m_dataSection.push_back(StringBuilder("req, ").add((word)eFlags::req_stack).add(", ").add(value).get());
 						else if (param.equals("heap") && Utils::isInt(value))
-							code.push_back(StringBuilder("req, ").add((word)eFlags::req_heap).add(", ").add(value).get());
+							m_dataSection.push_back(StringBuilder("req, ").add((word)eFlags::req_heap).add(", ").add(value).get());
 					}
 				}
             }
@@ -138,7 +140,7 @@ namespace Omnia
 					while (__st.hasNext())
 					{
 						param = __st.next().toLowerCase();
-						code.push_back(StringBuilder("reserve, 0x001A, 0x002E").get());
+						m_dataSection.push_back(StringBuilder("reserve, 0x001A, 0x002E").get());
 						//code.push_back(StringBuilder("mem, 0x0014, ").add(Utils::intToHexStr(m_reserveCount++)).add(", 0x002E").get());
 						m_reserves[param.cpp()] = (MemAddress)(m_reserveCount++);
 					}
@@ -176,8 +178,8 @@ namespace Omnia
 					for (auto& __mc : __str_stream)
 						__sb.add(Utils::intToHexStr(__mc.val())).add(",");
 					__str = __sb.get().substr(0, __sb.get().length() - 1);
-					code.push_back(__str);
-					code.push_back(StringBuilder("mem, 0x0014, ").add(Utils::intToHexStr(m_reserves[param.cpp()])).add(", 0x002F").get());
+					m_dataSection.push_back(__str);
+					m_dataSection.push_back(StringBuilder("mem, 0x0014, ").add(Utils::intToHexStr(m_reserves[param.cpp()])).add(", 0x002F").get());
 				}
 			}
 			return code;
@@ -486,7 +488,10 @@ namespace Omnia
 
 		TMemoryList Assembler::assemble(OmniaString __source_file_path)
 		{
-			std::vector<OmniaString> code = resolveKeyWords(PreProcessor::instance().open(__source_file_path));
+            std::vector<OmniaString> __source = PreProcessor::instance().open(__source_file_path);
+            std::vector<OmniaString> source = PreProcessor::instance().m_dataSection;
+            source.insert(source.end(), __source.begin(), __source.end());
+			std::vector<OmniaString> code = resolveKeyWords(source);
 			/*for (auto& __line : code)
 			{
 				std::cout << __line.cpp() << "\n";
@@ -514,7 +519,7 @@ namespace Omnia
 					__code.push_back(Utils::strToInt(__data));
 				}
 			}
-            MemAddress __main_addr = oasm_nullptr;
+            /*MemAddress __main_addr = oasm_nullptr;
             if (isLabel("__main__", __main_addr))
             {
                 __code.insert(__code.begin(), __main_addr);
@@ -524,7 +529,7 @@ namespace Omnia
                 //TODO: Error
                 getOutputHandler()->print("No entry poin found.").newLine();
                 return TMemoryList();
-            }
+            }*/
 			return __code;
 		}
 		
@@ -535,7 +540,7 @@ namespace Omnia
 			OmniaString __data = "";
 			OmniaString::StringTokens __st;
 			StringBuilder __new_line;
-			MemAddress __addr = 1;
+			MemAddress __addr = 0;
             for (auto& l : lines) //Resolve labels
             {
                 l = l.trim();
