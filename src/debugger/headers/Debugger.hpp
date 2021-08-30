@@ -15,8 +15,6 @@ namespace Omnia
 				int64 run(int argc, char** argv);
 				bool loadSymTableFromFile(OmniaString __sym_table_file_path);
 
-				bool decompile(void);
-
 			private:
 				std::map<_string, MemAddress> m_labels;
 				OmniaString m_cmd_input;

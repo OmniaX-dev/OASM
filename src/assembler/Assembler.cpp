@@ -558,8 +558,18 @@ namespace Omnia
                 writeFile << ".source = { \n";
                 for (auto& __line : PreProcessor::instance().m_symTable.m_source)
                 {
-                    if (__line.trim().startsWith(":") && __line.trim().endsWith(":")) continue;
-                    writeFile << "\t\t" << __line.cpp() << "\n";
+                    OmniaString __src_line = __line.second;
+                    if (__src_line.startsWith("lda_str,"))
+                    {
+                        OmniaString::StringTokens __st = __src_line.tokenize(",", true);
+                        __st.next();
+                        TMemoryList __str_stream;
+                        while (__st.hasNext())
+                            __str_stream.push_back((word)Utils::strToInt(__st.next()));
+                        __src_line = "lda_str,";
+                        __src_line = __src_line.add("\"").add(BitEditor::constStreamToString(__str_stream)).add("\"");
+                    }
+                    writeFile << "\t\t" << Utils::intToHexStr(__line.first).cpp() << ":" << __src_line.cpp() << "\n";
                 }
                 writeFile << "}";
             }
@@ -572,7 +582,21 @@ namespace Omnia
             std::vector<OmniaString> __source = PreProcessor::instance().open(__source_file_path);
             std::vector<OmniaString> source = PreProcessor::instance().m_dataSection;
             source.insert(source.end(), __source.begin(), __source.end());
-            if (p__dbg_save_code) PreProcessor::instance().m_symTable.m_source = source;
+            if (p__dbg_save_code)
+            {
+                std::map<MemAddress, OmniaString> __dbg_src;
+                MemAddress __curr_addr = 0;
+                OmniaString::StringTokens __st;
+                for (auto& __line : source)
+                {
+                    __line = __line.trim();
+                    if (__line.startsWith(":") && __line.endsWith(":")) continue;
+                    __dbg_src[__curr_addr] = __line;
+                    __st = __line.tokenize(",", true);
+                    __curr_addr += __st.count();
+                }
+                PreProcessor::instance().m_symTable.m_source = __dbg_src;
+            }
 			std::vector<OmniaString> code = resolveKeyWords(source);
 			return assemble(code);
 		}

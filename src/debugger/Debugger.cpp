@@ -110,11 +110,20 @@ namespace Omnia
             Process& proc = vm.getCurrentProcess();
 			bool tick_res = false, exec_tick = true;
 			std::vector<OmniaString> proc_out;
+			MemAddress __off_ip = oasm_nullptr;
             while (true)
             {
 				exec_tick = true;
 				if (cmd__step)
 				{
+					if (m_use_sym_table)
+					{
+						__off_ip = cpu.getLastInstructionAddr();
+						if (m_sym_table.m_source.size() > 0 && __off_ip != oasm_nullptr)
+						{
+							out.newLine().tab().tab().print(m_sym_table.m_source[__off_ip - proc.m_codeAddr]).newLine();
+						}
+					}
 					out.newLine().tab().tab().print("Press <Enter> for next instruction.");
                 	out.newLine().tab().tab().print(m_prompt);
             		in.read(m_cmd_input);
@@ -197,33 +206,21 @@ namespace Omnia
 				}
 				else if (__in_source && __line.startsWith("}"))
 				{
-					__in_source = true;
+					__in_source = false;
 				}
 				else if (__in_source)
 				{
 					__src_lines++;
-					m_sym_table.m_source.push_back(__line);
+					if (!__line.contains(":")) continue;
+					OmniaString __tmp_addr = __line.substr(0, __line.indexOf(":"));
+					if (!Utils::isInt(__tmp_addr)) continue;
+					__line = __line.substr(__line.indexOf(":") + 1);
+					m_sym_table.m_source[(MemAddress)(Utils::strToInt(__tmp_addr))] = __line;
 				}
 			}
 			getOutputHandler()->tab().print("Debug table loaded successfully: ").print((word)__sym_count).print(" Symbols found.").newLine();
 			if (m_sym_table.m_source.size() > 0)
 				getOutputHandler()->tab().tab().print("*Source loaded: ").print((word)__src_lines).print(" lines.").newLine();
-			return true;
-		}
-	
-		bool Debugger::decompile(void)
-		{
-			if (m_decompiled) return true;
-			__return_if_current_proc_invalid(false)
-			TMemoryList& __code = __proc.m_code;
-			BitEditor __cell;
-			eInstructionSet __inst;
-			for (word __virtual_ip = 0; __virtual_ip < __code.size(); )
-			{
-				__cell = __code[__virtual_ip];
-				__inst = (eInstructionSet)(__cell.val());
-			}
-			m_decompiled = true;
 			return true;
 		}
 	}
