@@ -124,6 +124,7 @@ namespace Omnia
 				std::map<_string, MemAddress> m_labels;
 
 				bool p__dbg_symbol_table;
+				bool p__dbg_save_code;
 				OmniaString p__input_file_path;
 				OmniaString p__output_file_path;
 				OmniaString p__output_file_dbg_table;

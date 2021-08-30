@@ -1,0 +1,75 @@
+.label fibonacci_series = 0x0036
+.label for_loop = 0x0065
+.label end_loop = 0x008C
+.label sum_numbers = 0x008F
+.label power_r = 0x009C
+.label else = 0x00C8
+.label __main__ = 0x00CB
+.data max = 0x0000
+.data _t1 = 0x0001
+.data _t2 = 0x0002
+.data next = 0x0003
+.data i = 0x0004
+.data fibo_text = 0x0005
+.data pow_text = 0x0006
+.source = { 
+		req,REQ_ALL,63
+		reserve,Single_Reg,R30
+		reserve,Single_Reg,R30
+		reserve,Single_Reg,R30
+		reserve,Single_Reg,R30
+		reserve,Single_Reg,R30
+		reserve,Single_Reg,R30
+		reserve,Single_Reg,R30
+		lda_str,0x4669,0x626F,0x6E61,0x6363,0x6920,0x7365,0x7269,0x6573,0x3A00
+		mem,Addr_Reg,0x0005,R31
+		lda_str,0x2020,0x2D2D,0x3E50,0x4F57,0x4552,0x203D,0x2000
+		mem,Addr_Reg,0x0006,R31
+		jmp,Single_Const,JMP_UNCONDITIONAL,__main__
+		pop,Single_Reg,R0
+		cmd,Const_Addr,PrintStringToConsole,fibo_text
+		cmd,Const_Const,PrintNewLineToConsole,0
+		cmd,Const_Const,PrintIntToConsole,0
+		cmd,Const_Const,PrintNewLineToConsole,0
+		cmd,Const_Const,PrintIntToConsole,1
+		cmd,Const_Const,PrintNewLineToConsole,0
+		cmd,Const_Const,PrintIntToConsole,2
+		cmd,Const_Const,PrintNewLineToConsole,0
+		mem,Addr_Const,i,3
+		mem,Addr_Const,_t1,1
+		mem,Addr_Const,_t2,2
+		cmp,Addr_Reg,i,R0
+		jmp,Single_Const,JMP_GREATER_OR_EQUALS,end_loop
+		inc,Single_Addr,i
+		mem,Addr_Addr,next,_t1
+		add,Addr_Addr,next,_t2
+		mem,Addr_Addr,_t1,_t2
+		mem,Addr_Addr,_t2,next
+		cmd,Const_Addr,PrintIntToConsole,next
+		cmd,Const_Const,PrintNewLineToConsole,0
+		jmp,Single_Const,JMP_UNCONDITIONAL,for_loop
+		ret,Single_Const,0
+		pop,Single_Reg,R0
+		pop,Single_Reg,R1
+		add,Reg_Reg,R0,R1
+		ret,Single_Reg,R0
+		pop,Single_Reg,R0
+		pop,Single_Reg,R1
+		cmp,Reg_Const,R0,0
+		jmp,Single_Const,JMP_EQUALS,else
+		mem,Reg_Reg,R2,R0
+		dec,Single_Reg,R2
+		call,Const_Const,power_r,2,Single_Reg,R1,Single_Reg,R2
+		mem,Reg_Reg,R3,R1
+		mem,Reg_Reg,R4,RV
+		mul,Reg_Reg,R3,R4
+		ret,Single_Reg,R3
+		ret,Single_Const,1
+		call,Const_Const,fibonacci_series,1,Single_Const,10
+		call,Const_Const,power_r,2,Single_Const,2,Single_Const,10
+		cmd,Const_Addr,PrintStringToConsole,pow_text
+		cmd,Const_Reg,PrintIntToConsole,RV
+		cmd,Const_Const,PrintNewLineToConsole,0
+		call,Const_Const,fibonacci_series,1,Single_Const,20
+		end,Single_Const,0xCACA
+}

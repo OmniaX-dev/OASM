@@ -12,11 +12,13 @@ namespace Omnia
             std::vector<OmniaString> lines;
             if (!Utils::readFile(fileName, lines))
             {
+                //TODO: Repllace error
                 error(ePreProcessorErrors::FailedToOpenFile, OmniaString("Failed to open source file: ").add(fileName), true);
                 return std::vector<OmniaString>();
             }
             if (lines.size() == 0)
             {
+                //TODO: Replace error
                 error(ePreProcessorErrors::EmptyFile, OmniaString("Empty source file provided: ").add(fileName), true);
                 return std::vector<OmniaString>();
             }
@@ -39,13 +41,19 @@ namespace Omnia
             finalCode = resolveMacros(finalCode);
 			finalCode = resolveCommandDirective(finalCode);
 			finalCode = resolveDataDirective(finalCode);
+            m_dataSection.push_back("jmp,               Single_Const,                   JMP_UNCONDITIONAL,                  __main__");
 			for (auto& _line : finalCode)
 			{
 				_line = _line.replaceAll(" ", "");
 				_line = _line.replaceAll("\t", "");
 				_line = _line.replaceAll("\n", "");
 			}
-            m_dataSection.push_back("0x1200,    0x0018,    0x003F,      __main__");
+            for (auto& _line : m_dataSection)
+			{
+				_line = _line.replaceAll(" ", "");
+				_line = _line.replaceAll("\t", "");
+				_line = _line.replaceAll("\n", "");
+			}
             return finalCode;
         }
 
@@ -93,11 +101,11 @@ namespace Omnia
 					if (__cmd.equals("request"))
 					{
 						if (param.equals("all") && Utils::isInt(value))
-							m_dataSection.push_back(StringBuilder("req, ").add((word)eFlags::req_all).add(", ").add(value).get());
+							m_dataSection.push_back(StringBuilder("req,                 REQ_ALL,                    ").add(value).get());
 						else if (param.equals("stack") && Utils::isInt(value))
-							m_dataSection.push_back(StringBuilder("req, ").add((word)eFlags::req_stack).add(", ").add(value).get());
+							m_dataSection.push_back(StringBuilder("req,                 REQ_STACK,                  ").add(value).get());
 						else if (param.equals("heap") && Utils::isInt(value))
-							m_dataSection.push_back(StringBuilder("req, ").add((word)eFlags::req_heap).add(", ").add(value).get());
+							m_dataSection.push_back(StringBuilder("req,                 REQ_HEAP,                   ").add(value).get());
 					}
 				}
             }
@@ -141,8 +149,7 @@ namespace Omnia
 					while (__st.hasNext())
 					{
 						param = __st.next().toLowerCase();
-						m_dataSection.push_back(StringBuilder("reserve, 0x001A, 0x002E").get());
-						//code.push_back(StringBuilder("mem, 0x0014, ").add(Utils::intToHexStr(m_reserveCount++)).add(", 0x002E").get());
+						m_dataSection.push_back(StringBuilder("reserve,                 Single_Reg,                     R30").get());
 						m_reserves[param.cpp()] = (MemAddress)(m_reserveCount++);
                         m_symTable.m_reserves[(MemAddress)(m_reserveCount - 1)] = param;
 					}
@@ -176,12 +183,12 @@ namespace Omnia
 					}
 					__str = __str.substr(1, __str.length() - 1);
 					TMemoryList __str_stream = BitEditor::stringToConstSream(__str);
-					StringBuilder __sb("lda_str, ");
+					StringBuilder __sb("lda_str,                    ");
 					for (auto& __mc : __str_stream)
 						__sb.add(Utils::intToHexStr(__mc.val())).add(",");
 					__str = __sb.get().substr(0, __sb.get().length() - 1);
 					m_dataSection.push_back(__str);
-					m_dataSection.push_back(StringBuilder("mem, 0x0014, ").add(Utils::intToHexStr(m_reserves[param.cpp()])).add(", 0x002F").get());
+					m_dataSection.push_back(StringBuilder("mem,                 Addr_Reg,                   ").add(Utils::intToHexStr(m_reserves[param.cpp()])).add(",                  R31").get());
 				}
 			}
 			return code;
@@ -459,6 +466,7 @@ namespace Omnia
 		{
 			OutputManager &out = *getOutputHandler();
             p__dbg_symbol_table = false;
+            p__dbg_save_code = false;
 			p__input_file_path = "";
             p__output_file_path = "";
             p__output_file_dbg_table = "";
@@ -488,23 +496,19 @@ namespace Omnia
 					}
                     else if (OmniaString(argv[i]).trim().equals("--debug-table") || OmniaString(argv[i]).trim().equals("-dt"))
 					{
-						if (++i >= argc && p__output_file_path.trim() != "")
-                            p__output_file_dbg_table = p__output_file_path.substr(0, p__output_file_path.lastIndexOf(".")).add(".odb");
-                        else if (i < argc)
-						    p__output_file_dbg_table = OmniaString(argv[i]);
-                        else
-                        {
-							out.print("Error: Output file must be specified before the --debug-table option, if you intend to not specify a file for it.").newLine();
-							return 0xFFF9; //TODO: Add error code
-                        }
                         p__dbg_symbol_table = true;
+                    }
+                    else if (OmniaString(argv[i]).trim().equals("--save-code") || OmniaString(argv[i]).trim().equals("-sc"))
+					{
+                        p__dbg_save_code = true;
                     }
 				}
 			}
+            if (p__dbg_save_code && !p__dbg_symbol_table) p__dbg_save_code = false;
 			if (p__input_file_path.trim() == "") return 0xFFFE; //TODO: Error
-			if (p__output_file_path.trim() == "") return 0xFFFD; //TODO: Error
-            if (p__dbg_symbol_table && p__output_file_dbg_table.trim() == "") return 0xFFFC; //TODO: Error
-			TMemoryList __program = assemble("oasm_test_1.oasm");
+			if (p__output_file_path.trim() == "")
+                p__output_file_path = p__input_file_path.substr(0, p__input_file_path.lastIndexOf(".")).add(".oex");
+			TMemoryList __program = assemble(p__input_file_path);
             if (!createExecutableFile(p__output_file_path, __program))
             {
                 out.print("Error: Failed to create executable.").newLine();
@@ -512,6 +516,7 @@ namespace Omnia
             }
             if (p__dbg_symbol_table)
             {
+                p__output_file_dbg_table = p__output_file_path.substr(0, p__output_file_path.lastIndexOf(".")).add(".odb");
                 if (!createDebugTableFile(p__output_file_dbg_table))
                 {
                     out.print("Error: Failed to create debug table file.").newLine();
@@ -548,6 +553,16 @@ namespace Omnia
                 writeFile << __sb.get().cpp() << "\n";
                 __sb = StringBuilder();
             }
+            if (PreProcessor::instance().m_symTable.m_source.size() > 0)
+            {
+                writeFile << ".source = { \n";
+                for (auto& __line : PreProcessor::instance().m_symTable.m_source)
+                {
+                    if (__line.trim().startsWith(":") && __line.trim().endsWith(":")) continue;
+                    writeFile << "\t\t" << __line.cpp() << "\n";
+                }
+                writeFile << "}";
+            }
             writeFile.close();
             return true;
         }
@@ -557,6 +572,7 @@ namespace Omnia
             std::vector<OmniaString> __source = PreProcessor::instance().open(__source_file_path);
             std::vector<OmniaString> source = PreProcessor::instance().m_dataSection;
             source.insert(source.end(), __source.begin(), __source.end());
+            if (p__dbg_save_code) PreProcessor::instance().m_symTable.m_source = source;
 			std::vector<OmniaString> code = resolveKeyWords(source);
 			return assemble(code);
 		}

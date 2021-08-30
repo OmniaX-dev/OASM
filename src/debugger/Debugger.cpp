@@ -10,6 +10,7 @@ namespace Omnia
 	{
 		int64 Debugger::run(int argc, char** argv)
 		{
+			m_prompt = "!$:> ";
             OutputManager& out = *getOutputHandler();
             InputManager& in = *getInputHandler();
 			VirtualMachine &vm = VirtualMachine::instance();
@@ -55,48 +56,56 @@ namespace Omnia
                 out.print("Error: No input file specified.").newLine();
                 return 0xFFFE; //TODO: Add error code
             }
-			OmniaString __tmp_input_file_name = p__input_file_path.substr(0, p__input_file_path.lastIndexOf("."));
-			__tmp_input_file_name = __tmp_input_file_name.add(".odb");
-			if (std::filesystem::exists(__tmp_input_file_name.cpp()))
+			if (!m_use_sym_table || p__input_sym_table_path.trim() == "")
 			{
-				out.tab().print("Symbol table file found: ").print(__tmp_input_file_name).newLine();
-				m_use_sym_table = true;
-				p__input_sym_table_path = __tmp_input_file_name;
+				OmniaString __tmp_input_file_name = p__input_file_path.substr(0, p__input_file_path.lastIndexOf("."));
+				__tmp_input_file_name = __tmp_input_file_name.add(".odb");
+				if (std::filesystem::exists(__tmp_input_file_name.cpp()))
+				{
+					out.tab().print("Symbol table file found: ").print(__tmp_input_file_name).newLine();
+					m_use_sym_table = true;
+					p__input_sym_table_path = __tmp_input_file_name;
+				}
 			}
+			if (m_use_sym_table && !loadSymTableFromFile(p__input_sym_table_path)) return 0xFFAC; //TODO: Error
             OmniaString __param3 = "--input-file ";
             __param3 = __param3.add(p__input_file_path);
             cpu.setIPC(1);
             
 			ErrorCode __err_code;
-			out.newLine().tab().print("#[-cmd-]/> ");
-			in.read(m_cmd_input);
-            m_cmd_input = m_cmd_input.trim().toLowerCase();
 			bool cmd__step = false;
-			if (m_cmd_input == "run")
+			while (true)
 			{
-				out.tab().print("Running process...").newLine();
-				__err_code = Interpreter::instance().run(4, new char*[]{argv[0], (char*)"--debugger-internal-call", (char*)"--input-file", (char*)p__input_file_path.c_str()});
-				if (__err_code != D__NO_ERROR)
+				out.newLine().tab().print(m_prompt);
+				in.read(m_cmd_input);
+				m_cmd_input = m_cmd_input.trim().toLowerCase();
+				if (m_cmd_input == "run")
 				{
-					//TODO: Error
-					return __err_code;
+					out.tab().tab().print("Running process...").newLine();
+					__err_code = Interpreter::instance().run(4, new char*[]{argv[0], (char*)"--debugger-internal-call", (char*)"--input-file", (char*)p__input_file_path.c_str()});
+					if (__err_code != D__NO_ERROR)
+					{
+						//TODO: Error
+						return __err_code;
+					}
+					break;
 				}
-			}
-			else if (m_cmd_input == "step")
-			{
-				cmd__step = true;
-				out.tab().print("Running process (step-by-step)...").newLine();
-				__err_code = Interpreter::instance().run(4, new char*[]{argv[0], (char*)"--debugger-internal-call", (char*)"--input-file", (char*)p__input_file_path.c_str()});
-				if (__err_code != D__NO_ERROR)
+				else if (m_cmd_input == "step")
 				{
-					//TODO: Error
-					return __err_code;
+					cmd__step = true;
+					out.tab().tab().print("Running process (step-by-step)...").newLine();
+					__err_code = Interpreter::instance().run(4, new char*[]{argv[0], (char*)"--debugger-internal-call", (char*)"--input-file", (char*)p__input_file_path.c_str()});
+					if (__err_code != D__NO_ERROR)
+					{
+						//TODO: Error
+						return __err_code;
+					}
+					break;
 				}
-			}
-			else
-			{
-                out.print("Error: unknown command.").newLine();
-                return 0xABBC; //TODO: Add error code
+				else
+				{
+					out.tab().tab().print("Error: unknown command.").newLine();
+				}
 			}
             Process& proc = vm.getCurrentProcess();
 			bool tick_res = false, exec_tick = true;
@@ -106,7 +115,8 @@ namespace Omnia
 				exec_tick = true;
 				if (cmd__step)
 				{
-                	out.newLine().tab().print("#[-cmd-]/> ");
+					out.newLine().tab().tab().print("Press <Enter> for next instruction.");
+                	out.newLine().tab().tab().print(m_prompt);
             		in.read(m_cmd_input);
                 	m_cmd_input = m_cmd_input.trim().toLowerCase();
 					if (m_cmd_input == "print-mem")
@@ -116,7 +126,7 @@ namespace Omnia
 					}
 					else if (m_cmd_input == "quit")
 					{
-						out.tab().print("Exiting with force...");
+						out.tab().tab().tab().print("Exiting with force...");
 						break;
 					}
 					else if (m_cmd_input == "resume")
@@ -134,15 +144,87 @@ namespace Omnia
 					{
 						line = line.replaceAll("\n", "");
 						if (line.trim() != "")
-							out.newLine().tab().print("[-*-]/> ").print(line);
+							out.newLine().tab().tab().tab().print(m_prompt).print(line);
 					}
 				}
 				if (proc.done()) break;
             }
 			ErrorCode __err = vm.getCPU().getLastErrorCode();
-			//if (__err == D__NO_ERROR)
-				//vm.getCPU().printMemory(out, 4, 4, 16, false);
 			return __err_code;
+		}
+
+		bool Debugger::loadSymTableFromFile(OmniaString __sym_table_file_path)
+		{
+			std::vector<OmniaString> lines;
+            if (!Utils::readFile(__sym_table_file_path, lines))
+            {
+				//TODO: Error
+                return false;
+            }
+            if (lines.size() == 0)
+            {
+				//TODO: Error
+                return false;
+            }
+
+			OmniaString __symbol = "";
+			MemAddress __addr = 0;
+			uint32 __sym_count = 0, __src_lines = 0;
+			bool __in_source = false;
+			for (auto& __line : lines)
+			{
+				__line = __line.trim().toLowerCase();
+				if (!__in_source && !__line.contains("=")) continue;
+				if (__line.startsWith(".label"))
+				{
+					__line = __line.substr(6).trim();
+					__symbol = __line.substr(0, __line.indexOf("=")).trim();
+					__addr = (MemAddress)Utils::strToInt(__line.substr(__line.indexOf("=") + 1).trim());
+					m_sym_table.m_labels[__addr] = __symbol;
+					__sym_count++;
+				}
+				else if (!__in_source && __line.startsWith(".data"))
+				{
+					__line = __line.substr(5).trim();
+					__symbol = __line.substr(0, __line.indexOf("=")).trim();
+					__addr = (MemAddress)Utils::strToInt(__line.substr(__line.indexOf("=") + 1).trim());
+					m_sym_table.m_reserves[__addr] = __symbol;
+					__sym_count++;
+				}
+				else if (!__in_source && __line.startsWith(".source = {"))
+				{
+					__in_source = true;
+				}
+				else if (__in_source && __line.startsWith("}"))
+				{
+					__in_source = true;
+				}
+				else if (__in_source)
+				{
+					__src_lines++;
+					m_sym_table.m_source.push_back(__line);
+				}
+			}
+			getOutputHandler()->tab().print("Debug table loaded successfully: ").print((word)__sym_count).print(" Symbols found.").newLine();
+			if (m_sym_table.m_source.size() > 0)
+				getOutputHandler()->tab().tab().print("*Source loaded: ").print((word)__src_lines).print(" lines.").newLine();
+			return true;
+		}
+	
+		bool Debugger::decompile(void)
+		{
+			if (m_decompiled) return true;
+			__return_if_current_proc_invalid(false)
+			TMemoryList& __code = __proc.m_code;
+			BitEditor __cell;
+			eInstructionSet __inst;
+			for (word __virtual_ip = 0; __virtual_ip < __code.size(); )
+			{
+				__cell = __code[__virtual_ip];
+				__inst = (eInstructionSet)(__cell.val());
+			}
+			m_decompiled = true;
+			return true;
 		}
 	}
 }

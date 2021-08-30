@@ -90,6 +90,7 @@ namespace Omnia
 					inline void setStepExecution(bool __se) { m_step_execution = __se; }
 					inline bool stepExecutionEnabled(void) { return m_step_execution; }
 					inline void addBreakPoint(MemAddress __brp_addr) { m_break_points.push_back(offsetHeapAddress(__brp_addr)); }
+					inline MemAddress getLastInstructionAddr(void) { return m_old_pc_val; }
 
 					void pushError(ErrorCode __err_code);
 
@@ -120,7 +121,7 @@ namespace Omnia
 
 					bool						m_step_execution;
 					uint8						m_current_ipc;
-					OmniaString						m_cmd_command;
+					OmniaString					m_cmd_command;
 					bool						m_variable_inst_size;
 					word						m_heap_reserve_count;
 					MemAddress					m_next_single_heap;

@@ -122,6 +122,7 @@ namespace Omnia
 			public:
 				std::map<MemAddress, OmniaString> m_labels;
 				std::map<MemAddress, OmniaString> m_reserves;
+				std::vector<OmniaString> m_source;
 
 		};
 		
