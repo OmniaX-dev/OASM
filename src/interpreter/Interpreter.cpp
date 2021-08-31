@@ -184,6 +184,8 @@ namespace Omnia
 				m_heap_reserve_count = 0;
 				m_next_single_heap = 0;
 				m_break_points.clear();
+				m_break_point_signal = false;
+				m_break_point_addr = oasm_nullptr;
 
 				return *this;
 			}
@@ -2750,6 +2752,8 @@ namespace Omnia
 				for (uint8 i = 0; i < m_ipc; i++)
 				{
 					reg.enableProtectedMode();
+					m_break_point_signal = false;
+					m_break_point_addr = oasm_nullptr;
 					m_current_ipc = i;
 					if (proc.done())
 						return false;
@@ -2784,7 +2788,7 @@ namespace Omnia
 						return false;
 					}
 
-					if (m_step_execution)
+					if (!Interpreter::instance().__is_dbg_call() && m_step_execution)
 					{
 						printMemory(out, 4, 4, 16, true);
 						out.newLine().print("  Press <Enter> for next cycle.").newLine();
@@ -2795,8 +2799,14 @@ namespace Omnia
 					{
 						for (MemAddress __br = m_old_pc_val; __br < m_old_pc_val + m_inst_size; __br++)
 						{
-							if (STDVEC_CONTAINS(m_break_points, m_old_pc_val))
+							if (STDVEC_CONTAINS(m_break_points, __br - proc.m_codeAddr))
 							{
+								if (Interpreter::instance().__is_dbg_call())
+								{
+									m_break_point_signal = true;
+									m_break_point_addr = __br - proc.m_codeAddr;
+									break;
+								}
 								printMemory(out, 4, 4, 16, true);
 								out.newLine().print("  Press <Enter> to continue execution.").newLine();
 								out.newLine().print("  #[-cmd-]/> ");

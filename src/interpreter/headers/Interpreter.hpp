@@ -39,6 +39,7 @@ namespace Omnia
 				inline static Interpreter& instance(void) { return *Interpreter::s_instance; }
 				int64 run(int argc, char** argv);
 				bool loadFromFile(OmniaString __oex_file, TMemoryList& outProgram);
+				inline bool __is_dbg_call(void) { return p__debugger_call; }
 
 			private:
 				static Interpreter* s_instance;
@@ -87,9 +88,12 @@ namespace Omnia
 
 					bool clock_tick(void);
 
+					bool __break_point_signal(void) { return m_break_point_signal; }
+					MemAddress __break_point_address(void) { return m_break_point_addr; }
+
 					inline void setStepExecution(bool __se) { m_step_execution = __se; }
 					inline bool stepExecutionEnabled(void) { return m_step_execution; }
-					inline void addBreakPoint(MemAddress __brp_addr) { m_break_points.push_back(offsetHeapAddress(__brp_addr)); }
+					inline void addBreakPoint(MemAddress __brp_addr) { m_break_points.push_back(__brp_addr); }
 					inline MemAddress getLastInstructionAddr(void) { return m_old_pc_val; }
 
 					void pushError(ErrorCode __err_code);
@@ -126,6 +130,8 @@ namespace Omnia
 					word						m_heap_reserve_count;
 					MemAddress					m_next_single_heap;
 					std::vector<MemAddress>		m_break_points;
+					bool						m_break_point_signal;
+					MemAddress					m_break_point_addr;
 
 					word 						m_raw_1;
 					word 						m_raw_2;

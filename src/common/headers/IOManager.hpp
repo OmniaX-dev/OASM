@@ -16,6 +16,7 @@ namespace Omnia
                 inline virtual OutputManager& print(int64 i) { return *this; }
                 inline virtual OutputManager& newLine(void) { return *this; }
                 inline virtual OutputManager& tab(void) { return *this; }
+                inline virtual OutputManager& clear(void) { return *this; }
 
                 inline virtual std::vector<OmniaString> flush(void) { return std::vector<OmniaString>(); }
         };
@@ -35,6 +36,7 @@ namespace Omnia
                 inline virtual OutputManager& print(int64 i) { std::cout << (int64)i; return *this; }
                 inline virtual OutputManager& newLine(void) { std::cout << "\n"; return *this; }
                 inline virtual OutputManager& tab(void) { std::cout << "    "; return *this; }
+                inline virtual OutputManager& clear(void) { std::cout << "\x1B[2J\x1B[H"; return *this; } //TODO: Implement for windows aswell
         };
 
         class BufferedOutput : public OutputManager
@@ -45,6 +47,8 @@ namespace Omnia
                 inline virtual OutputManager& newLine(void) { m_buffer.push_back(OmniaString("\n")); return *this; }
                 inline virtual OutputManager& tab(void) { m_buffer.push_back(OmniaString("    ")); return *this; }
                 inline std::vector<OmniaString> flush(void) { std::vector<OmniaString> tmp = m_buffer; m_buffer.clear(); return tmp;}
+                inline virtual OutputManager& clear(void) { m_buffer.clear(); return *this; }
+                
             
             private:
                 std::vector<OmniaString> m_buffer;
