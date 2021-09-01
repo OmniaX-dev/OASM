@@ -9,9 +9,24 @@
 #include <map>
 #include <fstream>
 #include <stdio.h>
-#include <iostream>
 #include <algorithm>
 #include <bitset>
+
+#if defined(_WIN32) || defined(_WIN64)
+#   define NO_ANSI_ESCAPE_SEQUENCES
+#endif
+
+#if defined(__CYGWIN__)
+#   undef __STRICT_ANSI__
+#   include <iostream>
+#   include <sstream>
+#   define __STRICT_ANSI__
+#else
+#   include <iostream>
+#   include <sstream>
+#endif
+#include "TermColor.hpp"
+
 
 namespace Omnia
 {
@@ -420,7 +435,7 @@ namespace Omnia
             MSB = 0b1111111100000000,
             LSB = 0b0000000011111111,
             Invert = 0xFFFF
-        };        
+        };
 
 
         class Protectable
@@ -473,6 +488,7 @@ namespace Omnia
                 static OmniaString mapInstruction(eInstructionSet __inst);
                 static OmniaString mapAddressingMode(eAddressingModes __mode);
                 static OmniaString mapMaskParam(word __m_param);
+                static void get_terminal_size(int& width, int& height);
         };		
 		class StringBuilder
 		{

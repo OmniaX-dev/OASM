@@ -41,7 +41,7 @@ namespace Omnia
             finalCode = resolveMacros(finalCode);
 			finalCode = resolveCommandDirective(finalCode);
 			finalCode = resolveDataDirective(finalCode);
-            m_dataSection.push_back("jmp,               Single_Const,                   JMP_UNCONDITIONAL,                  __main__");
+            m_dataSection.push_back("call,               Const_Const,                   __main__,                  0x0000");
 			for (auto& _line : finalCode)
 			{
 				_line = _line.replaceAll(" ", "");

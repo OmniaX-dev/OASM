@@ -17,6 +17,52 @@ namespace Omnia
                 inline virtual OutputManager& newLine(void) { return *this; }
                 inline virtual OutputManager& tab(void) { return *this; }
                 inline virtual OutputManager& clear(void) { return *this; }
+                
+                inline virtual OutputManager& fcolor(uint8 __r, uint8 __g, uint8 __b) { return *this; }
+                inline virtual OutputManager& bcolor(uint8 __r, uint8 __g, uint8 __b) { return *this; }
+
+                inline virtual OutputManager& fc_grey(void) { return *this; }
+                inline virtual OutputManager& fc_red(void) { return *this; }
+                inline virtual OutputManager& fc_green(void) { return *this; }
+                inline virtual OutputManager& fc_yellow(void) { return *this; }
+                inline virtual OutputManager& fc_blue(void) { return *this; }
+                inline virtual OutputManager& fc_magenta(void) { return *this; }
+                inline virtual OutputManager& fc_cyan(void) { return *this; }
+                inline virtual OutputManager& fc_white(void) { return *this; }
+                inline virtual OutputManager& fc_brightGrey(void) { return *this; }
+                inline virtual OutputManager& fc_brightRed(void) { return *this; }
+                inline virtual OutputManager& fc_brightGreen(void) { return *this; }
+                inline virtual OutputManager& fc_brightYellow(void) { return *this; }
+                inline virtual OutputManager& fc_brightBlue(void) { return *this; }
+                inline virtual OutputManager& fc_brightMagenta(void) { return *this; }
+                inline virtual OutputManager& fc_brightCyan(void) { return *this; }
+                inline virtual OutputManager& fc_brightWhite(void) { return *this; }
+
+                inline virtual OutputManager& bc_grey(void) { return *this; }
+                inline virtual OutputManager& bc_red(void) { return *this; }
+                inline virtual OutputManager& bc_green(void) { return *this; }
+                inline virtual OutputManager& bc_yellow(void) { return *this; }
+                inline virtual OutputManager& bc_blue(void) { return *this; }
+                inline virtual OutputManager& bc_magenta(void) { return *this; }
+                inline virtual OutputManager& bc_cyan(void) { return *this; }
+                inline virtual OutputManager& bc_white(void) { return *this; }
+                inline virtual OutputManager& bc_brightGrey(void) { return *this; }
+                inline virtual OutputManager& bc_brightRed(void) { return *this; }
+                inline virtual OutputManager& bc_brightGreen(void) { return *this; }
+                inline virtual OutputManager& bc_brightYellow(void) { return *this; }
+                inline virtual OutputManager& bc_brightBlue(void) { return *this; }
+                inline virtual OutputManager& bc_brightMagenta(void) { return *this; }
+                inline virtual OutputManager& bc_brightCyan(void) { return *this; }
+                inline virtual OutputManager& bc_brightWhite(void) { return *this; }
+
+                inline virtual OutputManager& attr_italic(void) { return *this; }
+                inline virtual OutputManager& attr_underline(void) { return *this; }
+                inline virtual OutputManager& attr_blink(void) { return *this; }
+                inline virtual OutputManager& attr_reverse(void) { return *this; }
+                inline virtual OutputManager& attr_hide(void) { return *this; }
+                inline virtual OutputManager& attr_cross(void) { return *this; }
+                
+                inline virtual OutputManager& tc_reset(void) { return *this; }
 
                 inline virtual std::vector<OmniaString> flush(void) { return std::vector<OmniaString>(); }
         };
@@ -35,8 +81,54 @@ namespace Omnia
                 inline virtual OutputManager& print(int32 i) { std::cout << (int32)i; return *this; }
                 inline virtual OutputManager& print(int64 i) { std::cout << (int64)i; return *this; }
                 inline virtual OutputManager& newLine(void) { std::cout << "\n"; return *this; }
-                inline virtual OutputManager& tab(void) { std::cout << "    "; return *this; }
+                inline virtual OutputManager& tab(void) { std::cout << "\t"; return *this; }
                 inline virtual OutputManager& clear(void) { std::cout << "\x1B[2J\x1B[H"; return *this; } //TODO: Implement for windows aswell
+
+                //inline virtual OutputManager& fcolor(uint8_t __r, uint8_t __g, uint8_t __b) { std::cout << termcolor::color<(const uint8_t)__r, (const uint8_t)__g, (const uint8_t)__b>; return *this; }
+                //inline virtual OutputManager& bcolor(uint8_t __r, uint8_t __g, uint8_t __b) { std::cout << termcolor::on_color<(const uint8_t)__r, (const uint8_t)__g, (const uint8_t)__b>; return *this; }
+
+                inline virtual OutputManager& fc_grey(void) { std::cout << termcolor::grey; return *this; }
+                inline virtual OutputManager& fc_red(void) { std::cout << termcolor::red; return *this; }
+                inline virtual OutputManager& fc_green(void) { std::cout << termcolor::green; return *this; }
+                inline virtual OutputManager& fc_yellow(void) { std::cout << termcolor::yellow; return *this; }
+                inline virtual OutputManager& fc_blue(void) { std::cout << termcolor::blue; return *this; }
+                inline virtual OutputManager& fc_magenta(void) { std::cout << termcolor::magenta; return *this; }
+                inline virtual OutputManager& fc_cyan(void) { std::cout << termcolor::cyan; return *this; }
+                inline virtual OutputManager& fc_white(void) { std::cout << termcolor::white; return *this; }
+                inline virtual OutputManager& fc_brightGrey(void) { std::cout << termcolor::bright_grey; return *this; }
+                inline virtual OutputManager& fc_brightRed(void) { std::cout << termcolor::bright_red; return *this; }
+                inline virtual OutputManager& fc_brightGreen(void) { std::cout << termcolor::bright_green; return *this; }
+                inline virtual OutputManager& fc_brightYellow(void) { std::cout << termcolor::bright_yellow; return *this; }
+                inline virtual OutputManager& fc_brightBlue(void) { std::cout << termcolor::bright_blue; return *this; }
+                inline virtual OutputManager& fc_brightMagenta(void) { std::cout << termcolor::bright_magenta; return *this; }
+                inline virtual OutputManager& fc_brightCyan(void) { std::cout << termcolor::bright_cyan; return *this; }
+                inline virtual OutputManager& fc_brightWhite(void) { std::cout << termcolor::bright_white; return *this; }
+
+                inline virtual OutputManager& bc_grey(void) { std::cout << termcolor::on_grey; return *this; }
+                inline virtual OutputManager& bc_red(void) { std::cout << termcolor::on_red; return *this; }
+                inline virtual OutputManager& bc_green(void) { std::cout << termcolor::on_green; return *this; }
+                inline virtual OutputManager& bc_yellow(void) { std::cout << termcolor::on_yellow; return *this; }
+                inline virtual OutputManager& bc_blue(void) { std::cout << termcolor::on_blue; return *this; }
+                inline virtual OutputManager& bc_magenta(void) { std::cout << termcolor::on_magenta; return *this; }
+                inline virtual OutputManager& bc_cyan(void) { std::cout << termcolor::on_cyan; return *this; }
+                inline virtual OutputManager& bc_white(void) { std::cout << termcolor::on_white; return *this; }
+                inline virtual OutputManager& bc_brightGrey(void) { std::cout << termcolor::on_bright_grey; return *this; }
+                inline virtual OutputManager& bc_brightRed(void) { std::cout << termcolor::on_bright_red; return *this; }
+                inline virtual OutputManager& bc_brightGreen(void) { std::cout << termcolor::on_bright_green; return *this; }
+                inline virtual OutputManager& bc_brightYellow(void) { std::cout << termcolor::on_bright_yellow; return *this; }
+                inline virtual OutputManager& bc_brightBlue(void) { std::cout << termcolor::on_bright_blue; return *this; }
+                inline virtual OutputManager& bc_brightMagenta(void) { std::cout << termcolor::on_bright_magenta; return *this; }
+                inline virtual OutputManager& bc_brightCyan(void) { std::cout << termcolor::on_bright_cyan; return *this; }
+                inline virtual OutputManager& bc_brightWhite(void) { std::cout << termcolor::on_bright_white; return *this; }
+
+                inline virtual OutputManager& attr_italic(void) { std::cout << termcolor::italic; return *this; }
+                inline virtual OutputManager& attr_underline(void) { std::cout << termcolor::underline; return *this; }
+                inline virtual OutputManager& attr_blink(void) { std::cout << termcolor::blink; return *this; }
+                inline virtual OutputManager& attr_reverse(void) { std::cout << termcolor::reverse; return *this; }
+                inline virtual OutputManager& attr_hide(void) { std::cout << termcolor::concealed; return *this; }
+                inline virtual OutputManager& attr_cross(void) { std::cout << termcolor::crossed; return *this; }
+
+                inline virtual OutputManager& tc_reset(void) { std::cout << termcolor::reset; return *this; }
         };
 
         class BufferedOutput : public OutputManager

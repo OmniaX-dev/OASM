@@ -85,6 +85,7 @@ namespace Omnia
 					MemAddress offsetCodeAddress(MemAddress __local_addr);
 					uint8 getIPC(void) { return m_ipc; }
 					void setIPC(uint8 ipc) { m_ipc = ipc; }
+					bool isBreakPoint(MemAddress __addr, uint8 __inst_size);
 
 					bool clock_tick(void);
 
@@ -95,6 +96,7 @@ namespace Omnia
 					inline bool stepExecutionEnabled(void) { return m_step_execution; }
 					inline void addBreakPoint(MemAddress __brp_addr) { m_break_points.push_back(__brp_addr); }
 					inline MemAddress getLastInstructionAddr(void) { return m_old_pc_val; }
+					inline TMemoryList getDecodedInstruction(void) { return m_decoded_inst; }
 
 					void pushError(ErrorCode __err_code);
 
@@ -132,6 +134,7 @@ namespace Omnia
 					std::vector<MemAddress>		m_break_points;
 					bool						m_break_point_signal;
 					MemAddress					m_break_point_addr;
+					TMemoryList					m_decoded_inst;
 
 					word 						m_raw_1;
 					word 						m_raw_2;

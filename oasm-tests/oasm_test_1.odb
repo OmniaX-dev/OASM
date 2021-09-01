@@ -25,7 +25,7 @@
 		0x0022:mem,Addr_Reg,0x0005,R31
 		0x0026:lda_str,"  -->POWER = "
 		0x002E:mem,Addr_Reg,0x0006,R31
-		0x0032:jmp,Single_Const,JMP_UNCONDITIONAL,__main__
+		0x0032:call,Const_Const,__main__,0x0000
 		0x0036:pop,Single_Reg,R0
 		0x0039:cmd,Const_Addr,PrintStringToConsole,fibo_text
 		0x003D:cmd,Const_Const,PrintNewLineToConsole,0

@@ -186,12 +186,14 @@ namespace Omnia
 				m_break_points.clear();
 				m_break_point_signal = false;
 				m_break_point_addr = oasm_nullptr;
+				m_decoded_inst.clear();
 
 				return *this;
 			}
 
 			bool CPU::fetch(RAM &_ram, REG &_reg)
 			{
+				m_decoded_inst.clear();
 				m_old_pc_val = _reg.IP().val();
 				BitEditor __tmp;
 				_ram.read(_reg.rw_IP()++.val(), __tmp);
@@ -236,6 +238,7 @@ namespace Omnia
 				if (m_dec_opCode == eInstructionSet::no_op)
 				{
 					m_inst_size = 1;
+					m_decoded_inst.push_back((word)m_dec_opCode);
 					return true;
 				}
 				else if (m_dec_opCode == eInstructionSet::req)
@@ -252,6 +255,9 @@ namespace Omnia
 					}
 					m_dec_flags = (eFlags)m_raw_2;
 					m_dec_op1 = m_raw_3;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_flags);
+					m_decoded_inst.push_back(m_dec_op1);
 					m_inst_size = 3;
 					return true;
 				}
@@ -270,6 +276,9 @@ namespace Omnia
 					m_dec_addrMode = (eAddressingModes)m_raw_2;
 					decode_addr_mode();
 					m_dec_op1 = m_raw_3;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
 					m_inst_size = 3;
 					return true;
 				}
@@ -297,6 +306,10 @@ namespace Omnia
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_op2 = (word)m_raw_4;
 					m_dec_opCode = eInstructionSet::mem;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					m_inst_size = 4;
 					return true;
 				}
@@ -324,6 +337,10 @@ namespace Omnia
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_op2 = (word)m_raw_4;
 					m_dec_opCode = eInstructionSet::add;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					m_inst_size = 4;
 					return true;
 				}
@@ -351,6 +368,10 @@ namespace Omnia
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_op2 = (word)m_raw_4;
 					m_dec_opCode = eInstructionSet::sub;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					m_inst_size = 4;
 					return true;
 				}
@@ -378,6 +399,10 @@ namespace Omnia
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_op2 = (word)m_raw_4;
 					m_dec_opCode = eInstructionSet::mul;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					m_inst_size = 4;
 					return true;
 				}
@@ -406,6 +431,10 @@ namespace Omnia
 					m_dec_op2 = (word)m_raw_4;
 					m_dec_opCode = eInstructionSet::div;
 					m_inst_size = 4;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					return true;
 				}
 				else if (m_dec_opCode == eInstructionSet::cmp || m_dec_opCode == eInstructionSet::cmp_m)
@@ -433,6 +462,10 @@ namespace Omnia
 					m_dec_op2 = (word)m_raw_4;
 					m_dec_opCode = eInstructionSet::cmp;
 					m_inst_size = 4;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					return true;
 				}
 				else if (m_dec_opCode == eInstructionSet::inc || m_dec_opCode == eInstructionSet::inc_m)
@@ -454,6 +487,9 @@ namespace Omnia
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_opCode = eInstructionSet::inc;
 					m_inst_size = 3;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
 					return true;
 				}
 				else if (m_dec_opCode == eInstructionSet::dec || m_dec_opCode == eInstructionSet::dec_m)
@@ -475,6 +511,9 @@ namespace Omnia
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_opCode = eInstructionSet::dec;
 					m_inst_size = 3;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
 					return true;
 				}
 				else if (m_dec_opCode == eInstructionSet::push || m_dec_opCode == eInstructionSet::push_m)
@@ -496,6 +535,9 @@ namespace Omnia
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_opCode = eInstructionSet::push;
 					m_inst_size = 3;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
 					return true;
 				}
 				else if (m_dec_opCode == eInstructionSet::pop || m_dec_opCode == eInstructionSet::pop_m)
@@ -517,6 +559,9 @@ namespace Omnia
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_opCode = eInstructionSet::pop;
 					m_inst_size = 3;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
 					return true;
 				}
 				else if (m_dec_opCode == eInstructionSet::pop_r || m_dec_opCode == eInstructionSet::pop_r_m)
@@ -538,6 +583,9 @@ namespace Omnia
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_opCode = eInstructionSet::pop;
 					m_pop_r_flg = true;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
 					m_inst_size = 3;
 					return true;
 				}
@@ -559,6 +607,9 @@ namespace Omnia
 					decode_addr_mode();
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_opCode = eInstructionSet::flg;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
 					m_inst_size = 3;
 					return true;
 				}
@@ -586,6 +637,10 @@ namespace Omnia
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_op2 = (word)m_raw_4;
 					m_dec_opCode = eInstructionSet::_and;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					m_inst_size = 4;
 					return true;
 				}
@@ -613,6 +668,10 @@ namespace Omnia
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_op2 = (word)m_raw_4;
 					m_dec_opCode = eInstructionSet::_or;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					m_inst_size = 4;
 					return true;
 				}
@@ -634,6 +693,9 @@ namespace Omnia
 					decode_addr_mode();
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_opCode = eInstructionSet::_not;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
 					m_inst_size = 3;
 					return true;
 				}
@@ -658,6 +720,10 @@ namespace Omnia
 					decode_addr_mode();
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_op2 = (word)m_raw_4;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					m_inst_size = 4;
 					return true;
 				}
@@ -682,6 +748,10 @@ namespace Omnia
 					decode_addr_mode();
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_op2 = (word)m_raw_4;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					m_inst_size = 4;
 					return true;
 				}
@@ -706,6 +776,10 @@ namespace Omnia
 					decode_addr_mode();
 					m_dec_flags = (eFlags)m_raw_3;
 					m_dec_op1 = (word)m_raw_4;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back((word)m_dec_flags);
+					m_decoded_inst.push_back(m_dec_op1);
 					m_inst_size = 4;
 					return true;
 				}
@@ -730,6 +804,10 @@ namespace Omnia
 					decode_addr_mode();
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_op2 = (word)m_raw_4;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					m_inst_size = 4;
 					m_variable_inst_size = true;
 					return true;
@@ -752,6 +830,9 @@ namespace Omnia
 					decode_addr_mode();
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_opCode = eInstructionSet::ret;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
 					m_inst_size = 3;
 					return true;
 				}
@@ -776,6 +857,10 @@ namespace Omnia
 					decode_addr_mode();
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_op2 = (word)m_raw_4;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					m_inst_size = 4;
 					return true;
 				}
@@ -783,6 +868,7 @@ namespace Omnia
 				{
 					m_inst_size = 1;
 					m_variable_inst_size = true;
+					m_decoded_inst.push_back((word)m_dec_opCode);
 					return true;
 				}
 				else if (m_dec_opCode == eInstructionSet::alloc)
@@ -800,6 +886,9 @@ namespace Omnia
 					m_dec_addrMode = (eAddressingModes)m_raw_2;
 					decode_addr_mode();
 					m_dec_op1 = (word)m_raw_3;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
 					m_inst_size = 3;
 					return true;
 				}
@@ -818,6 +907,9 @@ namespace Omnia
 					m_dec_addrMode = (eAddressingModes)m_raw_2;
 					decode_addr_mode();
 					m_dec_op1 = (word)m_raw_3;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
 					m_inst_size = 3;
 					return true;
 				}
@@ -842,6 +934,10 @@ namespace Omnia
 					decode_addr_mode();
 					m_dec_op1 = (word)m_raw_3;
 					m_dec_op2 = (word)m_raw_4;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					m_inst_size = 4;
 					return true;
 				}
@@ -860,6 +956,9 @@ namespace Omnia
 					m_dec_addrMode = (eAddressingModes)m_raw_2;
 					decode_addr_mode();
 					m_dec_op1 = (word)m_raw_3;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
 					m_inst_size = 3;
 					return true;
 				}
@@ -879,6 +978,9 @@ namespace Omnia
 					decode_addr_mode();
 					m_dec_op1 = (word)m_raw_3;
 					m_inst_size = 3;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back(m_dec_op1);
 					return true;
 				}
 				else if (m_dec_opCode == eInstructionSet::str_cpy)
@@ -895,6 +997,9 @@ namespace Omnia
 					}
 					m_dec_op1 = (word)m_raw_2;
 					m_dec_op2 = (word)m_raw_3;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					m_inst_size = 3;
 					return true;
 				}
@@ -925,6 +1030,11 @@ namespace Omnia
 					m_dec_flags = (eFlags)m_raw_3;
 					m_dec_op1 = (word)m_raw_4;
 					m_dec_op2 = (word)m_raw_5;
+					m_decoded_inst.push_back((word)m_dec_opCode);
+					m_decoded_inst.push_back((word)m_dec_addrMode);
+					m_decoded_inst.push_back((word)m_dec_flags);
+					m_decoded_inst.push_back(m_dec_op1);
+					m_decoded_inst.push_back(m_dec_op2);
 					m_inst_size = 5;
 					m_variable_inst_size = true;
 					return true;
@@ -2817,6 +2927,16 @@ namespace Omnia
 					}
 				}
 				return true;
+			}
+
+			bool CPU::isBreakPoint(MemAddress __addr, uint8 __inst_size)
+			{
+				for (MemAddress __br = __addr; __br < __addr + __inst_size; __br++)
+				{
+					if (STDVEC_CONTAINS(m_break_points, __br - VirtualMachine::instance().getCurrentProcess().m_codeAddr))
+						return true;
+				}
+				return false;
 			}
 
 			void CPU::printMemory(OutputManager& out, word __stack_rows, word __heap_rows, word __code_rows, bool __print_instruction_data)

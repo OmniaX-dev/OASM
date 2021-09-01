@@ -97,6 +97,68 @@ namespace Omnia
 
         inline ECM ECM::s_instance;
 
+		class SR_CallTree
+		{
+			public: struct tCallData
+			{
+				OmniaString space;
+				OmniaString inst;
+				OmniaString label;
+				uint8 indent;
+			};
+			public:
+				inline SR_CallTree(void) { currentTab = 0; }
+				inline void call(OmniaString __lbl_name)
+				{
+					tCallData __cd;
+					__cd.space =  Utils::duplicateChar(' ', currentTab++ * 2);
+					__cd.inst = "call ";
+					__cd.label = __lbl_name;
+					__cd.indent = currentTab - 1;
+					labelStack.push_back(__lbl_name);
+					callList.push_back(__cd);
+				}
+				inline void ret(void)
+				{
+					if (currentTab == 0) return;
+					tCallData __cd;
+					__cd.space = Utils::duplicateChar(' ', --currentTab * 2);
+					__cd.inst = "ret  ";
+					__cd.label = labelStack[labelStack.size() - 1];
+					STDVEC_REMOVE(labelStack, labelStack.size() - 1);
+					__cd.indent = currentTab;
+					callList.push_back(__cd);
+				}
+				inline void print(OutputManager& out)
+				{
+					if (callList.size() == 0) return;
+					out.tc_reset();
+					for (auto __call : callList)
+					{
+						out.fc_white();
+						for (uint8 i = 1; i <= __call.indent; i++)
+							out.print("| ");
+						if (__call.inst == "call ")
+							out.print("┌").fc_green();
+						else if (__call.inst == "ret  ")
+							out.print("└").fc_red();
+						out.print(__call.inst);
+						out.fc_brightCyan();
+						if (__call.inst == "call ")
+							out.fc_brightCyan();
+						else if (__call.inst == "ret  ")
+							out.fc_yellow();
+						out.print(__call.label).newLine();
+						out.tc_reset();
+					}
+				}
+
+			public:
+				word currentTab;
+				std::vector<tCallData> callList;
+				std::vector<OmniaString> labelStack;
+		};
+
 		class SymbolTable
 		{
 			public:
@@ -109,6 +171,14 @@ namespace Omnia
 					}
 					return false;
 				}
+				inline bool isLabel(OmniaString __sym)
+				{
+					for (auto& __lbl : m_labels)
+					{
+						if (__lbl.second == __sym) return true;
+					}
+					return false;
+				}
 				inline bool isReserve(MemAddress __addr, OmniaString& outVarName)
 				{
 					if (m_reserves.count(__addr) != 0)
@@ -118,11 +188,20 @@ namespace Omnia
 					}
 					return false;
 				}
+				inline bool isReserve(OmniaString __sym)
+				{
+					for (auto& __res : m_reserves)
+					{
+						if (__res.second == __sym) return true;
+					}
+					return false;
+				}
 
 			public:
 				std::map<MemAddress, OmniaString> m_labels;
 				std::map<MemAddress, OmniaString> m_reserves;
 				std::map<MemAddress, OmniaString> m_source;
+				SR_CallTree m_callTree;
 
 		};
 		
