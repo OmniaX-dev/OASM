@@ -24,6 +24,7 @@ namespace Omnia
             }
 			_line = "";
 			m_reserveCount = 0;
+            m_nextTopInst = 0;
 			if (!m_includeGuards.empty()) m_includeGuards.clear();
 			if (!m_aliases.empty()) m_aliases.clear();
 			if (!m_reserves.empty()) m_reserves.clear();
@@ -40,8 +41,10 @@ namespace Omnia
             finalCode = resolveAliases(finalCode);
             finalCode = resolveMacros(finalCode);
 			finalCode = resolveCommandDirective(finalCode);
+            m_dataSection.push_back(":__load_data__:");
 			finalCode = resolveDataDirective(finalCode);
             m_dataSection.push_back("call,               Const_Const,                   __main__,                  0x0000");
+            m_dataSection.push_back("end,               Single_Reg,                   RV");
 			for (auto& _line : finalCode)
 			{
 				_line = _line.replaceAll(" ", "");
@@ -54,6 +57,7 @@ namespace Omnia
 				_line = _line.replaceAll("\t", "");
 				_line = _line.replaceAll("\n", "");
 			}
+            finalCode.insert(finalCode.begin() + m_nextTopInst++, OmniaString("call,              Const_Const,                    __load_data__,             0x0000"));
             return finalCode;
         }
 
@@ -63,6 +67,7 @@ namespace Omnia
             std::vector<OmniaString> code;
             lineNumber = 0;
             currentFile = "Processed_file";
+
 			for (auto& l : lines)
             {
                 _line = l;
@@ -101,11 +106,11 @@ namespace Omnia
 					if (__cmd.equals("request"))
 					{
 						if (param.equals("all") && Utils::isInt(value))
-							m_dataSection.push_back(StringBuilder("req,                 REQ_ALL,                    ").add(value).get());
+							code.insert(code.begin() + m_nextTopInst++, StringBuilder("req,                 REQ_ALL,                    ").add(value).get());
 						else if (param.equals("stack") && Utils::isInt(value))
-							m_dataSection.push_back(StringBuilder("req,                 REQ_STACK,                  ").add(value).get());
+							code.insert(code.begin() + m_nextTopInst++, StringBuilder("req,                 REQ_STACK,                  ").add(value).get());
 						else if (param.equals("heap") && Utils::isInt(value))
-							m_dataSection.push_back(StringBuilder("req,                 REQ_HEAP,                   ").add(value).get());
+							code.insert(code.begin() + m_nextTopInst++, StringBuilder("req,                 REQ_HEAP,                   ").add(value).get());
 					}
 				}
             }
@@ -581,7 +586,7 @@ namespace Omnia
 		{
             std::vector<OmniaString> __source = PreProcessor::instance().open(__source_file_path);
             std::vector<OmniaString> source = PreProcessor::instance().m_dataSection;
-            source.insert(source.end(), __source.begin(), __source.end());
+            source.insert(source.begin(), __source.begin(), __source.end());
             if (p__dbg_save_code)
             {
                 std::map<MemAddress, OmniaString> __dbg_src;

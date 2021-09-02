@@ -2,7 +2,6 @@
 #define __COMMON_HPP__
 
 #include "Flags.hpp"
-
 #include "BitEditor.hpp"
 #include "Defines.hpp"
 #include "IOManager.hpp"
@@ -16,23 +15,11 @@ namespace Omnia
 		class Process : public Validable, public Identifiable
 		{
 			public:
-				Process(void)
-				{
-					m_stackAddr = oasm_nullptr;
-					m_heapAddr = oasm_nullptr;
-					m_codeAddr = oasm_nullptr;
-					m_heapAllocated = false,
-					m_stackAllocated = false;
-					m_codeAllocated = false;
-					m_codeSize = 0;
-					m_stackSize = 0;
-					m_heapSize = 0;
-					m_processFinished = false;
-				}
+				Process(void);
 				inline static Process& invalidProc(void) { return *s_invalidProc; }
-				bool isInvalidProc(void) { return getID() == Process::INVALID_PROC_ID && isInvalid(); }
-				bool done(void) { return m_processFinished; }
-				void stop(void) { m_processFinished = true; }
+				inline bool isInvalidProc(void) { return getID() == Process::INVALID_PROC_ID && isInvalid(); }
+				inline bool done(void) { return m_processFinished; }
+				inline void stop(void) { m_processFinished = true; }
 
 			private:
 				inline Process(int32 id) { setID(id); invalidate(); }
@@ -67,25 +54,9 @@ namespace Omnia
         {
             public:
                 static inline ECM& instance(void) { return s_instance; }
-
-				inline bool addHandler(word code, ExtComHandler& ech)
-				{
-					if (hasHandler(code)) return false;
-					m_comHandlers[code] = &ech;
-					return true;
-				}
-
-				inline bool hasHandler(word code)
-				{
-					return m_comHandlers.count(code) != 0;
-				}
-
-				inline bool execHandler(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
-				{
-					if (!hasHandler(code)) return false;
-					outData = BitEditor((word)0);
-					return m_comHandlers[code]->handleCommand(code, param, iomgr, outData);
-				}
+				bool addHandler(word code, ExtComHandler& ech);
+				bool hasHandler(word code);
+				bool execHandler(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
 
             private:
                 inline ECM(void) {  }
@@ -99,103 +70,40 @@ namespace Omnia
 
 		class SR_CallTree
 		{
-			public: struct tCallData
+			public: struct tCallData : public Identifiable
 			{
 				OmniaString space;
 				OmniaString inst;
 				OmniaString label;
+				MemAddress address;
+				uint32 tickCounter;
 				uint8 indent;
+				bool closed;
 			};
 			public:
 				inline SR_CallTree(void) { currentTab = 0; }
-				inline void call(OmniaString __lbl_name)
-				{
-					tCallData __cd;
-					__cd.space =  Utils::duplicateChar(' ', currentTab++ * 2);
-					__cd.inst = "call ";
-					__cd.label = __lbl_name;
-					__cd.indent = currentTab - 1;
-					labelStack.push_back(__lbl_name);
-					callList.push_back(__cd);
-				}
-				inline void ret(void)
-				{
-					if (currentTab == 0) return;
-					tCallData __cd;
-					__cd.space = Utils::duplicateChar(' ', --currentTab * 2);
-					__cd.inst = "ret  ";
-					__cd.label = labelStack[labelStack.size() - 1];
-					STDVEC_REMOVE(labelStack, labelStack.size() - 1);
-					__cd.indent = currentTab;
-					callList.push_back(__cd);
-				}
-				inline void print(OutputManager& out)
-				{
-					if (callList.size() == 0) return;
-					out.tc_reset();
-					for (auto __call : callList)
-					{
-						out.fc_white();
-						for (uint8 i = 1; i <= __call.indent; i++)
-							out.print("| ");
-						if (__call.inst == "call ")
-							out.print("┌").fc_green();
-						else if (__call.inst == "ret  ")
-							out.print("└").fc_red();
-						out.print(__call.inst);
-						out.fc_brightCyan();
-						if (__call.inst == "call ")
-							out.fc_brightCyan();
-						else if (__call.inst == "ret  ")
-							out.fc_yellow();
-						out.print(__call.label).newLine();
-						out.tc_reset();
-					}
-				}
+				void call(OmniaString __lbl_name);
+				void ret(void);
+				void print(OutputManager& out, word __line_w);
+				void tick(void);
+				bool getCurrentCall(OmniaString& outLabelName);
+
 
 			public:
 				word currentTab;
 				std::vector<tCallData> callList;
-				std::vector<OmniaString> labelStack;
+				std::vector<std::pair<uint32, OmniaString>> labelStack;
+
+				inline static uint32 s_next_id = 0;
 		};
 
 		class SymbolTable
 		{
 			public:
-				inline bool isLabel(MemAddress __addr, OmniaString& outLabel)
-				{
-					if (m_labels.count(__addr) != 0)
-					{
-						outLabel = m_labels[__addr];
-						return true;
-					}
-					return false;
-				}
-				inline bool isLabel(OmniaString __sym)
-				{
-					for (auto& __lbl : m_labels)
-					{
-						if (__lbl.second == __sym) return true;
-					}
-					return false;
-				}
-				inline bool isReserve(MemAddress __addr, OmniaString& outVarName)
-				{
-					if (m_reserves.count(__addr) != 0)
-					{
-						outVarName = m_reserves[__addr];
-						return true;
-					}
-					return false;
-				}
-				inline bool isReserve(OmniaString __sym)
-				{
-					for (auto& __res : m_reserves)
-					{
-						if (__res.second == __sym) return true;
-					}
-					return false;
-				}
+				bool isLabel(MemAddress __addr, OmniaString& outLabel);
+				bool isLabel(OmniaString __sym);
+				bool isReserve(MemAddress __addr, OmniaString& outVarName);
+				bool isReserve(OmniaString __sym);
 
 			public:
 				std::map<MemAddress, OmniaString> m_labels;
@@ -215,53 +123,9 @@ namespace Omnia
 			protected:
 				inline bool __empty(void) { return m_errorQueue.size() == 0; }
 				inline virtual void pushError(ErrorCode __err_code) {  }
-				inline void pushError(ErrorCode __err_code, OutputManager& out, OmniaString __extra_text = "", MemAddress __addr = oasm_nullptr, word __op_code = (word)eInstructionSet::no_op)
-				{
-					m_errorQueue.push_back(__err_code);
-					if (Flags::isset(FLG__PRINT_ERROR_ON_PUSH))
-					{
-						OmniaString __err_text = __error_map[__err_code];
-						out.print(Utils::duplicateChar('=', 50)).newLine();
-						out.print("Error ").print(Utils::intToHexStr(__err_code));
-						out.print(": ").print(__err_text).newLine();
-						if (__extra_text.trim() == "" && __addr == oasm_nullptr && __op_code == (word)eInstructionSet::no_op)
-						{
-							out.print(Utils::duplicateChar('=', 50)).newLine();
-							return;
-						}
-						out.print("Extra info: ").newLine();
-						if (__extra_text.trim() != "")
-							out.tab().print(__extra_text).newLine();
-						if (__addr != oasm_nullptr)
-						{
-							out.tab().print("Address: ").print(Utils::intToHexStr(__addr));
-							if (__addr < D__HEAP_SPACE_START)
-								out.print(" (-CODE-)").newLine();
-							else if (__addr < D__STACK_SPACE_START)
-								out.print(" (-HEAP-)").newLine();
-							else if (__addr < D__LIB_SPACE_START)
-								out.print(" (-STACK-)").newLine();
-							else if (__addr < D__MEMORY_SIZE)
-								out.print(" (-LIBRARY-)").newLine();
-						}
-						if (__op_code != (word)eInstructionSet::no_op) //TODO: Eventually map op_codes to text
-							out.tab().print("Instruction: ").print(Utils::intToHexStr(__op_code)).print("(-").print(Utils::mapInstruction((eInstructionSet)__op_code)).print("-)").newLine();
-						out.print(Utils::duplicateChar('=', 50)).newLine();
-					}
-				}
-				inline ErrorCode popError(void)
-				{
-					if (__empty()) return D__NO_ERROR;
-					ErrorCode __tmp = m_errorQueue[m_errorQueue.size() - 1];
-					STDVEC_REMOVE(m_errorQueue, m_errorQueue.size() - 1);
-					return __tmp;
-				}
-				inline std::vector<ErrorCode> flushErrorQueue(void)
-				{
-					std::vector<ErrorCode> __tmp = m_errorQueue;
-					m_errorQueue.clear();
-					return __tmp;
-				}
+				void pushError(ErrorCode __err_code, OutputManager& out, OmniaString __extra_text = "", MemAddress __addr = oasm_nullptr, word __op_code = (word)eInstructionSet::no_op);
+				ErrorCode popError(void);
+				std::vector<ErrorCode> flushErrorQueue(void);
 
 			protected:
 				std::vector<ErrorCode> m_errorQueue;

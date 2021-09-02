@@ -72,6 +72,7 @@ namespace Omnia
             public:
                 inline virtual ~InputManager(void) = default;
                 inline virtual InputManager& read(OmniaString& in) { return *this; } //TODO: make this always blocking
+                inline virtual InputManager& waitForKeyPress(void) { return *this; } //TODO: Implement
         };
 
         class StandardConsoleOutput : public OutputManager

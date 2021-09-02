@@ -199,7 +199,10 @@ namespace Omnia
 				_ram.read(_reg.rw_IP()++.val(), __tmp);
 				m_err_1 = _ram.getLastErrorCode();
 				if (m_err_1 != D__NO_ERROR)
+				{
+					pushError(m_err_1);
 					return false;
+				}
 				Flags::unset(FLG__PRINT_ERROR_ON_PUSH);
 				m_raw_1 = __tmp.val();
 				_ram.read(_reg.rw_IP()++.val(), __tmp);

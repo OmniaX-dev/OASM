@@ -325,6 +325,65 @@ namespace Omnia
 			return "INVALID_MASK_PARAM";
 		}
 
+		OmniaString Utils::mapRegister(word __reg)
+		{
+			switch (__reg)
+			{
+				case (word)eRegisters::CF: return "CF";
+				case (word)eRegisters::DR: return "DR";
+				case (word)eRegisters::ES: return "ES";
+				case (word)eRegisters::FL: return "FL";
+				case (word)eRegisters::IP: return "IP";
+				case (word)eRegisters::NP: return "NP";
+				case (word)eRegisters::RV: return "RV";
+				case (word)eRegisters::SP: return "SP";
+				
+				case (word)eRegisters::S1: return "S1";
+				case (word)eRegisters::S2: return "S2";
+				case (word)eRegisters::S3: return "S3";
+				case (word)eRegisters::S4: return "S4";
+				case (word)eRegisters::S5: return "S5";
+				case (word)eRegisters::S6: return "S6";
+				case (word)eRegisters::S7: return "S7";
+				case (word)eRegisters::S8: return "S8";
+				
+				case (word)eRegisters::R0: return "R0";
+				case (word)eRegisters::R1: return "R1";
+				case (word)eRegisters::R2: return "R2";
+				case (word)eRegisters::R3: return "R3";
+				case (word)eRegisters::R4: return "R4";
+				case (word)eRegisters::R5: return "R5";
+				case (word)eRegisters::R6: return "R6";
+				case (word)eRegisters::R7: return "R7";
+				case (word)eRegisters::R8: return "R8";
+				case (word)eRegisters::R9: return "R9";
+				case (word)eRegisters::R10: return "R10";
+				case (word)eRegisters::R11: return "R11";
+				case (word)eRegisters::R12: return "R12";
+				case (word)eRegisters::R13: return "R13";
+				case (word)eRegisters::R14: return "R14";
+				case (word)eRegisters::R15: return "R15";
+				case (word)eRegisters::R16: return "R16";
+				case (word)eRegisters::R17: return "R17";
+				case (word)eRegisters::R18: return "R18";
+				case (word)eRegisters::R19: return "R19";
+				case (word)eRegisters::R20: return "R20";
+				case (word)eRegisters::R21: return "R21";
+				case (word)eRegisters::R22: return "R22";
+				case (word)eRegisters::R23: return "R23";
+				case (word)eRegisters::R24: return "R24";
+				case (word)eRegisters::R25: return "R25";
+				case (word)eRegisters::R26: return "R26";
+				case (word)eRegisters::R27: return "R27";
+				case (word)eRegisters::R28: return "R28";
+				case (word)eRegisters::R29: return "R29";
+				case (word)eRegisters::R30: return "R30";
+				case (word)eRegisters::R31: return "R31";
+				default: return Utils::intToHexStr(__reg, false);
+			}
+			return "NP";
+		}
+
 		void Utils::get_terminal_size(int& width, int& height)
 		{
 			#if defined(_WIN32)

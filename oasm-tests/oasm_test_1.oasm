@@ -11,7 +11,6 @@
 //--------------------------------------------------------------------------------------
 :fibonacci_series:
 	pop,			Single_Reg,			R0
-
 	cmd,			Const_Addr,			PrintStringToConsole,		fibo_text
 	cmd,			Const_Const,		PrintNewLineToConsole,		0
 
@@ -47,6 +46,7 @@
 
 //--------------------------------------------------------------------------------------
 :sum_numbers:
+	call,			Const_Const,		fibonacci_series,			1,			Single_Const,5
 	pop,			Single_Reg,			R0
 	pop,			Single_Reg,			R1
 	add,			Reg_Reg,			R0,							R1
@@ -57,6 +57,13 @@
 
 //--------------------------------------------------------------------------------------
 :power_r:
+	call,			Const_Const,		sum_numbers,				2,			Single_Const,5, Single_Const,5
+	call,			Const_Const,		sum_numbers,				2,			Single_Const,5, Single_Const,5
+	call,			Const_Const,		sum_numbers,				2,			Single_Const,5, Single_Const,5
+	call,			Const_Const,		sum_numbers,				2,			Single_Const,5, Single_Const,5
+	call,			Const_Const,		sum_numbers,				2,			Single_Const,5, Single_Const,5
+	call,			Const_Const,		sum_numbers,				2,			Single_Const,5, Single_Const,5
+	call,			Const_Const,		sum_numbers,				2,			Single_Const,5, Single_Const,5
 	pop,			Single_Reg,			R0		//Power
 	pop,			Single_Reg,			R1		//Base
 	cmp,			Reg_Const,			R0,							0
@@ -76,16 +83,16 @@
 
 //--------------------------------------------------------------------------------------
 :__main__:
-	call,				Const_Const,		fibonacci_series,			1,			Single_Const,10
+	call,				Const_Const,		fibonacci_series,			1,			Single_Const,5
 
-	call,				Const_Const,		power_r,					2,			Single_Const,2,		Single_Const,10
+	call,				Const_Const,		power_r,					2,			Single_Const,2,		Single_Const,3
 	cmd,				Const_Addr,			PrintStringToConsole,		pow_text
 	cmd,				Const_Reg,			PrintIntToConsole,			RV
 	cmd,				Const_Const,		PrintNewLineToConsole,		0
 
-	call,				Const_Const,		fibonacci_series,			1,			Single_Const,20
+	call,				Const_Const,		fibonacci_series,			1,			Single_Const,7
 
-	end,				Single_Const,		0xCACA
+	ret,				Single_Const,		0xCACA
 //------------------------------------END __MAIN__--------------------------------------
 
 

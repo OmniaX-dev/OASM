@@ -1,10 +1,11 @@
-.label fibonacci_series = 0x0036
-.label for_loop = 0x0065
-.label end_loop = 0x008C
-.label sum_numbers = 0x008F
-.label power_r = 0x009C
-.label else = 0x00C8
-.label __main__ = 0x00CB
+.label fibonacci_series = 0x0007
+.label for_loop = 0x0036
+.label end_loop = 0x005D
+.label sum_numbers = 0x0060
+.label power_r = 0x0073
+.label else = 0x00D7
+.label __main__ = 0x00DA
+.label __load_data__ = 0x00FD
 .data max = 0x0000
 .data _t1 = 0x0001
 .data _t2 = 0x0002
@@ -14,62 +15,72 @@
 .data pow_text = 0x0006
 .source = { 
 		0x0000:req,REQ_ALL,63
-		0x0003:reserve,Single_Reg,R30
-		0x0006:reserve,Single_Reg,R30
-		0x0009:reserve,Single_Reg,R30
-		0x000C:reserve,Single_Reg,R30
-		0x000F:reserve,Single_Reg,R30
-		0x0012:reserve,Single_Reg,R30
-		0x0015:reserve,Single_Reg,R30
-		0x0018:lda_str,"Fibonacci series:"
-		0x0022:mem,Addr_Reg,0x0005,R31
-		0x0026:lda_str,"  -->POWER = "
-		0x002E:mem,Addr_Reg,0x0006,R31
-		0x0032:call,Const_Const,__main__,0x0000
-		0x0036:pop,Single_Reg,R0
-		0x0039:cmd,Const_Addr,PrintStringToConsole,fibo_text
-		0x003D:cmd,Const_Const,PrintNewLineToConsole,0
-		0x0041:cmd,Const_Const,PrintIntToConsole,0
-		0x0045:cmd,Const_Const,PrintNewLineToConsole,0
-		0x0049:cmd,Const_Const,PrintIntToConsole,1
-		0x004D:cmd,Const_Const,PrintNewLineToConsole,0
-		0x0051:cmd,Const_Const,PrintIntToConsole,2
+		0x0003:call,              Const_Const,                    __load_data__,             0x0000
+		0x0007:pop,Single_Reg,R0
+		0x000A:cmd,Const_Addr,PrintStringToConsole,fibo_text
+		0x000E:cmd,Const_Const,PrintNewLineToConsole,0
+		0x0012:cmd,Const_Const,PrintIntToConsole,0
+		0x0016:cmd,Const_Const,PrintNewLineToConsole,0
+		0x001A:cmd,Const_Const,PrintIntToConsole,1
+		0x001E:cmd,Const_Const,PrintNewLineToConsole,0
+		0x0022:cmd,Const_Const,PrintIntToConsole,2
+		0x0026:cmd,Const_Const,PrintNewLineToConsole,0
+		0x002A:mem,Addr_Const,i,3
+		0x002E:mem,Addr_Const,_t1,1
+		0x0032:mem,Addr_Const,_t2,2
+		0x0036:cmp,Addr_Reg,i,R0
+		0x003A:jmp,Single_Const,JMP_GREATER_OR_EQUALS,end_loop
+		0x003E:inc,Single_Addr,i
+		0x0041:mem,Addr_Addr,next,_t1
+		0x0045:add,Addr_Addr,next,_t2
+		0x0049:mem,Addr_Addr,_t1,_t2
+		0x004D:mem,Addr_Addr,_t2,next
+		0x0051:cmd,Const_Addr,PrintIntToConsole,next
 		0x0055:cmd,Const_Const,PrintNewLineToConsole,0
-		0x0059:mem,Addr_Const,i,3
-		0x005D:mem,Addr_Const,_t1,1
-		0x0061:mem,Addr_Const,_t2,2
-		0x0065:cmp,Addr_Reg,i,R0
-		0x0069:jmp,Single_Const,JMP_GREATER_OR_EQUALS,end_loop
-		0x006D:inc,Single_Addr,i
-		0x0070:mem,Addr_Addr,next,_t1
-		0x0074:add,Addr_Addr,next,_t2
-		0x0078:mem,Addr_Addr,_t1,_t2
-		0x007C:mem,Addr_Addr,_t2,next
-		0x0080:cmd,Const_Addr,PrintIntToConsole,next
-		0x0084:cmd,Const_Const,PrintNewLineToConsole,0
-		0x0088:jmp,Single_Const,JMP_UNCONDITIONAL,for_loop
-		0x008C:ret,Single_Const,0
-		0x008F:pop,Single_Reg,R0
-		0x0092:pop,Single_Reg,R1
-		0x0095:add,Reg_Reg,R0,R1
-		0x0099:ret,Single_Reg,R0
-		0x009C:pop,Single_Reg,R0
-		0x009F:pop,Single_Reg,R1
-		0x00A2:cmp,Reg_Const,R0,0
-		0x00A6:jmp,Single_Const,JMP_EQUALS,else
-		0x00AA:mem,Reg_Reg,R2,R0
-		0x00AE:dec,Single_Reg,R2
-		0x00B1:call,Const_Const,power_r,2,Single_Reg,R1,Single_Reg,R2
-		0x00B9:mem,Reg_Reg,R3,R1
-		0x00BD:mem,Reg_Reg,R4,RV
-		0x00C1:mul,Reg_Reg,R3,R4
-		0x00C5:ret,Single_Reg,R3
-		0x00C8:ret,Single_Const,1
-		0x00CB:call,Const_Const,fibonacci_series,1,Single_Const,10
-		0x00D1:call,Const_Const,power_r,2,Single_Const,2,Single_Const,10
-		0x00D9:cmd,Const_Addr,PrintStringToConsole,pow_text
-		0x00DD:cmd,Const_Reg,PrintIntToConsole,RV
-		0x00E1:cmd,Const_Const,PrintNewLineToConsole,0
-		0x00E5:call,Const_Const,fibonacci_series,1,Single_Const,20
-		0x00EB:end,Single_Const,0xCACA
+		0x0059:jmp,Single_Const,JMP_UNCONDITIONAL,for_loop
+		0x005D:ret,Single_Const,0
+		0x0060:call,Const_Const,fibonacci_series,1,Single_Const,5
+		0x0066:pop,Single_Reg,R0
+		0x0069:pop,Single_Reg,R1
+		0x006C:add,Reg_Reg,R0,R1
+		0x0070:ret,Single_Reg,R0
+		0x0073:call,Const_Const,sum_numbers,2,Single_Const,5,Single_Const,5
+		0x007B:call,Const_Const,sum_numbers,2,Single_Const,5,Single_Const,5
+		0x0083:call,Const_Const,sum_numbers,2,Single_Const,5,Single_Const,5
+		0x008B:call,Const_Const,sum_numbers,2,Single_Const,5,Single_Const,5
+		0x0093:call,Const_Const,sum_numbers,2,Single_Const,5,Single_Const,5
+		0x009B:call,Const_Const,sum_numbers,2,Single_Const,5,Single_Const,5
+		0x00A3:call,Const_Const,sum_numbers,2,Single_Const,5,Single_Const,5
+		0x00AB:pop,Single_Reg,R0
+		0x00AE:pop,Single_Reg,R1
+		0x00B1:cmp,Reg_Const,R0,0
+		0x00B5:jmp,Single_Const,JMP_EQUALS,else
+		0x00B9:mem,Reg_Reg,R2,R0
+		0x00BD:dec,Single_Reg,R2
+		0x00C0:call,Const_Const,power_r,2,Single_Reg,R1,Single_Reg,R2
+		0x00C8:mem,Reg_Reg,R3,R1
+		0x00CC:mem,Reg_Reg,R4,RV
+		0x00D0:mul,Reg_Reg,R3,R4
+		0x00D4:ret,Single_Reg,R3
+		0x00D7:ret,Single_Const,1
+		0x00DA:call,Const_Const,fibonacci_series,1,Single_Const,5
+		0x00E0:call,Const_Const,power_r,2,Single_Const,2,Single_Const,3
+		0x00E8:cmd,Const_Addr,PrintStringToConsole,pow_text
+		0x00EC:cmd,Const_Reg,PrintIntToConsole,RV
+		0x00F0:cmd,Const_Const,PrintNewLineToConsole,0
+		0x00F4:call,Const_Const,fibonacci_series,1,Single_Const,7
+		0x00FA:ret,Single_Const,0xCACA
+		0x00FD:reserve,Single_Reg,R30
+		0x0100:reserve,Single_Reg,R30
+		0x0103:reserve,Single_Reg,R30
+		0x0106:reserve,Single_Reg,R30
+		0x0109:reserve,Single_Reg,R30
+		0x010C:reserve,Single_Reg,R30
+		0x010F:reserve,Single_Reg,R30
+		0x0112:lda_str,"Fibonacci series:"
+		0x011C:mem,Addr_Reg,0x0005,R31
+		0x0120:lda_str,"  -->POWER = "
+		0x0128:mem,Addr_Reg,0x0006,R31
+		0x012C:call,Const_Const,__main__,0x0000
+		0x0130:end,Single_Reg,RV
 }

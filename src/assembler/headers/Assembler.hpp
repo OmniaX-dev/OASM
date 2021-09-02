@@ -79,6 +79,7 @@ namespace Omnia
 				std::map<_string, MemAddress> m_reserves;
                 PreProcessorOptions m_options;
                 std::vector<Macro> m_macros;
+				word m_nextTopInst;
 
             public:
                 static PreProcessor s_instance;
