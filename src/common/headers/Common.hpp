@@ -84,7 +84,7 @@ namespace Omnia
 				inline SR_CallTree(void) { currentTab = 0; }
 				void call(OmniaString __lbl_name);
 				void ret(void);
-				void print(OutputManager& out, word __line_w);
+				void print(OutputManager& out, word __line_w, word __lines = 0);
 				void tick(void);
 				bool getCurrentCall(OmniaString& outLabelName);
 
@@ -116,20 +116,24 @@ namespace Omnia
 		class ErrorReciever
 		{
 			public:
-				inline ErrorReciever(void) { }
+				inline ErrorReciever(void) : m_callback(nullptr) { }
 				inline const ErrorCode getLastErrorCode(void) { return (!__empty() ? m_errorQueue[m_errorQueue.size() - 1] : D__NO_ERROR); }
 				inline std::vector<ErrorCode> getErrorQueue(void) { return m_errorQueue; }
+				inline void redirectErrorsTo(ErrorReciever& __callback) { m_callback = &__callback; }
+				inline void disableRedirect(void) { m_callback = nullptr; }
 
 			protected:
 				inline bool __empty(void) { return m_errorQueue.size() == 0; }
 				inline virtual void pushError(ErrorCode __err_code) {  }
-				void pushError(ErrorCode __err_code, OutputManager& out, OmniaString __extra_text = "", MemAddress __addr = oasm_nullptr, word __op_code = (word)eInstructionSet::no_op);
+				virtual void pushError(ErrorCode __err_code, OutputManager& out, OmniaString __extra_text = "", MemAddress __addr = oasm_nullptr, word __op_code = (word)eInstructionSet::no_op);
 				ErrorCode popError(void);
 				std::vector<ErrorCode> flushErrorQueue(void);
 
 			protected:
 				std::vector<ErrorCode> m_errorQueue;
+				ErrorReciever* m_callback;
 
+			public:
 				inline static std::map<const ErrorCode, const OmniaString> __error_map = {
 					{ D__NO_ERROR, "" },
 

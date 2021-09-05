@@ -36,13 +36,7 @@ int main(int argc, char** argv)
 
 #elif defined(__COMPILE_DBG__)  //Debugger frontend
 
-	Omnia::oasm::Debugger::instance().getOutputHandler()->newLine().print("oasm_dbg: version ")
-	.print((long int)Omnia::eVersion::Major).print(".").print((long int)Omnia::eVersion::Minor)
-	.print(".").print((long int)Omnia::eVersion::Build).newLine().newLine();
-
-	Omnia::common::ErrorCode __err = Omnia::oasm::Debugger::instance().run(argc, argv);
-
-	__exit_verbose(Omnia::oasm::Debugger::instance(), __err)
+	return Omnia::oasm::Debugger::instance().run(argc, argv);
 
 #endif
 #include "Defines.hpp"

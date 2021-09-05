@@ -193,7 +193,7 @@ namespace Omnia
 						__sb.add(Utils::intToHexStr(__mc.val())).add(",");
 					__str = __sb.get().substr(0, __sb.get().length() - 1);
 					m_dataSection.push_back(__str);
-					m_dataSection.push_back(StringBuilder("mem,                 Addr_Reg,                   ").add(Utils::intToHexStr(m_reserves[param.cpp()])).add(",                  R31").get());
+					m_dataSection.push_back(StringBuilder("mem,     Addr_Reg,    ").add(param.cpp()).add(",    R31").get());
 				}
 			}
 			return code;
@@ -475,6 +475,10 @@ namespace Omnia
 			p__input_file_path = "";
             p__output_file_path = "";
             p__output_file_dbg_table = "";
+            for (uint16 i = 0; i < argc; i++)
+            {
+                std::cout << argv[i] << "\n";
+            }
 			if (argc > 1)
 			{
 				for (int i = 1; i < argc; i++)

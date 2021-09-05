@@ -1,73 +1,132 @@
 *** Add decoded instruction to source view in step-by-step mode
--   better memory view
--   Fix bug of memory-view not showing in step-by-step mode
 *** polish call-tree view
 *** rename print-call-tree command
 *** add tick count on ret instructions in the call-tree
+*** Fix bug of memory-view not showing in step-by-step mode
+*** Fix bug of prntMemoryBlock() where values initialized to 0 are not highlighted as changed
+*** Grab runtime errors from Interpreter, and display them in the debugger
+*** 	. Create an error viewer interface
+
+%	Fix bug where SourceCodeView handles inproperly the case of showing the last section of the source code
+%	Fix bug where an error occurs on the <end> instruction of "oasm_test_1"
+
+
+
 
 
 step-level prompt commands:
 =========================-options-=======================================================================================================
-	|-print:				|								Used to print data															|
-	|====================================================================================================================================
-	|						|-r, --reserved-symbol      		-used to print a memory location by it's symbol (only if debug-table 	|
-	|						|									 loaded)																|
-	|						|-s, --string-stream        		-used to print a string-stream, by the symbol name of the memory		|
-	|						|						        	 location where the string pointer is (only if debug table loaded)		|
-	|						|--disable-safe-mode        		-used to disable the VirtualRAM safe-mode (only for this print command)	|
-	|						|-rg, --register					-used to print the value contained in a register (by address, or by		|
-	|						|									 symbol) Safe mode is automatically disabled for VirtualREG				|
-	|						|-o, --offset			    		-used to specify an offset to add to the address you want to print		|
+	|-print, .p:			|								Used to print data															|
+	|						|-----------------------------------------------------------------------------------------------------------|
+	|						|-r, --reserved-symbol      	|	-used to print a memory location by it's symbol/address (only if		|
+	|						|								|	 debug-table loaded)													|			|
+	|						|-s, --string-stream        	|	-used to print a string-stream, by the symbol name of the memory		|
+	|						|						        |	 location where the string pointer is (only if debug table loaded)		|
+	|						|--disable-safe-mode        	|	-used to disable the VirtualRAM safe-mode (only for this print command)	|
+	|						|-rg, --register				|	-used to print the value contained in a register (by address, or by		|
+	|						|								|	 symbol) Safe mode is automatically disabled for VirtualREG				|
+	|						|-o, --offset			    	|	-used to specify an offset to add to the address you want to print		|
 	|=======================|============================================================================================================
-	|-mem:					|								Used to print memory memory status											|
+	|-write, .w:			|								Used to override memory values												|
+	|						|-----------------------------------------------------------------------------------------------------------|
+	|						|-r, --reserved-symbol      	|	-used to write to a memory location by it's symbol/address (only if		|
+	|						|								|	 debug-table loaded)													|		
+	|						|-s, --string-stream        	|	-used to write to a string-stream, by the symbol name of the memory		|
+	|						|						        |	 location write the string pointer is (only if debug table loaded)		|
+	|						|--disable-safe-mode        	|	-used to disable the VirtualRAM safe-mode (only for this print command)	|
+	|						|-rg, --register				|	-used to write to a register (by address, or by	 symbol) Safe mode is 	|
+	|						|								|	 automatically disabled for VirtualREG									|
+	|						|-o, --offset			    	|	-used to specify an offset to add to the address you want to write to	|
 	|=======================|============================================================================================================
-	|						|--code <columns> <rows>			-used to show code memory (columns defaults to 16, rows defaults to 10)	|
-	|						|--heap <columns> <rows>			-used to show heap memory (columns defaults to 16, rows defaults to 10)	|
-	|						|--stack <columns> <rows>			-used to show stack memory (columns defaults to 16, rows defaults to 10)|
-	|						|--lib <columns> <rows>				-used to show lib memory (columns defaults to 16, rows defaults to 10)	|
-	|						|--reg								-used to show registers													|
-	|						|--all <columns> <rows>				-used to show (lib,stack,heap,code) memory using <columns> and <rows>	|
-	|						|									 for all (columns defaults to 16, rows defaults to 10). It also shows	|
-	|						!									 registers																|
+	|-mem:					|								Used to print memory status													|
+	|						|-----------------------------------------------------------------------------------------------------------|
+	|						|--code <columns> <rows>		|	-used to show code memory (columns defaults to 16, rows defaults to 10)	|
+	|						|--heap <columns> <rows>		|	-used to show heap memory (columns defaults to 16, rows defaults to 10)	|
+	|						|--stack <columns> <rows>		|	-used to show stack memory (columns defaults to 16, rows defaults to 10)|
+	|						|--lib <columns> <rows>			|	-used to show lib memory (columns defaults to 16, rows defaults to 10)	|
+	|						|--reg							|	-used to show registers													|
+	|						|--all <columns> <rows>			|	-used to show (lib,stack,heap,code) memory using <columns> and <rows>	|
+	|						|								|	 for all (columns defaults to 16, rows defaults to 10). It also shows	|
+	|						!								|	 registers																|
+	|=======================|============================================================================================================
+	|-mem-map:				|								Used to print memory map status												|
+	|						|-----------------------------------------------------------------------------------------------------------|
+	|						|--code <columns> <rows>		|	-used to show code memory (columns defaults to 16, rows defaults to 10)	|
+	|						|--heap <columns> <rows>		|	-used to show heap memory (columns defaults to 16, rows defaults to 10)	|
+	|						|--stack <columns> <rows>		|	-used to show stack memory (columns defaults to 16, rows defaults to 10)|
+	|						|--lib <columns> <rows>			|	-used to show lib memory (columns defaults to 16, rows defaults to 10)	|
+	|						|--all <columns> <rows>			|	-used to show (lib,stack,heap,code) memory using <columns> and <rows>	|
+	|						|								|	 for all (columns defaults to 16, rows defaults to 10). It also shows	|
+	|						!								|	 registers																|
 	|=======================|============================================================================================================
 	|-quit, .q:				|								Used to exit the debugger with force										|
 	|=======================|============================================================================================================
 	|-resume, .r; 			|								Used to resume normal execution of the process								|
-	|=======================|============================================================================================================
-	|						|--ignore-break-points				-used to ignore any break-point 										|
+	|						|-----------------------------------------------------------------------------------------------------------|
+	|						|--ignore-break-points			|	-used to ignore any break-point 										|
 	|=======================|============================================================================================================
 	|-break-point, .br:		|								Used to add breakpoint														|
-	|						|-<addr/label-symbol>				-Address or label-name 													|
+	|						|-----------------------------------------------------------------------------------------------------------|
+	|						|-<addr/label-symbol>			|	-Address or label-name 													|
 	|=======================|============================================================================================================
 	|-show-call-tree:, .sct	|								Used to print the subroutine call tree										|
+	|						|-----------------------------------------------------------------------------------------------------------|
+	|						|-l, --level					|	-used to specify the maximum level of call-hierarchy to display			|
 	|=======================|============================================================================================================
 	|-proc-out:, .po		|								Used to print the full process' output until this moment					|
+	|=======================|============================================================================================================
+	|-exit:, .e				|								Used to kill the process with force, and go back to top-level prompt		|
+	|=======================|============================================================================================================
+	|-restart:, .rs			|								Used to restart the process													|
+	|						|-----------------------------------------------------------------------------------------------------------|
+	|						|-ib, --ignore-break-points		|	-used to ignore any break-point 										|
+	|====================================================================================================================================
+	|-source: 				|								Used to print the source code (only if debug-table with source is loaded)	|
+	|====================================================================================================================================
+	|-log:	 				|								Used to print the messages log of the debugger								|
+	|====================================================================================================================================
+	|-gui:					|								Used to change the layout of the debugger's GUI								|
+	|						|-----------------------------------------------------------------------------------------------------------|
+	|						|-t, --top <view> [lines]		|	-used to show code memory (columns defaults to 16, rows defaults to 10)	|
+	|						|-m, --middle	<view> [lines]	|	-used to show heap memory (columns defaults to 16, rows defaults to 10)	|
+	|						|-b, --bottom	<view> [lines]	|	-used to show stack memory (columns defaults to 16, rows defaults to 10)|
+	|						|								|	*** Possible values are: heap, stack, registers, output, source, 		|
+	|						|								|		call-tree, libraries												|
+	|						|-sd, --show-data	<boolean>	|	-used to show/hide the information panel between gui-top and gui-middle |
+	|						|--show-errors-on	<gui-block>	|	-used to specify on which gui-block to show errors (top, middle, bottom)|
+	|						|-f, --full		<gui-block>		|	-used to show a gui-block in full screen								|
+	|====================================================================================================================================
+	|-error-stack, .err		|								Used to print the error stack												|
 =========================================================================================================================================
+
+
 
 
 top-level prompt comands:
 =========================-options-=======================================================================================================
 	|-set:  				|								Usage -> set param1 = value1, param2 = value2, ... , paramN = valueN		|
-	|====================================================================================================================================
-	|						|-<source-lines>					-signed Integer															|
-	|						|-<output-lines>					-signed integer															|
+	|						|-----------------------------------------------------------------------------------------------------------|
+	|						|-<source-lines>				|	-signed Integer															|
+	|						|-<output-lines>				|	-signed integer															|
 	|====================================================================================================================================
 	|-source: 				|								Used to print the source code (only if debug-table with source is loaded)	|
 	|====================================================================================================================================
 	|-run, .r: 				|								Used to run the script normally												|
 	|====================================================================================================================================
 	|-step, .s: 			|								Used to enter step-by-step mode												|
-	|====================================================================================================================================
-	|						|-s, --step-size					-used to specify the amount of instructions to execute on each step		|
-	|						|									 (it defaults to 1)														|
-	|						|-d, --step-delay					-used to specify the delay between each step (only if --delay-exec		|
-	|						|									 option is used: value for step-delay defaults to 500 milliseconds)		|
-	|						|-dx, --delay-exec					-used to run the process in step-by-step-delayed mode					|
+	|						|-----------------------------------------------------------------------------------------------------------|
+	|						|-s, --step-size				|	-used to specify the amount of instructions to execute on each step		|
+	|						|								|	 (it defaults to 1)														|
+	|						|-d, --step-delay				|	-used to specify the delay between each step (only if --delay-exec		|
+	|						|								|	 option is used: value for step-delay defaults to 500 milliseconds)		|
+	|						|-dx, --delay-exec				|	-used to run the process in step-by-step-delayed mode					|
 	|====================================================================================================================================
 	|-quit, .q: 			|								Used to exit the debugger													|
 	|====================================================================================================================================
 	|-br, .break-point		|-<addr/label-symbol>:			Used to add breakpoint														|
 	|====================================================================================================================================
-	|-b, .break-on-end		|								Used to add breakpoint at the end of the process														|
+	|-be, .break-on-end		|								Used to add breakpoint at the end of the process							|
+	|====================================================================================================================================
+	|-a, .assemble			|								Used to assemble a source file												|
 =========================================================================================================================================
 			

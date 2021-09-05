@@ -87,15 +87,30 @@ namespace Omnia
 			return true;
 		}
 
-		void SR_CallTree::print(OutputManager& out, word __line_w)
+		void SR_CallTree::print(OutputManager& out, word __line_w, word __lines)
 		{
 			if (callList.size() == 0) return;
 			Omnia::oasm::Debugger::instance().printTitle("SUB-ROUTINE CALL TREE", __line_w);
 			out.tc_reset();
 			StringBuilder __sb;
 			word __right_in_border_col = 80;
-			for (auto __call : callList)
+			if (__lines == 0) __lines = callList.size();
+			uint16 __start = 0, __end = 0;
+			bool __blank_space = false;
+			if (__lines > callList.size())
 			{
+				__start = 0;
+				__end = callList.size() - 1;
+				__blank_space = true;
+			}
+			else
+			{
+				__start = callList.size() - __lines;
+				__end = callList.size() - 1;
+			}
+			for (uint16 __i = __start; __i <= __end; __i++)
+			{
+				auto& __call = callList[__i];
 				__sb = StringBuilder();
 				out.fc_blue().bc_white();
 				__sb.add(" ");
@@ -184,8 +199,44 @@ namespace Omnia
 				out.tc_reset();
 				out.newLine();
 			}
+			if (__blank_space)
+			{
+				for (uint16 __i = 0; __i < __lines - callList.size(); __i++)
+				{
+					out.fc_blue().bc_white();
+					out.print("│");
+					out.print(Utils::duplicateChar(' ', __line_w - 2));
+					out.fc_blue().bc_white();
+					out.print("│");
+					out.newLine();
+				}
+			}
 			out.fc_blue().bc_white();
-			out.print(Utils::duplicateChar('=', __line_w));
+			out.print("│");
+			out.bc_magenta().fc_blue();
+			OmniaString __c_trace_txt = " Current call trace: ";
+			out.print(__c_trace_txt);
+			word __cur = __c_trace_txt.length();
+			word __depth = 0;
+			out.bc_blue();
+			out.print(" ");
+			__cur++;
+			for (auto& __call : labelStack)
+			{
+				out.fc_brightYellow();
+				out.print(__call.second);
+				__cur += __call.second.length();
+				if (++__depth < labelStack.size())
+				{
+					out.fc_magenta();
+					out.print("/");
+					__cur++;
+				}
+			}
+			out.print(Utils::duplicateChar(' ', __line_w - __cur - 2));
+			out.fc_blue().bc_white();
+			out.print("│");
+			out.newLine();
 			out.tc_reset();
 		}
 
@@ -243,6 +294,11 @@ namespace Omnia
 
 		void ErrorReciever::pushError(ErrorCode __err_code, OutputManager& out, OmniaString __extra_text, MemAddress __addr, word __op_code)
 		{
+			if (m_callback != nullptr)
+			{
+				m_callback->pushError(__err_code, out, __extra_text, __addr, __op_code);
+				return;
+			}
 			m_errorQueue.push_back(__err_code);
 			if (Flags::isset(FLG__PRINT_ERROR_ON_PUSH))
 			{
@@ -270,7 +326,7 @@ namespace Omnia
 					else if (__addr < D__MEMORY_SIZE)
 						out.print(" (-LIBRARY-)").newLine();
 				}
-				if (__op_code != (word)eInstructionSet::no_op) //TODO: Eventually map op_codes to text
+				if (__op_code != (word)eInstructionSet::no_op)
 					out.tab().print("Instruction: ").print(Utils::intToHexStr(__op_code)).print("(-").print(Utils::mapInstruction((eInstructionSet)__op_code)).print("-)").newLine();
 				out.print(Utils::duplicateChar('=', 50)).newLine();
 			}

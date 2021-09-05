@@ -2873,6 +2873,7 @@ namespace Omnia
 					if (!fetch(ram, reg))
 					{
 						pushError(D__CPU_ERR__FETCH_STEP_FAILED);
+						if (Interpreter::instance().__is_dbg_call()) return false;
 						OmniaString __tmp = "";
 						out.newLine().print("   Press <Enter> to show additional info on the last instruction.");
 						out.newLine().newLine();
@@ -2883,6 +2884,7 @@ namespace Omnia
 					if (!decode(ram, reg))
 					{
 						pushError(D__CPU_ERR__DECODE_STEP_FAILED);
+						if (Interpreter::instance().__is_dbg_call()) return false;
 						OmniaString __tmp = "";
 						out.newLine().print("   Press <Enter> to show additional info on the last instruction.");
 						out.newLine().newLine();
@@ -2893,6 +2895,7 @@ namespace Omnia
 					if (!execute(ram, reg))
 					{
 						pushError(D__CPU_ERR__EXECUTE_STEP_FAILED);
+						if (Interpreter::instance().__is_dbg_call()) return false;
 						OmniaString __tmp = "";
 						out.newLine().print("   Press <Enter> to show additional info on the last instruction.");
 						out.newLine().newLine();
@@ -3075,24 +3078,28 @@ namespace Omnia
 					m_memCells[i].state = eMemState::Free;
 					m_memCells[i].type = eMemCellType::Normal;
 					m_memCells[i].proc = &Process::invalidProc();
+					m_memory[i] = 0xEEEE;
 				}
 				for (; i < D__STACK_SPACE_START; i++)
 				{
 					m_memCells[i].state = eMemState::Free;
 					m_memCells[i].type = eMemCellType::Heap;
 					m_memCells[i].proc = &Process::invalidProc();
+					m_memory[i] = 0xEEEE;
 				}
 				for (; i < D__LIB_SPACE_START; i++)
 				{
 					m_memCells[i].state = eMemState::Free;
 					m_memCells[i].type = eMemCellType::Stack;
 					m_memCells[i].proc = &Process::invalidProc();
+					m_memory[i] = 0xEEEE;
 				}
 				for (; i < D__MEMORY_SIZE; i++)
 				{
 					m_memCells[i].state = eMemState::Free;
 					m_memCells[i].type = eMemCellType::Library;
 					m_memCells[i].proc = &Process::invalidProc();
+					m_memory[i] = 0xEEEE;
 				}
 
 				return *this;
@@ -3251,7 +3258,12 @@ namespace Omnia
 			}
 
 			bool RAM::read(MemAddress addr, BitEditor &outData)
-			{//TODO: Add protected mode check
+			{
+				if (!protectedMode())
+				{
+					outData = m_memory[addr];
+					return true;
+				}
 				__return_if_current_proc_invalid(false)
 				if (m_memCells[addr].state == eMemState::Reserved)
 				{
@@ -3269,17 +3281,21 @@ namespace Omnia
 			}
 
 			bool RAM::read_m(MemAddress addr, BitEditor &outData, word __m_param)
-			{//TODO: Add protected mode check
-				__return_if_current_proc_invalid(false) if (m_memCells[addr].state == eMemState::Reserved)
+			{
+				if (protectedMode())
 				{
-					pushError(D__RAM_ERR__READ_FAILED_RESERVED_CELL, *VirtualMachine::instance().getOutputHandler(), "VirtualRAM Error", addr);
-					return false;
-				}
-				Process &cellProc = *m_memCells[addr].proc;
-				if (__proc.getID() != cellProc.getID() || cellProc.isInvalidProc())
-				{
-					pushError(D__RAM_ERR__READ_FAILED_DISCREPANT_IDS, *VirtualMachine::instance().getOutputHandler(), "VirtualRAM Error", addr);
-					return false;
+					__return_if_current_proc_invalid(false)
+					if (m_memCells[addr].state == eMemState::Reserved)
+					{
+						pushError(D__RAM_ERR__READ_FAILED_RESERVED_CELL, *VirtualMachine::instance().getOutputHandler(), "VirtualRAM Error", addr);
+						return false;
+					}
+					Process &cellProc = *m_memCells[addr].proc;
+					if (__proc.getID() != cellProc.getID() || cellProc.isInvalidProc())
+					{
+						pushError(D__RAM_ERR__READ_FAILED_DISCREPANT_IDS, *VirtualMachine::instance().getOutputHandler(), "VirtualRAM Error", addr);
+						return false;
+					}
 				}
 				if (__m_param == (word)eSingleAddrModes::_2B)
 					outData = m_memory[addr];

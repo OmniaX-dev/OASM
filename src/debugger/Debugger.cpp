@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
-
+#include "Assembler.hpp"
 #include <unistd.h>
 
 namespace Omnia
@@ -14,7 +14,14 @@ namespace Omnia
 		{
 			BitEditor __new_val;
 			hw::REG& reg = VirtualMachine::instance().getREG();
-			reg.read(this->reg, __new_val);
+			if (!loaded)
+			{
+				changeTime = 5;
+				loaded = true;
+				__new_val = oldValue;
+			}
+			else
+				reg.read(this->reg, __new_val);
 			if (__new_val != oldValue)
 			{
 				oldValue = __new_val;
@@ -27,35 +34,92 @@ namespace Omnia
 		{
 			changeTime = 5;
 			reg = __reg;
+			loaded = false;
 			VirtualMachine::instance().getREG().disableProtectedMode();
 			VirtualMachine::instance().getREG().read(reg, oldValue);
 			VirtualMachine::instance().getREG().enableProtectedMode();
 		}
 
 
+		void Debugger::tMemChangeTracker::updadte(void)
+		{
+			BitEditor __new_val;
+			hw::RAM& ram = VirtualMachine::instance().getRAM();
+			if (!loaded)
+			{
+				changeTime = 5;
+				loaded = true;
+				__new_val = oldValue;
+			}
+			else
+				__new_val = ram.getAsReadOnly()[addr];
+			if (__new_val != oldValue)
+			{
+				oldValue = __new_val;
+				changeTime = 0;
+			}
+			else if (changeTime < 5) changeTime++;
+		}
+
+		Debugger::tMemChangeTracker::tMemChangeTracker(MemAddress __addr)
+		{
+			changeTime = 5;
+			addr = __addr;
+			loaded = false;
+			VirtualMachine::instance().getRAM().disableProtectedMode();
+			VirtualMachine::instance().getRAM().read(addr, oldValue);
+			VirtualMachine::instance().getRAM().enableProtectedMode();
+		}
+
+
 
 		int64 Debugger::run(int argc, char** argv)
 		{
-			int32 __line_length = 125, __console_height = 0;
 			Utils::get_terminal_size(__line_length, __console_height);
 			for (MemAddress __addr = 0; __addr < (word)eRegisters::Count; __addr++)
 				m_regChangeTable.push_back(tRegChangeTracker((eRegisters)__addr));
+			for (MemAddress __addr = 0; __addr < D__MEMORY_SIZE; __addr++)
+				m_memChangeTable.push_back(tMemChangeTracker(__addr));
 			m_prompt = "(odb) > ";
+			m_error = false;
 			m_currentSourceLine = 0;
 			m_currentSourceLine--;
-			OmniaString outPrompt = "( - ) #   ";
+			m_cursor = 0;
+			outPrompt = "( - ) #   ";
             OutputManager& out = *getOutputHandler();
             InputManager& in = *getInputHandler();
-			VirtualMachine &vm = VirtualMachine::instance();
-			//hw::RAM &ram = vm.getRAM();
-			hw::REG &reg = vm.getREG();
-			hw::CPU &cpu = vm.getCPU();
-			//hw::GPU &gpu = vm.getGPU();
             vm.setOutputHandler(&m_vm_buff);
+			cpu.redirectErrorsTo(*this);
+			gpu.redirectErrorsTo(*this);
+			reg.redirectErrorsTo(*this);
+			ram.redirectErrorsTo(*this);
             Interpreter::instance().setOutputHandler(&out);
-			OmniaString p__input_file_path = "";
-			OmniaString p__input_sym_table_path = "";
+            Assembler::instance().setOutputHandler(&out);
+			p__input_file_path = "";
+			p__input_sym_table_path = "";
 			m_use_sym_table = false;
+
+			m_as_args = nullptr;
+
+			m_gui_block_top = eGuiBlock::Source;
+			m_gui_block_middle = eGuiBlock::Heap;
+			m_gui_block_bottom = eGuiBlock::Output;
+			m_show_data = true;
+			m_g_source_lines = 9;
+			m_g_out_lines = 10;
+			m_g_heap_lines = 7;
+			m_g_stack_lines = 7;
+			m_g_code_lines = 7;
+			m_g_lib_lines = 7;
+			m_g_tree_lines = 7;
+			m_gui_error_on_block = eGuiBlockPosition::Bottom;
+
+			out.clear();
+			message(StringBuilder("oasm_dbg: version ")
+			.add((long int)Omnia::eVersion::Major).add(".").add((long int)Omnia::eVersion::Minor)
+			.add(".").add((long int)Omnia::eVersion::Build).get(), eMsgType::Special);
+			out.newLine();
+
 			if (argc > 1)
 			{
 				for (int i = 1; i < argc; i++)
@@ -64,7 +128,7 @@ namespace Omnia
 					{
 						if (i + 1 >= argc)
 						{
-							out.print("*** Error: No input file specified.").newLine();
+							message("Error: No input file specified.", eMsgType::Error);
 							return 0xFFFF; //TODO: Add error code
 						}
 						i++;
@@ -74,19 +138,18 @@ namespace Omnia
 					{
 						if (i + 1 >= argc)
 						{
-							out.print("*** Error: No input debug table file specified.").newLine();
+							message("*** Error: No input debug table file specified.", eMsgType::Error);
 							return 0xFFFF; //TODO: Add error code
 						}
 						i++;
 						p__input_sym_table_path = OmniaString(argv[i]);
 						m_use_sym_table = true;
 					}
-
 				}
 			}
             if (p__input_file_path.trim() == "")
             {
-                out.print("*** Error: No input file specified.").newLine();
+                message("Error: No input file specified.", eMsgType::Error);
                 return 0xFFFE; //TODO: Add error code
             }
 			if (!m_use_sym_table || p__input_sym_table_path.trim() == "")
@@ -95,7 +158,7 @@ namespace Omnia
 				__tmp_input_file_name = __tmp_input_file_name.add(".odb");
 				if (std::filesystem::exists(__tmp_input_file_name.cpp()))
 				{
-					out.print("*** Symbol table file found: ").print(__tmp_input_file_name).newLine();
+					message(StringBuilder("Symbol table file found: ").add(__tmp_input_file_name).get());
 					m_use_sym_table = true;
 					p__input_sym_table_path = __tmp_input_file_name;
 				}
@@ -106,17 +169,19 @@ namespace Omnia
             cpu.setIPC(1);
             
 			ErrorCode __err_code;
-			bool cmd__step = false;
-			bool __add_br_on_end = false;
+			cmd__step = false;
+			__add_br_on_end = false;
+			out.newLine();
 			while (true)
 			{
-				out.tc_reset();
+				out.fc_cyan();
 				out.print(m_prompt);
+				out.tc_reset();
 				in.read(m_cmd_input);
 				m_cmd_input = m_cmd_input.trim().toLowerCase();
 				if (m_cmd_input == "run" || m_cmd_input == "r")
 				{
-					out.print("*** Running process...").newLine();
+					message("Running process...");
 					__err_code = Interpreter::instance().run(4, new char*[]{argv[0], (char*)"--debugger-internal-call", (char*)"--input-file", (char*)p__input_file_path.c_str()});
 					if (__err_code != D__NO_ERROR)
 					{
@@ -138,27 +203,27 @@ namespace Omnia
 				}
 				else if (m_cmd_input == "quit" || m_cmd_input == "q")
 				{
-					out.print("*** Exiting...").newLine();
+					message("*** Exiting...");
 					return 0x0000;
 				}
 				else if (m_cmd_input == "source")
 				{
 					if (!m_use_sym_table)
 					{
-						out.print("*** Warning: No Debug table loaded.").newLine();
+						message("Warning: No Debug table loaded.");
 						continue;
 					}
 					if (m_sym_table.m_source.size() == 0)
 					{
-						out.print("*** Warning: No source code loaded.").newLine();
+						message("Warning: No source code loaded.");
 						continue;
 					}
 					out.clear();
-					printSourceCode(0, 0, 0, __line_length);
+					printSourceCode(0, 0, 0);
 					out.tc_reset();
-					out.fc_magenta();
-					OmniaString __tmp = "*** Press <Enter> to go back to prompt.";
-					out.print(__tmp).print(Utils::duplicateChar(' ', __line_length - __tmp.length())).newLine();
+					message("Press <Enter> to go back to prompt.");
+					//out.print(__tmp).print(Utils::duplicateChar(' ', __line_length - __tmp.length())).newLine();
+					OmniaString __tmp;
 					in.read(__tmp);
 					out.clear();
 					continue;
@@ -169,315 +234,820 @@ namespace Omnia
 					if (Utils::isInt(m_cmd_input))
 					{
 						cpu.addBreakPoint((word)Utils::strToInt(m_cmd_input));
-						out.print("*** Break-point added at Code-Address ").print(m_cmd_input).newLine();
+						message(StringBuilder("Break-point added at Code-Address ").add(m_cmd_input).get());
+					}
+					else if (m_sym_table.isLabel(m_cmd_input))
+					{
+						for (auto& __lbl : m_sym_table.m_labels)
+						{
+							if (__lbl.second == m_cmd_input)
+							{
+								cpu.addBreakPoint(__lbl.first);
+								message(StringBuilder("Break-point added on label <").add(m_cmd_input).add("> at Code-Address ").add(__lbl.first).get());
+								break;
+							}
+						}
 					}
 				}
 				else if (m_cmd_input == "break-on-end" || m_cmd_input == "be")
 				{
 					__add_br_on_end = true;
-					out.print("*** Break-point added on all <end> instructions").print(m_cmd_input).newLine();
+					message(StringBuilder("Break-points will be added on all <end> instructions").add(m_cmd_input).get());
+				}
+				else if (m_cmd_input.startsWith("assemble ") || m_cmd_input.startsWith("as "))
+				{
+					OmniaString::StringTokens __st = m_cmd_input.tokenize(" ", true);
+					if (m_as_args != nullptr) delete[] m_as_args;
+					m_as_args = new char*[__st.count()];
+					auto __vec = __st.array();
+					for (uint16 i = 0; i < __vec.size(); i++)
+					{
+						m_as_args[i] = const_cast<char*>(__vec[i].c_str());
+					}
+					out.print(Utils::intToHexStr(Assembler::instance().run(__st.count(), m_as_args))).newLine();
 				}
 				else
 				{
-					out.print("*** Warning: unknown command.").newLine();
+					message("Warning: unknown command.", eMsgType::Error);
 					continue;
 				}
 			}
             Process& proc = vm.getCurrentProcess();
-			bool tick_res = false, exec_tick = true, __br_sig = false;
-			std::vector<OmniaString> proc_out, __proc_out_buffer;
-			TMemoryList __dec_inst;
-			MemAddress __off_ip = oasm_nullptr, __ip = oasm_nullptr;
-			uint8 __source_line_count = 9;
-			uint8 __proc_out_line_count = 10;
-			bool __first_cmd_step = true;
-			bool __skip_next_input_round = false;
-			bool __done = false;
-			uint32 __total_tick_count = 0;
+			tick_res = false;
+			exec_tick = true;
+			__br_sig = false;
+			proc_out.clear();
+			__proc_out_buffer.clear();
+			__dec_inst.clear();
+			__off_ip = oasm_nullptr, __ip = oasm_nullptr;
+			__first_cmd_step = true;
+			__skip_next_input_round = false;
+			__done = false;
+			__total_tick_count = 0;
             while (true)
             {
+				if (m_force_quit) break;
 				__skip_next_input_round = false;
 				__ip = cpu.getLastInstructionAddr();
 				__off_ip = __ip - proc.m_codeAddr;
+				if (cmd__step) __step(proc);
+				__run(proc);
 				exec_tick = true;
-				if (cmd__step)
-				{
-					out.clear();
-					if (__first_cmd_step)
-					{
-						__first_cmd_step = false;
-						out.fc_magenta();
-						out.print("*** Running process (step-by-step)...").newLine();
-						out.print("*** Press <Enter> to run the first instruction.").newLine();
-						if (__add_br_on_end)
-						{
-							MemAddress __end_addr = oasm_nullptr;
-							for (auto& __cell : proc.m_code)
-							{
-								if (__cell == (word)eInstructionSet::end)
-								{
-									cpu.addBreakPoint(__end_addr);
-									out.print("*** Break-point added on <end> instruction at Code-Address ").print(Utils::intToHexStr(__end_addr)).newLine();
-								}
-								__end_addr++;
-							}
-							__add_br_on_end = false;
-						}
-						out.tc_reset();
-						OmniaString __tmp = "";
-						in.read(__tmp);
-						__skip_next_input_round = true;
-					}
-					if (m_use_sym_table)
-					{
-						if (m_sym_table.m_source.size() > 0 && __ip != oasm_nullptr)
-						{
-							m_currentSourceLine = findCurrentLine(__off_ip);
-							if (m_currentSourceLine <= (uint32)((__source_line_count / 2) + 1))
-								printSourceCode(0, __source_line_count, __off_ip, __line_length);
-							//else if (m_currentSourceLine >= (uint32)(m_sym_table.m_source.size() - ( (__source_line_count / 2) + 1)))
-							//	printSourceCode(m_sym_table.m_source.size() - __source_line_count, __source_line_count, __off_ip);
-							else
-								printSourceCode(m_currentSourceLine -  ((__source_line_count / 2) + 1), __source_line_count, __off_ip, __line_length);
-						}
-					}
-					else
-						out.print(Utils::duplicateChar('=', __line_length)).newLine();
-					
-					out.fc_blue().bc_brightMagenta();
-					OmniaString __dec_inst_text(" Decoded instruction: ");
-					out.print(__dec_inst_text);
-					out.fc_brightWhite().bc_brightBlue();
-					word __cur_curs = (word)__dec_inst_text.length();
-					if (__dec_inst.size() > 0)
-					{
-						StringBuilder __sb = StringBuilder();
-						for (auto& __cell : __dec_inst)
-							__sb.add(Utils::intToHexStr(__cell.val())).add(", ");
-						OmniaString __di = __sb.get();
-						__di = __di.trim().substr(0, __di.length() - 2);
-						word __space = ((__line_length / 2) - __dec_inst_text.length() - __di.length());
-						out.print(" ").print(__di).print(Utils::duplicateChar(' ',  __space));
-						__cur_curs += __di.length() + 1 + __space;
-					}
-					else
-						out.print(Utils::duplicateChar(' ', __line_length - __dec_inst_text.length())).newLine();
-
-					out.fc_blue().bc_brightMagenta();
-					__dec_inst_text = " Current sub-routine: ";
-					__cur_curs += __dec_inst_text.length();
-					out.print(__dec_inst_text);
-					out.fc_brightWhite().bc_brightBlue();
-					
-					if (m_sym_table.m_callTree.getCurrentCall(__dec_inst_text))
-					{
-						out.print(" ").print(__dec_inst_text);
-						__cur_curs += __dec_inst_text.length() + 1;
-						out.print(Utils::duplicateChar(' ',  __line_length - __cur_curs)).newLine();
-					}
-					else
-					{
-						out.print(Utils::duplicateChar(' ',  __line_length - __cur_curs)).newLine();
-					}
-
-					reg.disableProtectedMode();
-					printMemoryBlock(reg.getAsReadOnly(), 0, 4, "REGISTERS", __line_length);
-					reg.enableProtectedMode();
-
-
-					printTitle("SCRIPT OUTPUT", __line_length);
-
-					out.tc_reset();
-					out.fc_brightWhite().bc_brightGrey();
-					if (__proc_out_buffer.size() <= __proc_out_line_count)
-					{
-						uint32 __i = 0;
-						for (auto& line : __proc_out_buffer)
-						{
-							out.fc_blue().bc_white();
-							out.print("│");
-							out.fc_brightWhite().bc_brightGrey();
-							out.print("    ").print(line).print(Utils::duplicateChar(' ', __line_length - (line.length() + 6)));
-							out.fc_blue().bc_white();
-							out.print("|").newLine();
-							__i++;
-						}
-						for ( ; __i < __proc_out_line_count; __i++)
-						{
-							out.fc_blue().bc_white();
-							out.print("│");
-							out.fc_brightWhite().bc_brightGrey();
-							out.print(Utils::duplicateChar(' ', __line_length - 2));
-							out.fc_blue().bc_white();
-							out.print("│");
-							out.newLine();
-						}
-					}
-					else
-					{
-						OmniaString __l = "";
-						for (uint32 __i = __proc_out_line_count; __i > 0; __i--)
-						{
-							__l = __proc_out_buffer[__proc_out_buffer.size() - __i];
-							out.fc_blue().bc_white();
-							out.print("│");
-							out.fc_brightWhite().bc_brightGrey();
-							out.print("    ").print(__l).print(Utils::duplicateChar(' ', __line_length - (__l.length() + 6)));
-							out.fc_blue().bc_white();
-							out.print("|").newLine();
-						}
-					}
-					out.fc_blue().bc_white();
-					out.print(Utils::duplicateChar('=', __line_length)).newLine();
-					out.tc_reset();
-					if (__br_sig)
-					{
-						out.fc_magenta();
-						out.print("*** Reached break-point: Code-Address=").print(Utils::intToHexStr(cpu.__break_point_address()));
-						out.tc_reset();
-						out.newLine();
-						__br_sig = false;
-					}
-					if (proc.done())
-					{
-						out.fc_magenta();
-						out.print("*** ").print((int32)__total_tick_count).print(" total cycles executed.").newLine();
-						out.fc_brightWhite().bc_green();
-						out.print("*** Process terminated naturally.").newLine();
-						out.tc_reset();
-						out.newLine();
-						__done = true;
-						//break;
-					}
-					if (!__skip_next_input_round)
-					{
-						out.fc_magenta();
-						out.print("*** Press <Enter> for next instructions.").newLine();
-						out.fc_magenta().bc_brightYellow();
-						out.print(m_prompt);
-						out.tc_reset();
-						in.read(m_cmd_input);
-						m_cmd_input = m_cmd_input.trim().toLowerCase();
-						if (m_cmd_input == "mem")
-						{
-							exec_tick = false;
-							vm.getCPU().printMemory(out, 4, 4, 16, true);
-						}
-						else if (m_cmd_input == "quit" || m_cmd_input == "q")
-						{
-							out.fc_magenta();
-							out.print("*** Exiting with force...");
-							out.tc_reset();
-							out.newLine();
-							break;
-						}
-						else if (m_cmd_input == "resume" || m_cmd_input == "r")
-						{
-							__br_sig = false;
-							exec_tick = true;
-							cmd__step = false;
-						}
-						else if (m_cmd_input == "show-call-tree" || m_cmd_input == "sct")
-						{
-							exec_tick = false;
-							out.clear().tc_reset();
-							m_sym_table.m_callTree.print(out, __line_length);
-							out.tc_reset();
-							out.fc_magenta();
-							out.print("*** Press <Enter> to return to step-by-step prompt.").newLine();
-							OmniaString __tmp = "";
-							in.read(__tmp);
-							out.clear().tc_reset();
-						}
-					}
-				}
-				else
-				{
-					if (__add_br_on_end)
-					{
-						MemAddress __end_addr = oasm_nullptr;
-						for (auto& __cell : proc.m_code)
-						{
-							if (__cell == (word)eInstructionSet::end)
-							{
-								cpu.addBreakPoint(__end_addr);
-								out.print("*** Break-point added on <end> instruction at Code-Address ").print(Utils::intToHexStr(__end_addr)).newLine();
-							}
-							__end_addr++;
-						}
-						__add_br_on_end = false;
-					}
-				}
-				if (!exec_tick || __done) continue;
-				tick_res = cpu.clock_tick();
-				m_sym_table.m_callTree.tick();
-				__total_tick_count++;
-				__br_sig = cpu.__break_point_signal();
-				__dec_inst = cpu.getDecodedInstruction();
-				if (__dec_inst.size() >= 3 && __dec_inst[0].val() == (word)eInstructionSet::call)
-				{
-					OmniaString __tmp_lbl = "";
-					if (m_sym_table.isLabel(__dec_inst[2].val(), __tmp_lbl))
-						m_sym_table.m_callTree.call(__tmp_lbl);
-					else
-						m_sym_table.m_callTree.call(Utils::intToHexStr(__dec_inst[2].val()));
-
-				}
-				else if (__dec_inst.size() >= 1 && __dec_inst[0].val() == (word)eInstructionSet::ret)
-				{
-					m_sym_table.m_callTree.ret();
-				}
-				else if (__dec_inst.size() >= 1 && __dec_inst[0].val() == (word)eInstructionSet::end)
-				{
-					m_sym_table.m_callTree.ret();
-				}
-				if (!tick_res)
-				{
-					out.fc_brightWhite().bc_red();
-					out.print("*** Runtime error.");
-					out.tc_reset();
-					out.newLine();
-					cmd__step = true;
-				}
-				proc_out = m_vm_buff.flush();
-				if (proc_out.size() > 0)
-				{
-					for (auto& line : proc_out)
-					{
-						line = line.replaceAll("\n", "");
-						if (line.trim() != "")
-						{
-							//if (cmd__step) out.print(Utils::duplicateChar('-', 100)).newLine();
-							if (!cmd__step) out.print(outPrompt).print(line).newLine();
-							//if (cmd__step) out.print(Utils::duplicateChar('-', 100)).newLine();
-							__proc_out_buffer.push_back(line);
-						}
-					}
-				}
-				if (__br_sig)
-				{
-					cmd__step = true;
-				}
-				if (!cmd__step && proc.done())
-				{
-					out.fc_magenta();
-					out.print("*** ").print((int32)__total_tick_count).print(" total cycles executed.").newLine();
-					out.fc_brightWhite().bc_green();
-					out.print("*** Process terminated naturally.");
-					out.tc_reset();
-					out.newLine();
-					break;
-				}
+				if (__done && !cmd__step) break;
             }
+			if (m_as_args != nullptr) delete[] m_as_args;
 			return vm.getCPU().getLastErrorCode();
 		}
 
-		void Debugger::printMemoryBlock(TMemoryList_c& __mem, MemAddress start, uint8 rows, OmniaString title, int32 __line_length)
+		void Debugger::__run(Process& proc)
+		{
+			OutputManager& out = *getOutputHandler();
+			out.clear();
+			if (__add_br_on_end)
+			{
+				MemAddress __end_addr = oasm_nullptr;
+				for (auto& __cell : proc.m_code)
+				{
+					if (__cell == (word)eInstructionSet::end)
+					{
+						cpu.addBreakPoint(__end_addr);
+						message(StringBuilder("Break-point added on <end> instruction at Code-Address ").add(Utils::intToHexStr(__end_addr)).get());
+					}
+					__end_addr++;
+				}
+				__add_br_on_end = false;
+			}
+			if (!exec_tick || __done || m_error) return;
+			tick_res = cpu.clock_tick();
+			if (!tick_res)
+			{
+				cmd__step = true;
+				__first_cmd_step = false;
+				__skip_next_input_round = true;
+				exec_tick = false;
+				if (cmd__step) return;
+				printScriptOutput(0);
+				printSeparator();
+				message("Runtime Error.", eMsgType::Error);
+				message("Press <enter> to switch to Debug-view.", eMsgType::Info, false);
+				OmniaString __tmp;
+				getInputHandler()->read(__tmp);
+				return;
+			}
+			m_sym_table.m_callTree.tick();
+			__total_tick_count++;
+			__br_sig = cpu.__break_point_signal();
+			__dec_inst = cpu.getDecodedInstruction();
+			if (__dec_inst.size() >= 3 && __dec_inst[0].val() == (word)eInstructionSet::call)
+			{
+				OmniaString __tmp_lbl = "";
+				if (m_sym_table.isLabel(__dec_inst[2].val(), __tmp_lbl))
+					m_sym_table.m_callTree.call(__tmp_lbl);
+				else
+					m_sym_table.m_callTree.call(Utils::intToHexStr(__dec_inst[2].val()));
+
+			}
+			else if (__dec_inst.size() >= 1 && __dec_inst[0].val() == (word)eInstructionSet::ret)
+			{
+				m_sym_table.m_callTree.ret();
+			}
+			else if (__dec_inst.size() >= 1 && __dec_inst[0].val() == (word)eInstructionSet::end)
+			{
+				m_sym_table.m_callTree.ret();
+			}
+			proc_out = m_vm_buff.flush();
+			if (proc_out.size() > 0)
+			{
+				for (auto& line : proc_out)
+				{
+					line = line.replaceAll("\n", "");
+					if (line.trim() != "")
+					{
+						__proc_out_buffer.push_back(line);
+					}
+				}
+			}
+			if (!cmd__step)
+			{
+				printScriptOutput(0);
+				printSeparator();
+			}
+			if (__br_sig)
+			{
+				cmd__step = true;
+				return;
+			}
+			if (!cmd__step && proc.done()) 
+				__done = true;
+		}
+
+		void Debugger::__step(Process& proc)
+		{
+			OutputManager& out = *getOutputHandler();
+			InputManager& in = *getInputHandler();
+			out.clear().tc_reset();
+			if (__first_cmd_step)
+			{
+				__first_cmd_step = false;
+				message("Running process (step-by-step)...");
+				if (__add_br_on_end)
+				{
+					MemAddress __end_addr = oasm_nullptr;
+					for (auto& __cell : proc.m_code)
+					{
+						if (__cell == (word)eInstructionSet::end)
+						{
+							cpu.addBreakPoint(__end_addr);
+							message(StringBuilder("Break-point added on <end> instruction at Code-Address ").add(Utils::intToHexStr(__end_addr)).get());
+						}
+						__end_addr++;
+					}
+					__add_br_on_end = false;
+				}
+				message("Press <Enter> to run the first instruction.");
+				OmniaString __tmp = "";
+				in.read(__tmp);
+				__skip_next_input_round = true;
+			}
+
+			printFullGui(proc);
+
+			if (__br_sig)
+			{
+				message(StringBuilder("Reached break-point: Code-Address=").add(Utils::intToHexStr(cpu.__break_point_address())).get());
+				__br_sig = false;
+			}
+			if (proc.done())
+			{
+				message(StringBuilder((int32)__total_tick_count).add(" total cycles executed.").get());
+				message("Process terminated naturally.", eMsgType::Success);
+				__done = true;
+			}
+			inputPrompt();
+		}
+
+		void Debugger::printFullGui(Process& proc)
 		{
 			OutputManager& out = *getOutputHandler();
 
+			if (m_gui_error_on_block == eGuiBlockPosition::Top && m_error)
+				printError();
+			else if (m_gui_block_top == eGuiBlock::CallTree && m_use_sym_table)
+				m_sym_table.m_callTree.print(out, __line_length, m_g_tree_lines);
+			else if (m_gui_block_top == eGuiBlock::Code)
+				printMemoryBlock(D__MEMORY_START, m_g_code_lines, "CODE MEMORY");
+			else if (m_gui_block_top == eGuiBlock::Stack)
+				printMemoryBlock(D__STACK_SPACE_START, m_g_stack_lines, "STACK MEMORY");
+			else if (m_gui_block_top == eGuiBlock::Heap)
+				printMemoryBlock(D__HEAP_SPACE_START, m_g_heap_lines, "HEAP MEMORY");
+			else if (m_gui_block_top == eGuiBlock::Libraries)
+				printMemoryBlock(D__MEMORY_START, m_g_lib_lines, "LIBRARIES MEMORY");
+			else if (m_gui_block_top == eGuiBlock::Registers)
+				printRegisters();
+			else if (m_gui_block_top == eGuiBlock::Output)
+				printScriptOutput(m_g_out_lines);
+			else if (m_gui_block_top == eGuiBlock::Source)
+				printSourceView(m_g_source_lines);
+
+			if (m_show_data)
+				printInfoView();
+
+			
+			if (m_gui_error_on_block == eGuiBlockPosition::Middle && m_error)
+				printError();
+			else if (m_gui_block_middle == eGuiBlock::CallTree && m_use_sym_table)
+				m_sym_table.m_callTree.print(out, __line_length, m_g_tree_lines);
+			else if (m_gui_block_middle == eGuiBlock::Code)
+				printMemoryBlock(D__MEMORY_START, m_g_code_lines, "CODE MEMORY");
+			else if (m_gui_block_middle == eGuiBlock::Stack)
+				printMemoryBlock(D__STACK_SPACE_START, m_g_stack_lines, "STACK MEMORY");
+			else if (m_gui_block_middle == eGuiBlock::Heap)
+				printMemoryBlock(D__HEAP_SPACE_START, m_g_heap_lines, "HEAP MEMORY");
+			else if (m_gui_block_middle == eGuiBlock::Libraries)
+				printMemoryBlock(D__MEMORY_START, m_g_lib_lines, "LIBRARIES MEMORY");
+			else if (m_gui_block_middle == eGuiBlock::Registers)
+				printRegisters();
+			else if (m_gui_block_middle == eGuiBlock::Output)
+				printScriptOutput(m_g_out_lines);
+			else if (m_gui_block_middle == eGuiBlock::Source)
+				printSourceView(m_g_source_lines);
+			
+			if (m_gui_error_on_block == eGuiBlockPosition::Bottom && m_error)
+				printError();
+			else if (m_gui_block_bottom == eGuiBlock::CallTree && m_use_sym_table)
+				m_sym_table.m_callTree.print(out, __line_length, m_g_tree_lines);
+			else if (m_gui_block_bottom == eGuiBlock::Code)
+				printMemoryBlock(D__MEMORY_START, m_g_code_lines, "CODE MEMORY");
+			else if (m_gui_block_bottom == eGuiBlock::Stack)
+				printMemoryBlock(D__STACK_SPACE_START, m_g_stack_lines, "STACK MEMORY");
+			else if (m_gui_block_bottom == eGuiBlock::Heap)
+				printMemoryBlock(D__HEAP_SPACE_START, m_g_heap_lines, "HEAP MEMORY");
+			else if (m_gui_block_bottom == eGuiBlock::Libraries)
+				printMemoryBlock(D__MEMORY_START, m_g_lib_lines, "LIBRARIES MEMORY");
+			else if (m_gui_block_bottom == eGuiBlock::Registers)
+				printRegisters();
+			else if (m_gui_block_bottom == eGuiBlock::Output)
+				printScriptOutput(m_g_out_lines);
+			else if (m_gui_block_bottom == eGuiBlock::Source)
+				printSourceView(m_g_source_lines);
+
+			printSeparator();
+		}
+
+		void Debugger::message(OmniaString __msg_text, eMsgType __type, bool __log)
+		{
+			getOutputHandler()->tc_reset();
+			if (__type == eMsgType::Info) getOutputHandler()->fc_magenta();
+			else if (__type == eMsgType::Success) getOutputHandler()->fc_green();
+			else if (__type == eMsgType::Error) getOutputHandler()->fc_red();
+			else if (__type == eMsgType::Special) getOutputHandler()->fc_cyan();
+			else if (__type == eMsgType::Warning) getOutputHandler()->fc_yellow();
+			getOutputHandler()->print("*** ").print(__msg_text).newLine();
+			getOutputHandler()->tc_reset();
+			if (__log) m_msg_log.push_back({__type, __msg_text});
+		}
+
+		void Debugger::inputPrompt(void)
+		{
+			OutputManager& out = *getOutputHandler();
+			if (!__skip_next_input_round)
+			{
+				out.tc_reset();
+				out.fc_magenta();
+				if (!__done)
+					message("Press <Enter> for next instructions.", eMsgType::Info, false);
+				out.fc_cyan();
+				out.print(m_prompt);
+				out.tc_reset();
+				getInputHandler()->read(m_cmd_input);
+				m_cmd_input = m_cmd_input.trim().toLowerCase();
+				if (m_cmd_input == "proc-out" || m_cmd_input == "po")
+				{
+					out.clear();
+					printScriptOutput(0);
+					printSeparator();
+					message("Press <enter> to go back to debug-view.", eMsgType::Info, false);
+					OmniaString __tmp;
+					getInputHandler()->read(__tmp);
+					exec_tick = false;
+				}
+				else if (m_cmd_input == "mem")
+				{
+					//exec_tick = false;
+					//vm.getCPU().printMemory(out, 4, 4, 16, true);
+				}
+				else if (m_cmd_input == "quit" || m_cmd_input == "q")
+				{
+					message("Exiting with force...");
+					m_force_quit = true;
+				}
+				else if (m_cmd_input == "resume" || m_cmd_input == "r")
+				{
+					__br_sig = false;
+					exec_tick = true;
+					cmd__step = false;
+				}
+				else if (m_cmd_input == "show-call-tree" || m_cmd_input == "sct")
+				{
+					exec_tick = false;
+					out.clear().tc_reset();
+					m_sym_table.m_callTree.print(out, __line_length);
+					printSeparator();
+					message("Press <Enter> to return to step-by-step prompt.");
+					OmniaString __tmp = "";
+					getInputHandler()->read(__tmp);
+					out.clear().tc_reset();
+				}
+				else if (m_cmd_input == "error-stack" || m_cmd_input == "err")
+				{
+					if (!m_error) return;
+					exec_tick = false;
+					out.clear().tc_reset();
+					for (uint32 i = 0; i < m_err_data.size(); i++)
+						printError(i);
+					printSeparator();
+					message("Press <Enter> to return to step-by-step prompt.");
+					OmniaString __tmp = "";
+					getInputHandler()->read(__tmp);
+					out.clear().tc_reset();
+				}
+				else if (m_cmd_input == "log")
+				{
+					out.clear();
+					printTitle("MESSAGES LOG", __line_length);
+					for (auto& __log : m_msg_log)
+					{
+						out.tc_reset().fc_brightBlue();
+						out.print("  +  ");
+						message(__log.second, __log.first, false);
+					}
+					printSeparator();
+					message("Press <enter> to go back to debug-view.", eMsgType::Info, false);
+					OmniaString __tmp;
+					getInputHandler()->read(__tmp);
+					exec_tick = false;
+				}
+				else if (m_cmd_input.startsWith("gui "))
+				{
+					OmniaString::StringTokens __st = m_cmd_input.tokenize(" ", true);
+					__st.next();
+					OmniaString __param;
+					bool __np_block = false;
+					bool __np_val = false;
+					eGuiBlockPosition __pos = eGuiBlockPosition::Middle;
+					eGuiBlock __block = eGuiBlock::None;
+					while (__st.hasNext())
+					{
+						__param = __st.next();
+
+						if (__np_val)
+						{
+							__np_val = false;
+							if (!Utils::isInt(__param)) continue;
+							switch (__block)
+							{
+								case eGuiBlock::CallTree:
+									m_g_tree_lines = Utils::strToInt(__param);
+									continue;
+								case eGuiBlock::Heap:
+									m_g_heap_lines = Utils::strToInt(__param);
+									continue;
+								case eGuiBlock::Stack:
+									m_g_stack_lines = Utils::strToInt(__param);
+									continue;
+								case eGuiBlock::Libraries:
+									m_g_lib_lines = Utils::strToInt(__param);
+									continue;
+								case eGuiBlock::Source:
+									m_g_source_lines = Utils::strToInt(__param);
+									continue;
+								case eGuiBlock::Code:
+									m_g_code_lines = Utils::strToInt(__param);
+									continue;
+								case eGuiBlock::Output:
+									m_g_out_lines = Utils::strToInt(__param);
+									continue;
+								case eGuiBlock::Registers:
+									message("Warning: Registers-block is fixed size, and can't be changed.", eMsgType::Warning);
+									continue;
+								default: continue;
+							};
+							continue;
+						}
+						if (__np_block)
+						{
+							if (__param == "heap") __block = eGuiBlock::Heap;
+							else if (__param == "stack") __block = eGuiBlock::Stack;
+							else if (__param == "registers") __block = eGuiBlock::Registers;
+							else if (__param == "output") __block = eGuiBlock::Output;
+							else if (__param == "source") __block = eGuiBlock::Source;
+							else if (__param == "call-tree") __block = eGuiBlock::CallTree;
+							else if (__param == "libraries") __block = eGuiBlock::Libraries;
+							else if (__param == "code") __block = eGuiBlock::Code;
+							else if (__param == "none") __block = eGuiBlock::None;
+							else
+							{
+								message("Error: Invalid gui-block name.", eMsgType::Error);
+								break;
+							}
+							
+							if (__pos == eGuiBlockPosition::Top)
+							{
+								m_gui_block_top = __block;
+								message(StringBuilder("Top panel set to <").add(__param).add(">.").get(), eMsgType::Success);
+							}
+							else if (__pos == eGuiBlockPosition::Middle)
+							{
+								m_gui_block_middle = __block;
+								message(StringBuilder("Middle panel set to <").add(__param).add(">.").get(), eMsgType::Success);
+							}
+							else if (__pos == eGuiBlockPosition::Bottom)
+							{
+								m_gui_block_bottom = __block;
+								message(StringBuilder("Bottom panel set to <").add(__param).add(">.").get(), eMsgType::Success);
+							}
+							__np_val = true;
+							__np_block = false;
+							continue;
+						}
+
+						if (__param.equals("--top") || __param.equals("-t"))
+						{
+							__np_block = true;
+							__pos = eGuiBlockPosition::Top;
+						}
+						else if (__param.equals("--middle") || __param.equals("-m"))
+						{
+							__np_block = true;
+							__pos = eGuiBlockPosition::Middle;
+						}
+						else if (__param.equals("--bottom") || __param.equals("-b"))
+						{
+							__np_block = true;
+							__pos = eGuiBlockPosition::Bottom;
+						}
+						else if (__param.equals("--show-data") || __param.equals("-sd"))
+						{
+							if (!__st.hasNext())
+							{
+								message("Error: missing parameter in --show-data option (either true or false).", eMsgType::Error);
+								break;
+							}
+							__param = __st.next();
+							if (__param == "true" || __param == "1")
+							{
+								m_show_data = true;
+								message("Extra information is now visible.", eMsgType::Success);
+								continue;
+							}
+							else if (__param == "false" || __param == "0")
+							{
+								m_show_data = false;
+								message("Extra information is now hidden.", eMsgType::Success);
+								continue;
+							}
+							else
+							{
+								message("Error: Invalid value for --show-data option.", eMsgType::Error);
+								break;
+							}
+						}
+						else if (__param.equals("--show-errors-on"))
+						{
+							if (!__st.hasNext())
+							{
+								message("Error: missing parameter in --show-errors-on option (top, middle or bottom).", eMsgType::Error);
+								break;
+							}
+							__param = __st.next();
+							if (__param == "top")
+							{
+								m_gui_error_on_block = eGuiBlockPosition::Top;
+								message("Errors will be show on the top panel.", eMsgType::Success);
+								continue;
+							}
+							else if (__param == "middle")
+							{
+								m_gui_error_on_block = eGuiBlockPosition::Middle;
+								message("Errors will be show on the middle panel.", eMsgType::Success);
+								continue;
+							}
+							else if (__param == "bottom")
+							{
+								m_gui_error_on_block = eGuiBlockPosition::Bottom;
+								message("Errors will be show on the bottom panel.", eMsgType::Success);
+								continue;
+							}
+							else
+							{
+								message("Error: Invalid value for --show-errors-on option.", eMsgType::Error);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		void Debugger::printInfoView(void)
+		{
+			OutputManager& out = *getOutputHandler();
+			out.fc_blue().bc_white();
+			out.print("│");
+			out.fc_blue().bc_magenta();
+			OmniaString __dec_inst_text(" Decoded instruction: ");
+			out.print(__dec_inst_text);
+			out.fc_brightYellow().bc_blue();
+			m_cursor = (word)__dec_inst_text.length() + 1;
+			if (__dec_inst.size() > 0)
+			{
+				StringBuilder __sb = StringBuilder();
+				for (auto& __cell : __dec_inst)
+					__sb.add(Utils::intToHexStr(__cell.val())).add(", ");
+				OmniaString __di = __sb.get();
+				__di = __di.trim().substr(0, __di.length() - 2);
+				word __space = ((__line_length / 2) - __dec_inst_text.length() - __di.length());
+				out.print(" ").print(__di).print(Utils::duplicateChar(' ',  __space));
+				m_cursor += __di.length() + 1 + __space;
+			}
+			else
+				out.print(Utils::duplicateChar(' ', __line_length - __dec_inst_text.length())).newLine();
+
+			out.fc_blue().bc_magenta();
+			__dec_inst_text = " Current sub-routine: ";
+			m_cursor += __dec_inst_text.length();
+			out.print(__dec_inst_text);
+			out.fc_brightYellow().bc_blue();
+			
+			if (m_sym_table.m_callTree.getCurrentCall(__dec_inst_text))
+			{
+				out.print(" ").print(__dec_inst_text);
+				m_cursor += __dec_inst_text.length() + 1;
+				out.print(Utils::duplicateChar(' ',  __line_length - m_cursor - 1));
+			}
+			else
+			{
+				out.print(Utils::duplicateChar(' ',  __line_length - m_cursor - 1));
+			}
+			out.fc_blue().bc_white();
+			out.print("│").newLine();
+			m_cursor = 0;
+			out.tc_reset();
+		}
+
+		void Debugger::printSourceView(uint8 __lines)
+		{
+			if (m_use_sym_table)
+			{
+				if (m_sym_table.m_source.size() > 0 && __ip != oasm_nullptr)
+				{
+					m_currentSourceLine = findCurrentLine(__off_ip);
+					if (m_currentSourceLine <= (uint32)((__lines / 2) + 1))
+						printSourceCode(0, __lines, __off_ip);
+					//	else if (m_currentSourceLine >= (uint32)(m_sym_table.m_source.size() - ( (__lines / 2) + 1)))
+					//	printSourceCode(m_sym_table.m_source.size() - __lines, __lines, __off_ip);
+					else
+						printSourceCode(m_currentSourceLine -  ((__lines / 2) + 1), __lines, __off_ip);
+				}
+			}
+			else
+				printSeparator();
+		}
+
+		void Debugger::fillRestOfLine(char __c, int8 __neg_offset, bool __new_line)
+		{
+			if (__neg_offset > 0) __neg_offset = 0;
+			getOutputHandler()->print(Utils::duplicateChar(__c, (__line_length - m_cursor) + __neg_offset));
+			if (__new_line) getOutputHandler()->newLine();
+			m_cursor = 0;
+		}
+
+		void Debugger::pushError(ErrorCode __err_code, OutputManager& out, OmniaString __extra_text, MemAddress __addr, word __op_code)
+		{
+			if (__done) return;
+			tErrorData __error_data;
+			__error_data.code = __err_code;
+			__error_data.extraText = __extra_text;
+			__error_data.address = __addr;
+			__error_data.instruction = __op_code;
+			
+			m_err_data.push_back(__error_data);
+			m_error = true;
+		}
+
+		void Debugger::printError(uint32 __err_index)
+		{
+			if (!m_error || m_err_data.size() == 0 || __err_index >= m_err_data.size() || __done) return;
+			OutputManager& out = *getOutputHandler();
+			printTitle("ERROR", __line_length);
+			out.bc_grey().fc_brightRed();
+			OmniaString __err_text;
+			StringBuilder __sb;
+			m_cursor = 0;
+			tErrorData __err = m_err_data[__err_index];
+			__err_text = ErrorReciever::__error_map[__err.code];
+			out.fc_blue().bc_white();
+			out.print("│");
+			out.bc_grey().fc_brightRed();
+			out.print("Error ").print(Utils::intToHexStr(__err.code));
+			__sb.add("|Error ").add(Utils::intToHexStr(__err.code));
+			m_cursor += __sb.get().length();
+			__sb = StringBuilder();
+			fillRestOfLine(' ', -1, false);
+			out.fc_blue().bc_white();
+			out.print("│");
+			out.newLine();
+			out.print("│");
+			out.bc_grey().fc_brightRed();
+			out.print(__err_text);
+			m_cursor += __err_text.length() + 1;
+			fillRestOfLine(' ', -1, false);
+			out.fc_blue().bc_white();
+			out.print("│");
+			out.newLine();
+			out.print("│");
+			out.bc_grey().fc_brightRed();
+			m_cursor++;
+			fillRestOfLine(' ', -1, false);
+			out.fc_blue().bc_white();
+			out.print("│");
+			out.newLine().tc_reset();
+			if (__err.extraText.trim() != "")
+			{
+				out.fc_blue().bc_white();
+				out.print("│");
+				out.bc_grey().fc_brightRed();
+				out.print("Extra info: ").print(__err.extraText);
+				__sb.add("|Extra Info: ").add(__err.extraText);
+				m_cursor += __sb.get().length();
+				__sb = StringBuilder();
+				fillRestOfLine(' ', -1, false);
+				out.fc_blue().bc_white();
+				out.print("│");
+				out.newLine().tc_reset();
+			}
+			if (__err.address != oasm_nullptr)
+			{
+				out.fc_blue().bc_white();
+				out.print("│");
+				out.bc_grey().fc_brightRed();
+				out.print("Address: ").print(Utils::intToHexStr(__err.address));
+				__sb.add("|Address: ").add(Utils::intToHexStr(__err.address));
+				if (__err.address < D__HEAP_SPACE_START)
+				{
+					out.print(" (-CODE-)");
+					__sb.add(" (-CODE-)");
+				}
+				else if (__err.address < D__STACK_SPACE_START)
+				{
+					out.print(" (-HEAP-)");
+					__sb.add(" (-HEAP-)");
+				}
+				else if (__err.address < D__LIB_SPACE_START)
+				{
+					out.print(" (-STACK-)");
+					__sb.add(" (-STACK-)");
+				}
+				else if (__err.address < D__MEMORY_SIZE)
+				{
+					out.print(" (-LIBRARY-)");
+					__sb.add(" (-LIBRARY-)");
+				}
+				m_cursor += __sb.get().length();
+				__sb = StringBuilder();
+				fillRestOfLine(' ', -1, false);
+				out.fc_blue().bc_white();
+				out.print("│");
+				out.newLine().tc_reset();
+			}
+			if (__err.instruction != (word)eInstructionSet::no_op)
+			{
+				out.fc_blue().bc_white();
+				out.print("│");
+				out.bc_grey().fc_brightRed();
+				out.print("Instruction: ").print(Utils::intToHexStr(__err.instruction)).print(" (-").print(Utils::mapInstruction((eInstructionSet)__err.instruction)).print("-)");
+				__sb.add("|Instruction: ").add(Utils::intToHexStr(__err.instruction)).add(" (-").add(Utils::mapInstruction((eInstructionSet)__err.instruction)).add("-)");
+				m_cursor += __sb.get().length();
+				__sb = StringBuilder();
+				fillRestOfLine(' ', -1, false);
+				out.fc_blue().bc_white();
+				out.print("│");
+				out.newLine().tc_reset();
+			}
+		}
+
+		void Debugger::printScriptOutput(uint16 __line_count)
+		{
+			if (__line_count == 0) __line_count = __proc_out_buffer.size();
+			OutputManager& out = *getOutputHandler();
+			printTitle("SCRIPT OUTPUT", __line_length);
+			out.tc_reset();
+			out.fc_brightWhite().bc_brightGrey();
+			if (__proc_out_buffer.size() <= __line_count)
+			{
+				uint32 __i = 0;
+				for (auto& line : __proc_out_buffer)
+				{
+					out.fc_blue().bc_white();
+					out.print("│");
+					out.fc_brightWhite().bc_brightGrey();
+					out.print("    ").print(line).print(Utils::duplicateChar(' ', __line_length - (line.length() + 6)));
+					out.fc_blue().bc_white();
+					out.print("|").newLine();
+					__i++;
+				}
+				for ( ; __i < __line_count; __i++)
+				{
+					out.fc_blue().bc_white();
+					out.print("│");
+					out.fc_brightWhite().bc_brightGrey();
+					out.print(Utils::duplicateChar(' ', __line_length - 2));
+					out.fc_blue().bc_white();
+					out.print("│");
+					out.newLine();
+				}
+			}
+			else
+			{
+				OmniaString __l = "";
+				for (uint32 __i = __line_count; __i > 0; __i--)
+				{
+					__l = __proc_out_buffer[__proc_out_buffer.size() - __i];
+					out.fc_blue().bc_white();
+					out.print("│");
+					out.fc_brightWhite().bc_brightGrey();
+					out.print("    ").print(__l).print(Utils::duplicateChar(' ', __line_length - (__l.length() + 6)));
+					out.fc_blue().bc_white();
+					out.print("|").newLine();
+				}
+			}
+		}
+
+		void Debugger::printMemoryBlock(MemAddress start, uint8 rows, OmniaString title)
+		{
+			OutputManager& out = *getOutputHandler();
+			hw::RAM& ram = VirtualMachine::instance().getRAM();
+			ram.disableProtectedMode();
 			printTitle(title, __line_length);
-					
+			uint8 __sq = 10;
+			word __c = 0;
+			uint8 __cur_curs = 0;
+			word __rll = 0;
+			OmniaString __addr_txt;
+			BitEditor __r_val = 0;
+			out.fc_blue().bc_white();
+			out.print("│");
+			out.print("     ");
+			__cur_curs += 6;
+			uint8 __cells_per_row = 12;
+			MemAddress size = rows * __cells_per_row; //TODO: check if out of bounds
+
+			for (MemAddress __addr = start; __addr < start + size; __addr++)
+			{
+				m_memChangeTable[__addr].updadte();
+				setColorFromTimeGradient(out, m_memChangeTable[__addr].changeTime);
+
+				__addr_txt = Utils::intToHexStr(__addr, false);
+				__r_val = ram.getAsReadOnly()[__addr];
+
+				__rll = __addr_txt.length();
+				out.fc_grey();
+				out.print(__addr_txt).print(Utils::duplicateChar(' ', __sq - __rll - 4 - 1));
+				setColorFromTimeGradient(out, m_memChangeTable[__addr].changeTime);
+				out.print(Utils::intToHexStr(__r_val.val(), false)).print(" ");
+				__cur_curs += __sq;
+
+				out.tc_reset();
+				if (++__c % __cells_per_row == 0)
+				{
+					__c = 0;
+					out.tc_reset();
+					out.fc_blue().bc_white();
+					out.print(Utils::duplicateChar(' ', __line_length - __cur_curs - 1));
+					out.print("│");
+					__cur_curs = 0;
+					out.newLine();
+					if (__addr < (start + size) - 1)
+					{
+						out.fc_blue().bc_white();
+						out.print("│");
+						out.print("     ");
+						__cur_curs += 6;
+					}
+				}
+			}
+			out.tc_reset();
+			ram.enableProtectedMode();
+		}
+
+		void Debugger::printRegisters(void)
+		{
+			OutputManager& out = *getOutputHandler();
+			VirtualMachine::instance().getREG().disableProtectedMode();
+			MemAddress start = 0;
+			uint8 rows = 4;
+			OmniaString title = "REGISTERS";
+			printTitle(title, __line_length);
 			uint8 __sq = 10;
 			word __c = 0;
 			uint8 __cur_curs = 0;
@@ -496,7 +1066,7 @@ namespace Omnia
 				setColorFromTimeGradient(out, m_regChangeTable[__addr].changeTime);
 
 				__reg = Utils::mapRegister(__addr);
-				__r_val = __mem[__addr];
+				__r_val = VirtualMachine::instance().getREG().getAsReadOnly()[__addr];
 
 				__rll = __reg.length();
 				out.fc_grey();
@@ -526,6 +1096,7 @@ namespace Omnia
 				}
 			}
 			out.tc_reset();
+			VirtualMachine::instance().getREG().enableProtectedMode();
 		}
 		
 		void Debugger::setColorFromTimeGradient(OutputManager& out, uint8 __tc)
@@ -563,11 +1134,11 @@ namespace Omnia
 			return 0;
 		}
 
-		bool Debugger::printSourceCode(uint32 __start, uint32 __line_count, MemAddress __highlight, word __line_w)
+		bool Debugger::printSourceCode(uint32 __start, uint32 __line_count, MemAddress __highlight)
 		{
 			OutputManager& out = *getOutputHandler();
 			OmniaString __tmp_lbl = "", __tmp_line = "";
-			printTitle("SOURCE CODE", __line_w);
+			printTitle("SOURCE CODE", __line_length);
 			out.tc_reset();
 			uint32 __ln = 0, __old_ln = 0;
 			bool __oln_set = false;
@@ -588,27 +1159,31 @@ namespace Omnia
 				if (m_sym_table.isLabel(__line.first, __tmp_lbl))
 				{
 					__ln++;
+					out.fc_blue().bc_white();
+					out.print("│");
 					__sb = StringBuilder(":");
 					__sb.add(__tmp_lbl).add(":");
-					__sb.add(Utils::duplicateChar(' ', __line_w - __sb.get().length()));
+					__sb.add(Utils::duplicateChar(' ', __line_length - __sb.get().length() - 2));
 
 					out.fc_brightWhite().bc_brightGrey();
-					out.print(__sb.get()).newLine();
+					out.print(__sb.get());
+					out.fc_blue().bc_white();
+					out.print("│").newLine();
 					out.tc_reset();
 				}
 				if (__line_count != 0 && __ln > __old_ln + __line_count) break;
 				__tmp_line = __line.second;
 				if (__highlight != 0xFFFF && __line.first == __highlight)
 				{
-					printInstructionLine(__line, __line_w, true, false);
+					printInstructionLine(__line, true, false);
 				}
 				else if (VirtualMachine::instance().getCPU().isBreakPoint(__line.first, __line.second.tokenize(",").count()))
 				{
-					printInstructionLine(__line, __line_w, false, true);
+					printInstructionLine(__line, false, true);
 				}
 				else
 				{
-					printInstructionLine(__line, __line_w, false, false);
+					printInstructionLine(__line, false, false);
 				}
 				__ln++;
 				out.tc_reset();
@@ -617,25 +1192,27 @@ namespace Omnia
 			return true;
 		}
 
-		bool Debugger::printInstructionLine(std::pair<MemAddress, OmniaString> __line, word __line_w, bool __hl, bool __rhl)
+		bool Debugger::printInstructionLine(std::pair<MemAddress, OmniaString> __line, bool __hl, bool __rhl)
 		{
 			word __inst_column_width = 10;
 			OutputManager& out = *getOutputHandler();
 			word __c_line_len = 0;
 			word __tmp_space = 0;
 
+			out.fc_blue().bc_white();
+			out.print("│");
 			StringBuilder __sb("   ");
 			__sb.add(Utils::intToHexStr(__line.first)).add("   ");
 			__c_line_len += __sb.get().length();
 			if (__hl) out.fc_red().bc_brightGreen();
 			else if (__rhl) out.fc_white().bc_red();
-			else out.fc_brightYellow().bc_blue();
+			else out.fc_white().bc_blue();
 			out.print(__sb.get());
 			OmniaString::StringTokens __st = __line.second.tokenize(",", true);
 
 			OmniaString __tmp = __st.next();
-			if (__hl) out.fc_brightWhite().bc_red();
-			else out.fc_brightWhite().bc_yellow();
+			if (__hl) out.fc_brightYellow().bc_green();
+			else out.fc_brightYellow().bc_blue();
 			out.print(__tmp);
 			if (__hl) out.fc_brightWhite().bc_green();
 			else out.fc_brightMagenta().bc_blue();
@@ -671,12 +1248,9 @@ namespace Omnia
 					__c_line_len += __tmp.length();
 			}
 
-
-			//__sb = StringBuilder();
-			//__sb.add(__line.second);
-			//__c_line_len += __sb.get().length();
-			//out.print(__sb.get());
-			out.print(Utils::duplicateChar(' ', __line_w - __c_line_len)).newLine();
+			out.print(Utils::duplicateChar(' ', __line_length - __c_line_len - 2));
+			out.fc_blue().bc_white();
+			out.print("│").newLine();
 			out.tc_reset();
 			return true;
 		}
@@ -737,10 +1311,19 @@ namespace Omnia
 					m_sym_table.m_source[(MemAddress)(Utils::strToInt(__tmp_addr))] = __line;
 				}
 			}
-			getOutputHandler()->print("*** Debug table loaded successfully: ").print((word)__sym_count).print(" Symbols found.").newLine();
+			message(StringBuilder("Debug table loaded successfully: ").add((word)__sym_count).add(" Symbols found.").get());
 			if (m_sym_table.m_source.size() > 0)
-				getOutputHandler()->print("*** Source loaded: ").print((word)__src_lines).print(" lines.").newLine();
+				message(StringBuilder("Source loaded: ").add((word)__src_lines).add(" lines.").get());
 			return true;
 		}
+
+		void Debugger::printSeparator(unsigned char c)
+		{
+			OutputManager& out = *getOutputHandler();
+			out.fc_blue().bc_white();
+			out.print(Utils::duplicateChar(c, __line_length)).newLine();
+			out.tc_reset();
+		}
 	}
+
 }
