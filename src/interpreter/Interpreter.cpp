@@ -30,6 +30,36 @@ namespace Omnia
 			iomgr.getOutputHandler()->print(param.val());
 			return true;
 		}
+		bool EC_Sleep_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
+		{
+			BitEditor __unit;
+			if (!VirtualMachine::instance().getREG().read(eRegisters::R31, __unit)) return false;
+			eTimeUnits __u = (eTimeUnits)__unit.val();
+			Utils::sleep(param.val(), __u);
+			return true;
+		}
+		bool EC_GetRunningTime_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
+		{
+			uint64 __rt = Utils::getRunningTime_ms();
+			outData = (word)__rt;
+			return true;
+		}
+		bool EC_TimeDiff_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
+		{
+			if (param == 1)
+			{
+				m_time = Utils::getRunningTime_ms();
+			}
+			else
+			{
+				int64 __t = ((signed)m_time - Utils::getRunningTime_ms());
+				if (__t < 0)
+				outData = (word)__t;
+				m_time = Utils::getRunningTime_ms();
+			}
+			return true;
+		}
+		//ciao cicci
 		//----------------------------------------------------------------------------------------------------------
 
 
@@ -76,6 +106,9 @@ namespace Omnia
 			ECM::instance().addHandler((word)eComCodes::PrintStringToConsole, __ec_prinString_cmd);
 			ECM::instance().addHandler((word)eComCodes::PrintNewLineToConsole, __ec_prinSNewLine_cmd);
 			ECM::instance().addHandler((word)eComCodes::PrintIntToConsole, __ec_printInt_cmd);
+			ECM::instance().addHandler((word)eComCodes::Sleep, __ec_sleep_cmd);
+			ECM::instance().addHandler((word)eComCodes::GetRunningTime, __ec_getRunningTime_cmd);
+			ECM::instance().addHandler((word)eComCodes::TimeDiff, __ec_timeDiff_cmd);
 
 			Flags::set(FLG__PRINT_ERROR_ON_PUSH);
 
@@ -193,6 +226,7 @@ namespace Omnia
 
 			bool CPU::fetch(RAM &_ram, REG &_reg)
 			{
+				if (VirtualMachine::instance().getCurrentProcess().done()) return true;
 				m_decoded_inst.clear();
 				m_old_pc_val = _reg.IP().val();
 				BitEditor __tmp;
@@ -226,6 +260,7 @@ namespace Omnia
 
 			bool CPU::decode(RAM &_ram, REG &_reg)
 			{
+				if (VirtualMachine::instance().getCurrentProcess().done()) return true;
 				m_single_op_inst = false;
 				m_pop_r_flg = false;
 				m_inst_mode = D__NORMAL_INST_MODE;
@@ -1050,6 +1085,7 @@ namespace Omnia
 
 			bool CPU::execute(RAM &_ram, REG &_reg)
 			{
+				if (VirtualMachine::instance().getCurrentProcess().done()) return true;
 				if (m_dec_opCode == eInstructionSet::no_op)
 				{
 					__return_and_set_ip(true, m_old_pc_val + m_inst_size)
@@ -1970,6 +2006,11 @@ namespace Omnia
 						pushError(D__CPU_ERR__UNKNOWN_CMD_CODE);
 						__return_and_set_ip(false, m_old_pc_val)
 					}
+					if (!_reg.write(eRegisters::R31, __tmp_result))
+					{
+						pushError(D__CPU_ERR__WRITE_REG_FAILED);
+						__return_and_set_ip(false, m_old_pc_val)
+					}
 					__return_and_set_ip(true, m_old_pc_val + m_inst_size)
 				}
 				else if (m_dec_opCode == eInstructionSet::lda_str)
@@ -2857,6 +2898,7 @@ namespace Omnia
 
 			bool CPU::clock_tick(void)
 			{
+				if (VirtualMachine::instance().getCurrentProcess().done()) return true;
 				VirtualMachine &_vm = VirtualMachine::instance();
 				OutputManager& out = *VirtualMachine::instance().getOutputHandler();
 				Process& proc = _vm.getCurrentProcess();
@@ -2869,7 +2911,7 @@ namespace Omnia
 					m_break_point_addr = oasm_nullptr;
 					m_current_ipc = i;
 					if (proc.done())
-						return false;
+						return true;
 					if (!fetch(ram, reg))
 					{
 						pushError(D__CPU_ERR__FETCH_STEP_FAILED);
@@ -2903,7 +2945,7 @@ namespace Omnia
 						printMemory(out, 4, 4, 16, true);
 						return false;
 					}
-
+					
 					if (!Interpreter::instance().__is_dbg_call() && m_step_execution)
 					{
 						printMemory(out, 4, 4, 16, true);

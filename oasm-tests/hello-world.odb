@@ -8,8 +8,8 @@
 		0x000B:cmd,Const_Const,PrintNewLineToConsole,0x0000
 		0x000F:ret,Single_Const,0xECAB
 		0x0012:reserve,Single_Reg,R30
-		0x0015:lda_str,"Hello woròd!!"
-		0x001E:mem,Addr_Reg,hello_world_str,R31
-		0x0022:call,Const_Const,__main__,0x0000
-		0x0026:end,Single_Reg,RV
+		0x0015:lda_str,"Hello world!!"
+		0x001D:mem,Addr_Reg,hello_world_str,R31
+		0x0021:call,Const_Const,__main__,0x0000
+		0x0025:end,Single_Reg,RV
 }

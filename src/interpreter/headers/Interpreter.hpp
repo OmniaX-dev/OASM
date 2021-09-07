@@ -29,6 +29,25 @@ namespace Omnia
             public:
                 bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
         };
+		class EC_Sleep_cmd : public ExtComHandler
+        {
+            public:
+                bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
+        };
+		class EC_GetRunningTime_cmd : public ExtComHandler
+        {
+            public:
+                bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
+        };
+		class EC_TimeDiff_cmd : public ExtComHandler
+        {
+            public:
+				inline EC_TimeDiff_cmd(void) { m_time = Utils::getRunningTime_ms(); }
+                bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
+			
+			private:
+				unsigned long int m_time;
+        };
 		//----------------------------------------------------------------------------------------------------------
 
 
@@ -57,6 +76,9 @@ namespace Omnia
 				EC_PrintString_cmd __ec_prinString_cmd;
 				EC_PrintNewLine_cmd __ec_prinSNewLine_cmd;
 				EC_PrintInt_cmd __ec_printInt_cmd;
+				EC_Sleep_cmd __ec_sleep_cmd;
+				EC_GetRunningTime_cmd __ec_getRunningTime_cmd;
+				EC_TimeDiff_cmd __ec_timeDiff_cmd;
 
 				friend class Debugger;
 		};

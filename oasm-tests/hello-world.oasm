@@ -2,7 +2,7 @@
 
 .command(request, all=32)
 .data = reserve(hello_world_str)
-.data = load_string(hello_world_str, "Hello woròd!!")
+.data = load_string(hello_world_str, "Hello world!!")
 
 //Start __main__
 :__main__:

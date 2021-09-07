@@ -475,10 +475,6 @@ namespace Omnia
 			p__input_file_path = "";
             p__output_file_path = "";
             p__output_file_dbg_table = "";
-            for (uint16 i = 0; i < argc; i++)
-            {
-                std::cout << argv[i] << "\n";
-            }
 			if (argc > 1)
 			{
 				for (int i = 1; i < argc; i++)
@@ -550,6 +546,7 @@ namespace Omnia
             StringBuilder __sb;
             std::ofstream writeFile;
             writeFile.open(__outputFile.cpp());
+            writeFile << "#version(" << Utils::getVerionString().cpp() << ")\n";
             for (auto& __label : PreProcessor::instance().m_symTable.m_labels)
             {
                 __sb.add(".label ").add(__label.second).add(" = ").add(Utils::intToHexStr(__label.first));

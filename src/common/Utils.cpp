@@ -1,6 +1,8 @@
 #include "Utils.hpp"
 #include "Interpreter.hpp"
 #include "IOManager.hpp"
+#include <chrono>
+#include <thread>
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
@@ -14,6 +16,16 @@ namespace Omnia
 {
 	namespace common
 	{
+		void Utils::init(void)
+		{
+			Utils::s_startTime_ms = std::chrono::duration_cast<std::chrono::milliseconds>
+									(std::chrono::system_clock::now().time_since_epoch()).count();
+
+			Utils::VERSION_STR = StringBuilder((long int)eVersion::Major)
+								 .add(".").add((long int)eVersion::Minor)
+								 .add(".").add((long int)eVersion::Build).get();
+		}
+
 		bool Utils::isHex(OmniaString hex)
 		{
 			_string s = hex.toLowerCase().cpp();
@@ -397,6 +409,31 @@ namespace Omnia
 				width = (int)(w.ws_col);
 				height = (int)(w.ws_row);
 			#endif // Windows/Linux
+		}
+
+		void Utils::sleep(uint32 __time, eTimeUnits __unit)
+		{
+			switch (__unit)
+			{
+			case eTimeUnits::Seconds:
+				std::this_thread::sleep_for(std::chrono::seconds(__time));
+				break;
+			case eTimeUnits::Milliseconds:
+				std::this_thread::sleep_for(std::chrono::milliseconds(__time));
+				break;
+			case eTimeUnits::Microseconds:
+				std::this_thread::sleep_for(std::chrono::microseconds(__time));
+				break;
+			case eTimeUnits::Nanoseconds:
+				std::this_thread::sleep_for(std::chrono::nanoseconds(__time));
+				break;
+			default: break;
+			}
+		}
+
+		uint64 Utils::getRunningTime_ms(void)
+		{
+			return std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::system_clock::now().time_since_epoch()).count() - Utils::s_startTime_ms;
 		}
 	}
 }

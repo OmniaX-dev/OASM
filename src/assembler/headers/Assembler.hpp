@@ -315,7 +315,12 @@ namespace Omnia
 					{ "StringLength", (word)eComCodes::StringLength },
 					{ "ReadStringInput", (word)eComCodes::ReadStringInput },
 					{ "ReadIntInput", (word)eComCodes::ReadIntInput },
-					{ "PrintCharToConsole", (word)eComCodes::PrintCharToConsole }
+					{ "PrintCharToConsole", (word)eComCodes::PrintCharToConsole },
+					{ "Sleep", (word)eComCodes::Sleep },
+					{ "GetRunningTime", (word)eComCodes::GetRunningTime },
+					{ "TimeDiff", (word)eComCodes::TimeDiff },
+					{ "TD_LOAD_TIME", (word)eComCodes::p_TimeDiff_load },
+					{ "TD_GET_DIFF", (word)eComCodes::p_TimeDiff_load }
 				};
 		};
 

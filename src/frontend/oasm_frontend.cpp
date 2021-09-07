@@ -14,7 +14,9 @@
 
 int main(int argc, char** argv)
 {
+
 #ifdef __COMPILE_AS__  //Assembler frontend
+	Omnia::common::Utils::init();
 
 	Omnia::oasm::Assembler::instance().getOutputHandler()->newLine().print("oasm_as: version ")
 	.print((long int)Omnia::eVersion::Major).print(".").print((long int)Omnia::eVersion::Minor)
@@ -25,6 +27,7 @@ int main(int argc, char** argv)
 	__exit_verbose(Omnia::oasm::Assembler::instance(), __err)
 
 #elif defined(__COMPILE_VM__)  //Interpreter frontend
+	Omnia::common::Utils::init();
 
 	Omnia::oasm::Interpreter::instance().getOutputHandler()->newLine().print("oasm_vm: version ")
 	.print((long int)Omnia::eVersion::Major).print(".").print((long int)Omnia::eVersion::Minor)
@@ -35,6 +38,7 @@ int main(int argc, char** argv)
 	__exit_verbose(Omnia::oasm::Interpreter::instance(), __err)
 
 #elif defined(__COMPILE_DBG__)  //Debugger frontend
+	Omnia::common::Utils::init();
 
 	return Omnia::oasm::Debugger::instance().run(argc, argv);
 

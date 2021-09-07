@@ -46,32 +46,6 @@ namespace Omnia
 					instruction = (word)eInstructionSet::no_op;
 				}
 			};
-			public: enum class eMsgType
-			{
-				Info = 0,
-				Success,
-				Error,
-				Special,
-				Warning
-			};
-			public: enum class eGuiBlock
-			{
-				None = 0,
-				Heap,
-				Stack,
-				Registers,
-				Libraries,
-				Code,
-				Output,
-				Source,
-				CallTree
-			};
-			public: enum class eGuiBlockPosition
-			{
-				Top = 0,
-				Middle,
-				Bottom
-			};
 			public:
 				inline static Debugger& instance(void) { return *Debugger::s_instance; }
 				int64 run(int argc, char** argv);
@@ -86,7 +60,7 @@ namespace Omnia
 				void printTitle(OmniaString __title, word __line_length);
 				void printSeparator(unsigned char c = '=');
 				void fillRestOfLine(char __c, int8 __neg_offset = 0, bool __new_line = true);
-				void message(OmniaString __msg_text, eMsgType __type = eMsgType::Info, bool __log = true);
+				uint16 message(OmniaString __msg_text, eMsgType __type = eMsgType::Info, bool __log = true, bool __force_print = false, bool __new_line = true);
 
 				void printScriptOutput(uint16 __line_count);
 				void printError(uint32 __err_index = 0);
@@ -94,11 +68,15 @@ namespace Omnia
 				void printRegisters(void);
 				void printSourceView(uint8 __lines);
 				void printInfoView(void);
+				void printLog(void);
 				void printFullGui(Process& proc);
 
 				void inputPrompt(void);
-				void __step(Process& proc);
-				void __run(Process& proc);
+
+				bool topLevelPrompt(void);
+				void runProcess(Process& proc);
+				void stepMode(Process& proc);
+				void draw(Process& proc);
 
 				void pushError(ErrorCode __err_code, OutputManager& out, OmniaString __extra_text = "", MemAddress __addr = oasm_nullptr, word __op_code = (word)eInstructionSet::no_op);
 				inline Debugger(void) : vm(VirtualMachine::instance()), ram(vm.getRAM()), reg(vm.getREG()), gpu(vm.getGPU()), cpu(vm.getCPU()) {  }
@@ -134,6 +112,9 @@ namespace Omnia
 				bool __add_br_on_end;
 				bool m_use_sym_table;
 				bool m_show_data;
+				bool m_print_end_msg;
+				bool m_allow_diff_version;
+				eDebuggerMode m_mode;
 
 				uint8 m_g_source_lines;
 				uint8 m_g_out_lines;
@@ -142,9 +123,11 @@ namespace Omnia
 				uint8 m_g_code_lines;
 				uint8 m_g_lib_lines;
 				uint8 m_g_tree_lines;
+				uint8 m_g_log_lines;
 				eGuiBlock m_gui_block_top;
 				eGuiBlock m_gui_block_middle;
 				eGuiBlock m_gui_block_bottom;
+				eGuiBlock m_gui_block_extra;
 				eGuiBlockPosition m_gui_error_on_block;
 
 				char** m_as_args;

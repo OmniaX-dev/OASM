@@ -323,7 +323,13 @@ namespace Omnia
             StringLength           =    0x0005,
             ReadStringInput        =    0x0006,
             ReadIntInput           =    0x0007,
-            PrintCharToConsole     =    0x0008
+            PrintCharToConsole     =    0x0008,
+            Sleep                  =    0x0009,
+            GetRunningTime         =    0x000A,
+            TimeDiff               =    0x000B,
+
+            p_TimeDiff_load        =    0xFFFF,
+            p_TimeDiff_calc        =    0xFFFE
         };
         enum class eExitCodes
         {
@@ -469,6 +475,46 @@ namespace Omnia
             LSB = 0b0000000011111111,
             Invert = 0xFFFF
         };
+        enum class eMsgType
+        {
+            Info = 0,
+            Success,
+            Error,
+            Special,
+            Warning
+        };
+        enum class eGuiBlock
+        {
+            None = 0,
+            Heap,
+            Stack,
+            Registers,
+            Libraries,
+            Code,
+            Output,
+            Source,
+            CallTree,
+            Log
+        };
+        enum class eGuiBlockPosition
+        {
+            Top = 0,
+            Middle,
+            Bottom,
+            Extra
+        };
+        enum class eDebuggerMode
+        {
+            Normal = 0,
+            StepByStep
+        };
+        enum class eTimeUnits
+        {
+            Seconds = 0,
+            Milliseconds,
+            Microseconds,
+            Nanoseconds
+        };
 
 
         class Protectable
@@ -503,27 +549,7 @@ namespace Omnia
                 inline virtual void setValid(bool valid) { m_valid = valid; }
             private:
                 bool m_valid;
-        };      
-        class Utils
-        {
-            public:
-                static bool isHex(OmniaString hex);
-                static bool isBin(OmniaString bin);
-                static bool isInt(OmniaString str);
-                static int32 strToInt(OmniaString str);
-                static bool readFile(OmniaString fileName, std::vector<OmniaString>& lines);
-                static OmniaString replaceAllVarName(OmniaString str, OmniaString search, OmniaString replace);
-                static OmniaString intToHexStr(word i, bool prefix = true);
-                static OmniaString intToBinStr(word i, bool prefix = true);
-                static OmniaString duplicateChar(unsigned char c, uint16 count);
-                static void printMemoryBlock(MemAddress start, MemAddress end, OmniaString text, OutputManager& out, MemAddress highlight = oasm_nullptr, uint8 inst_len = 0 );
-                static void printRegisters(OutputManager& out);
-                static OmniaString mapInstruction(eInstructionSet __inst);
-                static OmniaString mapAddressingMode(eAddressingModes __mode);
-                static OmniaString mapMaskParam(word __m_param);
-                static OmniaString mapRegister(word __reg);
-                static void get_terminal_size(int& width, int& height);
-        };		
+        };
 		class StringBuilder
 		{
 			public:
@@ -547,6 +573,35 @@ namespace Omnia
 			private:
 				OmniaString m_data;
 		};
+        class Utils
+        {
+            public:
+                static inline const OmniaString getVerionString(void) { return Utils::VERSION_STR; }
+                static inline const uint64 getStartTime(void) { return Utils::s_startTime_ms; }
+                static void init(void);
+                static bool isHex(OmniaString hex);
+                static bool isBin(OmniaString bin);
+                static bool isInt(OmniaString str);
+                static int32 strToInt(OmniaString str);
+                static bool readFile(OmniaString fileName, std::vector<OmniaString>& lines);
+                static OmniaString replaceAllVarName(OmniaString str, OmniaString search, OmniaString replace);
+                static OmniaString intToHexStr(word i, bool prefix = true);
+                static OmniaString intToBinStr(word i, bool prefix = true);
+                static OmniaString duplicateChar(unsigned char c, uint16 count);
+                static void printMemoryBlock(MemAddress start, MemAddress end, OmniaString text, OutputManager& out, MemAddress highlight = oasm_nullptr, uint8 inst_len = 0 );
+                static void printRegisters(OutputManager& out);
+                static OmniaString mapInstruction(eInstructionSet __inst);
+                static OmniaString mapAddressingMode(eAddressingModes __mode);
+                static OmniaString mapMaskParam(word __m_param);
+                static OmniaString mapRegister(word __reg);
+                static void get_terminal_size(int& width, int& height);
+                static void sleep(uint32 __time, eTimeUnits __unit = eTimeUnits::Milliseconds);
+                static uint64 getRunningTime_ms(void);
+
+            private:
+                inline static OmniaString VERSION_STR = "";
+                inline static uint64 s_startTime_ms;
+        };
 	}
 }
 

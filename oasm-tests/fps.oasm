@@ -1,0 +1,52 @@
+.include_guard(fps_oasm)
+
+.command(request, all=32)
+.data = reserve(fps, delta, time1, time2, str)
+.data = load_string(str, "ms - Update")
+
+:__time:
+	cmd,		Const_Const,		GetRunningTime,			0
+	ret,		Single_Reg	,		R31
+//end __time
+
+:update:
+	cmd,		Const_Addr,			PrintIntToConsole,		time2
+	cmd,		Const_Addr,			PrintStringToConsole,	str
+	cmd,		Const_Const,		PrintNewLineToConsole,	0
+	ret,		Single_Const,		0
+//end update
+
+:__main__:
+	mem,		Addr_Const,			fps,					60
+	mem,		Addr_Const,			delta,					1000
+	div,	 	Addr_Addr,			delta,					fps
+	call,		Const_Const,		__time,					0
+	mem,		Addr_Reg,			time1,					RV
+
+	:loop:
+
+		cmd,		Const_Const,		GetRunningTime,			0
+		mem,		Addr_Reg,			time1,					R31	
+
+		call,		Const_Const,		update,					0
+
+		cmd,		Const_Const,		GetRunningTime,			0
+		mem,		Addr_Reg,			time2,					R31	
+
+		sub,		Addr_Addr,			time2,					time1
+
+	cmp,		Addr_Addr,			time2,					delta
+	jmp,		Single_Const,		JMP_GREATER_OR_EQUALS,	loop
+
+		mem,		Addr_Addr,			time1,					delta
+		sub,		Addr_Addr,			time1,					time2
+		mem,		Reg_Const,			R31,					1
+		cmd,		Const_Addr,			Sleep,					time1
+
+	jmp,		Single_Const,		JMP_UNCONDITIONAL,		loop
+	//end loop
+	
+	ret,		Single_Const,		0x1234
+//end __main__
+
+.close_include_guard

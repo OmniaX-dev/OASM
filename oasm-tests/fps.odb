@@ -1,0 +1,49 @@
+#version(0.2.2326)
+.label __time = 0x0007
+.label update = 0x000E
+.label __main__ = 0x001D
+.label loop = 0x0031
+.label __load_data__ = 0x0068
+.data fps = 0x0000
+.data delta = 0x0001
+.data time1 = 0x0002
+.data time2 = 0x0003
+.data str = 0x0004
+.source = { 
+		0x0000:req,REQ_ALL,32
+		0x0003:call,              Const_Const,                    __load_data__,             0x0000
+		0x0007:cmd,Const_Const,GetRunningTime,0
+		0x000B:ret,Single_Reg,R31
+		0x000E:cmd,Const_Addr,PrintIntToConsole,time2
+		0x0012:cmd,Const_Addr,PrintStringToConsole,str
+		0x0016:cmd,Const_Const,PrintNewLineToConsole,0
+		0x001A:ret,Single_Const,0
+		0x001D:mem,Addr_Const,fps,60
+		0x0021:mem,Addr_Const,delta,1000
+		0x0025:div,Addr_Addr,delta,fps
+		0x0029:call,Const_Const,__time,0
+		0x002D:mem,Addr_Reg,time1,RV
+		0x0031:cmd,Const_Const,GetRunningTime,0
+		0x0035:mem,Addr_Reg,time1,R31
+		0x0039:call,Const_Const,update,0
+		0x003D:cmd,Const_Const,GetRunningTime,0
+		0x0041:mem,Addr_Reg,time2,R31
+		0x0045:sub,Addr_Addr,time2,time1
+		0x0049:cmp,Addr_Addr,time2,delta
+		0x004D:jmp,Single_Const,JMP_GREATER_OR_EQUALS,loop
+		0x0051:mem,Addr_Addr,time1,delta
+		0x0055:sub,Addr_Addr,time1,time2
+		0x0059:mem,Reg_Const,R31,1
+		0x005D:cmd,Const_Addr,Sleep,time1
+		0x0061:jmp,Single_Const,JMP_UNCONDITIONAL,loop
+		0x0065:ret,Single_Const,0x1234
+		0x0068:reserve,Single_Reg,R30
+		0x006B:reserve,Single_Reg,R30
+		0x006E:reserve,Single_Reg,R30
+		0x0071:reserve,Single_Reg,R30
+		0x0074:reserve,Single_Reg,R30
+		0x0077:lda_str,"ms - Update"
+		0x007E:mem,Addr_Reg,str,R31
+		0x0082:call,Const_Const,__main__,0x0000
+		0x0086:end,Single_Reg,RV
+}

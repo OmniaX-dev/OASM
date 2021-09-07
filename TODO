@@ -7,11 +7,17 @@
 *** Grab runtime errors from Interpreter, and display them in the debugger
 *** 	. Create an error viewer interface
 
+-	Add bool info to all message(...) calls
+-	Change version-msg color
+-	Add info when using the "assemble" top-level command
+-	Add a command in oasm-language to delay
 %	Fix bug where SourceCodeView handles inproperly the case of showing the last section of the source code
-%	Fix bug where an error occurs on the <end> instruction of "oasm_test_1"
+%	Fix bug where an error occurs on the <end> instruction of "oasm_test_1" (and other scripts too)
+%	Fix bug when using <quit> command in run-mode
+%	Fix bug when running a different version script without --allow-diff-ver
 
 
-
+ 
 
 
 step-level prompt commands:
