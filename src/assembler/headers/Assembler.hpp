@@ -320,7 +320,12 @@ namespace Omnia
 					{ "GetRunningTime", (word)eComCodes::GetRunningTime },
 					{ "TimeDiff", (word)eComCodes::TimeDiff },
 					{ "TD_LOAD_TIME", (word)eComCodes::p_TimeDiff_load },
-					{ "TD_GET_DIFF", (word)eComCodes::p_TimeDiff_load }
+					{ "TD_GET_DIFF", (word)eComCodes::p_TimeDiff_load },
+
+				
+				//CONSTANTS
+					{ "True", 0xFFFF },
+					{ "False", 0x0000 }
 				};
 		};
 

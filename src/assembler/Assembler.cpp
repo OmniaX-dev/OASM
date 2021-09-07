@@ -280,6 +280,7 @@ namespace Omnia
                             OmniaString line_p2 = line.substr(cp + 1);
                             line = line_p1.add(m.expand(plist));
                             line = line.add(line_p2);
+                            std::cout << line.cpp() << "\n";
                             found = true;
                         }
                         if (!found) continue;
