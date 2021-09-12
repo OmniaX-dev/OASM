@@ -15,6 +15,7 @@
 -	Add include directories option for assembler
 -	Add info when using the "assemble" top-level command
 -	Add reset function to debugger
+-	Add offset to data-view in debugger
 
 %	Fix bug where two macro calls one after the other causes assembler error
 %	Fix bug where an error occurs on the <end> instruction of "oasm_test_1" (and other scripts too) (hacked disableSafeMode before executing tick to solve this temporarily)

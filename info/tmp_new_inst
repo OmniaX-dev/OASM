@@ -10,6 +10,18 @@ realloc			AddrMode			---				addr/reg				const/addr/reg		---
 				* set R31 to new stream address
 
 
+lda				---					---				addr					const_stream
+
+offset,			AddrMode,			---,			const/addr/reg,			---					---
+
+
+
+.data = array(__test_arr, 20)
+
+
+
+
+
 
 
 .data = reserve(__om_temp_new_instance_addr)

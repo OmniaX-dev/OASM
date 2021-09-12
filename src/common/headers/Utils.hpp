@@ -97,6 +97,7 @@ namespace Omnia
             cmd         =   0xF0F8,
             flg         =   0xF0F9,
             flg_m       =   0xF0FA,
+            offset      =   0xF0FB,
 
             mem         =   0x1000,
             mem_m       =   0x1001,

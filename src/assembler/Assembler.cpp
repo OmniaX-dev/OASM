@@ -200,6 +200,33 @@ namespace Omnia
                         m_symTable.m_reserves[(MemAddress)(m_reserveCount - 1)] = param;
 					}
 				}
+                else if (line.toLowerCase().startsWith("array"))
+				{
+					line = line.substr(5).trim();
+                	if (!line.startsWith("(") || !line.endsWith(")"))
+					{
+						//TODO: Add error
+						return std::vector<OmniaString>();
+					}
+                	line = line.substr(1, line.length() - 1).trim();
+					__st = line.tokenize(",", true);
+                    if (__st.count() != 2)
+                    {
+                        //TODO: Error
+                        return std::vector<OmniaString>();
+                    }
+					OmniaString def = __st.next();
+                    OmniaString __tmp = __st.next();
+                    if (!Utils::isInt(__tmp))
+                    {
+                        //TODO: Error
+                        return std::vector<OmniaString>();
+                    }
+
+                    m_reserves[OmniaString("%").add(def).cpp()] = (MemAddress)m_reserveCount;
+                    m_symTable.m_reserves[(MemAddress)m_reserveCount] = OmniaString("%").add(def);
+                    m_reserveCount += Utils::strToInt(__tmp);
+				}
 				else if (line.toLowerCase().startsWith("load_string"))
 				{
 					line = line.substr(11).trim();
@@ -948,6 +975,20 @@ namespace Omnia
 					else if (PP.hasReserved(__data.cpp()))
 					{
 						__new_line.add(Utils::intToHexStr(PP.m_reserves[__data.cpp()])).add(",");
+					}
+                    else if (__data.startsWith("%") && __data.indexOf("[") > 1 && __data.endsWith("]"))
+					{
+                        OmniaString __res_name = __data.substr(0, __data.indexOf("[")).trim();
+                        OmniaString __off_str = __data.substr(__data.indexOf("[") + 1, __data.length() - 1);
+                        if (!Utils::isInt(__off_str))
+                        {
+						    //TODO: Error
+                            std::cout << "Non-constant array index: ";
+                            std::cout << __off_str.cpp() << "\n";
+                            std::cout << "\n\t" << l.cpp() << "\n";
+                            return std::vector<OmniaString>();
+                        }
+						__new_line.add(Utils::intToHexStr(PP.m_reserves[__res_name.cpp()] + Utils::strToInt(__off_str))).add(",");
 					}
 					else if (isLabel(__data.cpp(), __addr))
 					{

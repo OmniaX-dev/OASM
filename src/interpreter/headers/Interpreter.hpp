@@ -157,6 +157,7 @@ namespace Omnia
 					bool						m_break_point_signal;
 					MemAddress					m_break_point_addr;
 					TMemoryList					m_decoded_inst;
+					word						m_offset;
 
 					word 						m_raw_1;
 					word 						m_raw_2;

@@ -208,6 +208,7 @@ namespace Omnia
 				case eInstructionSet::end: 		return "end";
 				case eInstructionSet::reserve: 	return "reserve";
 				case eInstructionSet::free_s: 	return "free_s";
+				case eInstructionSet::offset: 	return "offset";
 
 				case eInstructionSet::mem: 		return "mem";
 				case eInstructionSet::mem_m: 	return "mem_m";

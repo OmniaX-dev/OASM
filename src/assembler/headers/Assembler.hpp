@@ -196,7 +196,8 @@ namespace Omnia
 					{ "realloc", (word)eInstructionSet::realloc },
 					{ "cmd", (word)eInstructionSet::cmd },
 					{ "flg", (word)eInstructionSet::flg },
-					{ "flg_m", (word)eInstructionSet:: flg_m},
+					{ "flg_m", (word)eInstructionSet::flg_m },
+					{ "offset", (word)eInstructionSet::offset },
 
 					{ "mem", (word)eInstructionSet::mem },
 					{ "mem_m", (word)eInstructionSet::mem_m },

@@ -208,6 +208,7 @@ namespace Omnia
 				m_op2_addr_mode = eSingleAddrModes::_2B;
 				m_const_op1 = false;
 				m_pop_r_flg = false;
+				m_offset = 0;
 
 				m_step_execution = false;
 				m_current_ipc = 0;

@@ -237,6 +237,11 @@ $(function(){
 		new InstOperand(),
 	"flg instruction");
 
+	addInstruction("offset", "F0FB", "0x****", IOps.NoOperand, 
+		new InstOperand().add(IOps.ConstVal).add(IOps.Addr).add(IOps.Reg),
+		new InstOperand(),
+	"offset instruction");
+
 	addSeparator("instruction-table");
 
 	addInstruction("mem", "1000", "0x****", IOps.NoOperand, 
