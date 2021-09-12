@@ -481,7 +481,8 @@ namespace Omnia
             Success,
             Error,
             Special,
-            Warning
+            Warning,
+            Version
         };
         enum class eGuiBlock
         {

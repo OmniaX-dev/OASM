@@ -189,11 +189,14 @@ namespace Omnia
 			class GPU : public ErrorReciever, public Protectable
 			{
 				public:
+					GPU(void);
 					inline static GPU& instance(void) { return *GPU::s_instance; }
+					bool clock_tick(void);
 
 				private:
-					static GPU* s_instance;
+					TMemoryList m_vram;
 
+					static GPU* s_instance;
 					friend class Debugger;
 			};
 			inline GPU* GPU::s_instance = new GPU();

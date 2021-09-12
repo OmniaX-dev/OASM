@@ -3,7 +3,7 @@
 # Version
 #---------
 OASM_MAJOR_VERSION ?= 0
-OASM_MINOR_VERSION ?= 2
+OASM_MINOR_VERSION ?= 3
 
 # Targets
 #----------

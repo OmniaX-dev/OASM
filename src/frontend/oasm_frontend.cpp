@@ -9,7 +9,7 @@
 #endif
 
 #define __exit_verbose(__base_instance, __err_code) \
-	__base_instance.getOutputHandler()->newLine().newLine().print("*** Exit_Error ").print(Omnia::common::Utils::intToHexStr(__err_code)).newLine().newLine(); \
+	__base_instance.getOutputHandler()->newLine().newLine().print("*** Exit Error: ").print(Omnia::common::Utils::intToHexStr(__err_code)).newLine().newLine(); \
 	return __err_code;
 
 int main(int argc, char** argv)

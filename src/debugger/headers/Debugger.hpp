@@ -72,6 +72,7 @@ namespace Omnia
 				void printFullGui(Process& proc);
 
 				void inputPrompt(void);
+				void reset(void);
 
 				bool topLevelPrompt(void);
 				void runProcess(Process& proc);
@@ -114,7 +115,9 @@ namespace Omnia
 				bool m_show_data;
 				bool m_print_end_msg;
 				bool m_allow_diff_version;
+				bool m_skip_next_draw;
 				eDebuggerMode m_mode;
+				Process* m_process;
 
 				uint8 m_g_source_lines;
 				uint8 m_g_out_lines;
@@ -129,6 +132,7 @@ namespace Omnia
 				eGuiBlock m_gui_block_bottom;
 				eGuiBlock m_gui_block_extra;
 				eGuiBlockPosition m_gui_error_on_block;
+				eGuiBlockPosition m_gui_data_under;
 
 				char** m_as_args;
 				std::map<_string, MemAddress> m_labels;

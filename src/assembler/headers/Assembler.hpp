@@ -52,6 +52,7 @@ namespace Omnia
                 std::vector<OmniaString> open(OmniaString fileName, PreProcessorOptions options = PreProcessorOptions());
                 inline bool hasAlias(OmniaString alias) { return (m_aliases.count(alias.cpp()) != 0); }
                 inline bool hasReserved(OmniaString res) { return (m_reserves.count(res.cpp()) != 0); }
+                inline bool hasDefine(OmniaString def) { return (m_defines.count(def.cpp()) != 0); }
 
             private:
                 inline PreProcessor(void) {  }
@@ -65,6 +66,7 @@ namespace Omnia
                 std::vector<OmniaString> resolveMacros(std::vector<OmniaString> lines);
 				std::vector<OmniaString> resolveCommandDirective(std::vector<OmniaString> lines);
 				std::vector<OmniaString> resolveDataDirective(std::vector<OmniaString> lines);
+				std::vector<OmniaString> resolveDefines(std::vector<OmniaString> lines);
 
                 void error(ePreProcessorErrors err, OmniaString msg, bool skipFileInfo = false);
 
@@ -77,6 +79,10 @@ namespace Omnia
 				std::vector<OmniaString> m_dataSection;
                 std::map<_string, _string> m_aliases;
 				std::map<_string, MemAddress> m_reserves;
+				std::vector<OmniaString> m_struct_defs;
+				std::map<_string, std::pair<OmniaString, bool>> m_defines;
+				std::vector<bool> m_def_stack;
+				bool m_skip_rest_of_branches;
                 PreProcessorOptions m_options;
                 std::vector<Macro> m_macros;
 				word m_nextTopInst;
@@ -321,6 +327,11 @@ namespace Omnia
 					{ "TimeDiff", (word)eComCodes::TimeDiff },
 					{ "TD_LOAD_TIME", (word)eComCodes::p_TimeDiff_load },
 					{ "TD_GET_DIFF", (word)eComCodes::p_TimeDiff_load },
+
+					{ "TU_SECONDS", (word)eTimeUnits::Seconds },
+					{ "TU_MILLISECONDS", (word)eTimeUnits::Milliseconds },
+					{ "TU_MICROSECONDS", (word)eTimeUnits::Microseconds },
+					{ "TU_NANOSECONDS", (word)eTimeUnits::Nanoseconds },
 
 				
 				//CONSTANTS

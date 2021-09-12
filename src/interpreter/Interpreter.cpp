@@ -148,7 +148,7 @@ namespace Omnia
 			vm.getREG().write(eRegisters::IP, proc.m_codeAddr);
 			vm.getREG().enableProtectedMode();
 			if (p__debugger_call) return 0x0000;
-			while (vm.getCPU().clock_tick()) ;
+			while (vm.getCPU().clock_tick() && !proc.done()) ;
 			ErrorCode __err = vm.getCPU().getLastErrorCode();
 
 			if (p__print_memory && __err == D__NO_ERROR)
@@ -2182,8 +2182,20 @@ namespace Omnia
 						pushError(D__CPU_ERR__MAP_ADDR_MODE_FAILED);
 						__return_and_set_ip(false, m_old_pc_val)
 					}
-					__return_if_const_op1(false);
+					//__return_if_const_op1(false);
 					MemAddress __addr;
+					if (m_const_op1)
+					{
+						for (word __i = 0; __i < outData1.val(); __i++)
+						{
+							if (!__next_single_heap_cell(__addr))
+							{
+								pushError(D__CPU_ERR__RESERVE_SINGLE_FAILED);
+								__return_and_set_ip(false, m_old_pc_val)
+							}
+						}
+						__return_and_set_ip(true, m_old_pc_val + m_inst_size)
+					}
 					if (!__next_single_heap_cell(__addr))
 					{
 						pushError(D__CPU_ERR__RESERVE_SINGLE_FAILED);
@@ -3099,6 +3111,20 @@ namespace Omnia
 			void CPU::pushError(ErrorCode __err_code)
 			{
 				ErrorReciever::pushError(__err_code, *VirtualMachine::instance().getOutputHandler(), "VirtualCPU Error", m_old_pc_val, m_raw_1);
+			}
+
+
+
+
+			GPU::GPU(void)
+			{
+				m_vram.resize(D__VIDEO_MEMORY_SIZE);
+			}
+
+			bool GPU::clock_tick(void)
+			{
+				
+				return true;
 			}
 
 
