@@ -134,7 +134,7 @@ namespace Omnia
 						if (i + 1 >= argc)
 						{
 							out.print("Error: No input file specified.").newLine();
-							return 0xFFFF; //TODO: Add error code
+							return 0xFFFF;  //TODO: Add error code
 						}
 						i++;
 						p__input_file_path = OmniaString(argv[i]);
@@ -204,6 +204,12 @@ namespace Omnia
 
 			if (p__print_memory && __err == D__NO_ERROR)
 				vm.getCPU().printMemory(out, 4, 4, 16, false);
+
+			if (vm.getCPU().getVideoMode() == eVideoModes::AsciiGrid)
+			{
+				out.clear().tc_reset();
+				Utils::hideCursor(false);
+			}
 
 			return __err;
 		}

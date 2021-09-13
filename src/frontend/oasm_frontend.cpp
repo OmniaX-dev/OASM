@@ -10,12 +10,13 @@
 
 #define __exit_verbose(__base_instance, __err_code) \
 	__base_instance.getOutputHandler()->newLine().newLine().print("*** Exit Error: ").print(Omnia::common::Utils::intToHexStr(__err_code)).newLine().newLine(); \
+	Omnia::common::Utils::hideCursor(false); \
 	return __err_code;
 
 int main(int argc, char** argv)
 {
 
-#ifdef __COMPILE_AS__  //Assembler frontend
+#ifdef __COMPILE_AS__   //Assembler frontend
 	Omnia::common::Utils::init();
 
 	Omnia::oasm::Assembler::instance().getOutputHandler()->newLine().print("oasm_as: version ")
@@ -40,7 +41,10 @@ int main(int argc, char** argv)
 #elif defined(__COMPILE_DBG__)  //Debugger frontend
 	Omnia::common::Utils::init();
 
-	return Omnia::oasm::Debugger::instance().run(argc, argv);
+	Omnia::common::ErrorCode __err = Omnia::oasm::Debugger::instance().run(argc, argv);
+
+	Omnia::common::Utils::hideCursor(false);
+	return __err;
 
 #endif
 #include "Defines.hpp"

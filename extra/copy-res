@@ -1,0 +1,15 @@
+#!/bin/bash
+
+rm -r doc
+rm -r examples
+rm -r ostd
+rm termcolor-LICENSE
+rm as
+rm vm
+rm dbg
+rm copy-res
+rm reset
+
+sleep 1
+
+cp -r ../extra/* .

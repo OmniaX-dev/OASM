@@ -1,0 +1,8 @@
+#/bin/bash
+
+cd bin
+./reset
+cd ..
+cmake -B bin -S src
+cd bin
+make install

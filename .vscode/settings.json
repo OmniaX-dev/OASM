@@ -91,5 +91,6 @@
         "span": "cpp",
         "syncstream": "cpp",
         "filesystem": "cpp"
-    }
+    },
+    "cmake.configureOnOpen": true
 }

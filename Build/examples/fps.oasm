@@ -1,0 +1,66 @@
+.include_guard(fps_oasm)
+
+.include [ostd/timing.oasm]
+
+.command(request, all=64)
+.data = reserve(fps, delta, time1, time2, str, t_sum, t_count, t_diff, t_avg, t_str, index, index2, index_str)
+.data = load_string(str, "Update")
+.data = load_string(t_str, "Average: ")
+.data = load_string(index_str, "Index: ")
+
+:update:
+	mem, 		Addr_Const,			index,					0
+	:loop2:
+		cmd,		Const_Addr,			PrintIntToConsole,		time2
+		cmd,		Const_Addr,			PrintStringToConsole,	str
+		inc,		Single_Addr,		index
+		cmp, 		Addr_Const,			index,					5
+	jmp,		Single_Const,		JMP_LESS,				loop2
+	ret,		Single_Const,		0
+//end update
+
+:__main__:
+	@SetFPS(10)
+	@Load(t_diff, 0)
+	@Load(t_count, 0)
+	@Load(index2, 0)
+
+	:loop:
+		@CurrentTime(time1)
+		call,		Const_Const,		update,					0
+		cmp,		Const_Const,		#__OMX_VER,		#__OM_DEV
+		jmp,		Single_Const,		JMP_NOT_EQUALS,			__skip_omx
+		cmd,		Const_Addr,			PrintStringToConsole,	__omx_string
+	:__skip_omx:
+		cmd,		Const_Const,		PrintNewLineToConsole,	0
+		@CurrentTime(time2)
+
+		mem,		Addr_Addr,			t_diff,					time2
+		sub,		Addr_Addr,			t_diff,					time1
+		add,		Addr_Addr,			t_sum,					t_diff
+		inc,		Single_Addr,		t_count
+		mem,		Addr_Addr,			t_avg,					t_sum
+		div,		Addr_Addr,			t_avg,					t_count
+		cmd,		Const_Const,		PrintNewLineToConsole,	0
+		cmd,		Const_Addr,			PrintStringToConsole,	t_str
+		cmd,		Const_Addr,			PrintIntToConsole,		t_avg
+		cmd,		Const_Const,		PrintNewLineToConsole,	0
+
+		cmd,		Const_Addr,			PrintStringToConsole,	index_str
+		cmd,		Const_Addr,			PrintIntToConsole,		index2
+		cmd,		Const_Const,		PrintNewLineToConsole,	0
+
+		//no_op
+		@WaitForFrame(time1, time2)
+		inc,		Single_Addr,		index2
+		cmp, 		Addr_Const,			index2,					20
+	jmp,		Single_Const,		JMP_LESS,				loop
+	//end loop
+
+	free,		Single_Addr,		str
+	free,		Single_Addr,		t_str
+	
+	ret,		Single_Const,		0x1234
+//end __main__
+
+.close_include_guard

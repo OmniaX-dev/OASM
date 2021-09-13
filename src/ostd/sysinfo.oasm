@@ -1,0 +1,28 @@
+.include_guard(__sysinfo__oasm__)
+
+.data = reserve(__omx_string)
+
+.alias __OM_STABLE = 0x0000
+.alias __OM_EXPERIMENTAL = 0x0001
+.alias __OM_DEV = 0x0002
+
+
+.ifdef __oasm_experimental
+	.data = load_string(__omx_string, " oasm_experimental ")
+	.alias __OMX_VER = #__OM_EXPERIMENTAL
+.elifdef __oasm_dev
+	.data = load_string(__omx_string, " oasm_dev ")
+	.alias __OMX_VER = #__OM_DEV
+.else
+	.data = load_string(__omx_string, " oasm_stable ")
+	.alias __OMX_VER = #__OM_STABLE
+.endif
+
+.macro Load(__addr, __const_val) mem, Addr_Const, $(__addr), $(__const_val)
+.macro LoadString(__addr, __string)	 lda_str, $(__string) "&#" mem, Addr_Reg, $(__addr), R31
+
+.macro ArrayAt(__arr, __index, __out_addr) mem, Addr_Const, $(__out_addr), $(__arr) "&#" add, Addr_Addr, $(__out_addr), $(__index)
+
+
+
+.close_include_guard
