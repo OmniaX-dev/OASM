@@ -194,7 +194,7 @@ namespace Omnia
 					OmniaString param = "", value = "";
 					while (__st.hasNext())
 					{
-						param = __st.next().toLowerCase();
+						param = __st.next();
 						//m_dataSection.push_back(StringBuilder("reserve,                 Single_Reg,                     R30").get());
 						m_reserves[param.cpp()] = (MemAddress)(m_reserveCount++);
                         m_symTable.m_reserves[(MemAddress)(m_reserveCount - 1)] = param;

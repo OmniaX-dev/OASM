@@ -436,5 +436,44 @@ namespace Omnia
 		{
 			return std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::system_clock::now().time_since_epoch()).count() - Utils::s_startTime_ms;
 		}
+
+		void Utils::hideCursor(bool hide)
+		{
+		#ifdef WINDOWS_OS
+			HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
+			CONSOLE_CURSOR_INFO info;
+			info.dwSize = 100;
+			if (hide) info.bVisible = FALSE;
+			else info.bVisible = TRUE;
+			SetConsoleCursorInfo(consoleHandle, &info);
+		#elif defined(LINUX_OS)
+			if (hide) std::cout << "\e[?25l";
+			else std::cout << "\e[?25h";
+		#endif
+		}
+
+		#ifdef WINDOWS_OS
+
+		void Utils::moveConsoleCursor(int x, int y)
+		{
+			COORD p = { x, y };
+			SetConsoleCursorPosition( GetStdHandle( STD_OUTPUT_HANDLE ), p );
+		}
+
+		#else
+
+		#include <unistd.h>
+		#include <term.h>
+		
+
+		void Utils::moveConsoleCursor(int x, int y)
+		{
+			int err;
+			if (!cur_term)
+				setupterm( NULL, STDOUT_FILENO, &err );
+			putp( tparm( tigetstr( "cup" ), y, x, 0, 0, 0, 0, 0, 0, 0 ) );
+		}
+
+		#endif 
 	}
 }

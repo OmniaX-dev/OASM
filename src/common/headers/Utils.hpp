@@ -61,6 +61,7 @@
 #include "TermColor.hpp"
 
 
+
 namespace Omnia
 {
 	namespace common
@@ -328,6 +329,12 @@ namespace Omnia
             Sleep                  =    0x0009,
             GetRunningTime         =    0x000A,
             TimeDiff               =    0x000B,
+            RefreshScreen          =    0x000C,
+            SetVideoMode           =    0x000D,
+            PlotChar               =    0x000E,
+            GetScreenW             =    0x000F,
+            GetScreenH             =    0x0010,
+            Draw                   =    0x0011,
 
             p_TimeDiff_load        =    0xFFFF,
             p_TimeDiff_calc        =    0xFFFE
@@ -517,6 +524,30 @@ namespace Omnia
             Microseconds,
             Nanoseconds
         };
+        enum class eVideoModes
+        {
+            Console = 0,
+            AsciiGrid
+        };
+        enum class eOasmColors
+        {
+            Grey = 0,
+            Red,
+            Green,
+            Yellow,
+            Blue,
+            Magenta,
+            Cyan,
+            White,
+	        BrightGrey,
+            BrightRed,
+            BrightGreen,
+            BrightYellow,
+            BrightBlue,
+            BrightMagenta,
+            BrightCyan,
+            BrightWhite
+        };
 
 
         class Protectable
@@ -599,6 +630,8 @@ namespace Omnia
                 static void get_terminal_size(int& width, int& height);
                 static void sleep(uint32 __time, eTimeUnits __unit = eTimeUnits::Milliseconds);
                 static uint64 getRunningTime_ms(void);
+                static void hideCursor(bool hide = true);
+                static void moveConsoleCursor(int x, int y);
 
             private:
                 inline static OmniaString VERSION_STR = "";

@@ -1,0 +1,98 @@
+.include_guard(__gpu__oasm__)
+
+.command(request, all=256)
+
+.include [oasm-tests/std/timing.oasm]
+.def __om_load_colors_to_memory
+.include [oasm-tests/std/base-video.oasm]
+
+.data = reserve(time1, time2, screenx, screeny, toggle)
+.data = reserve(x, y, c, x2, y2)
+
+:__main__:
+	@SetFPS(30)
+	@InitVideo(VIDEO_MODE_ASCII_GRID)
+	@GetScreenSize(screenx, screeny)
+
+	@Load(c, 32)
+	@Load(x2, 1)
+	@Load(y2, 10)
+	@Load(toggle, False)
+
+	:loop:
+		@CurrentTime(time1)
+		#ClearScreen
+
+		@Load(x, 0)
+		@Load(y, 0)
+		:x_loop_1:
+			@PlotChar(x, y, c, Blue, White)
+			inc,	Single_Addr,	x
+			cmp,	Addr_Addr,	x,	screenx
+		jmp,	Single_Const,	JMP_LESS,	x_loop_1
+		dec,	Single_Addr,	x
+		//End x_loop_1
+		:y_loop_1:
+			@PlotChar(x, y, c, Blue, White)
+			inc,	Single_Addr,	y
+			cmp,	Addr_Addr,	y,	screeny
+		jmp,	Single_Const,	JMP_LESS,	y_loop_1
+		//End y_loop_1
+		dec,	Single_Addr,	y
+		@Load(x, 0)
+		:x_loop_2:
+			@PlotChar(x, y, c, Blue, White)
+			inc,	Single_Addr,	x
+			cmp,	Addr_Addr,	x,	screenx
+		jmp,	Single_Const,	JMP_LESS,	x_loop_2
+		//End x_loop_2
+		@Load(x, 0)
+		@Load(y, 0)
+		:y_loop_2:
+			@PlotChar(x, y, c, Blue, White)
+			inc,	Single_Addr,	y
+			cmp,	Addr_Addr,	y,	screeny
+		jmp,	Single_Const,	JMP_LESS,	y_loop_2
+		//End y_loop_2
+
+
+		cmp, Addr_Const, toggle, True
+		jmp, Single_Const, JMP_NOT_EQUALS, no_toggle_lbl
+	:toggle_lbl:
+		inc, Single_Addr, x2
+		cmp, Addr_Addr, x2, screenx
+		jmp, Single_Const, JMP_LESS, end_toggle
+		@Load(toggle, False)
+		dec, Single_Addr, x2
+		jmp, Single_Const, JMP_UNCONDITIONAL, end_toggle
+	:no_toggle_lbl:
+		dec, Single_Addr, x2
+		cmp, Addr_Const, x2, 1
+		jmp, Single_Const, JMP_GREATER, end_toggle
+		@Load(toggle, True)
+	:end_toggle:
+
+		@PlotChar(x2, y2, c, Red, Grey)
+
+
+
+		#Draw
+	:skip_inc:
+		@CurrentTime(time2)
+		no_op
+		no_op
+		no_op
+		no_op
+		no_op
+		no_op
+		no_op
+		no_op
+		no_op
+		no_op
+		no_op
+		@WaitForFrame(time1, time2)
+	jmp,			Single_Const,		JMP_UNCONDITIONAL,			loop
+	ret,		Single_Const,		0
+//End __main__
+
+.close_include_guard

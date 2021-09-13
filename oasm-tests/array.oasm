@@ -30,7 +30,7 @@
 		cmd,	Const_Const,	PrintNewLineToConsole,	0
 		inc,	Single_Addr,	index
 		cmp,	Addr_Const,		index,					#ARRAY_SIZE
-		jmp,	Single_Const,	JMP_LESS,				loop
+	jmp,	Single_Const,	JMP_LESS,				loop
 	//end loop
 
 	cmd,		Const_Addr,			PrintStringToConsole,		gb_world_str

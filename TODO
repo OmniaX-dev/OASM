@@ -16,6 +16,8 @@
 -	Add info when using the "assemble" top-level command
 -	Add reset function to debugger
 -	Add offset to data-view in debugger
+-	Unhide cursor on exit
+-	clear scren on exit
 
 %	Fix bug where two macro calls one after the other causes assembler error
 %	Fix bug where an error occurs on the <end> instruction of "oasm_test_1" (and other scripts too) (hacked disableSafeMode before executing tick to solve this temporarily)
@@ -24,6 +26,7 @@
 %	Fix bug where SourceCodeView handles inproperly the case of showing the last section of the source code
 %	Fix bug where SourceCodeView increments current line when using a command
 %	Fix bug where SourceCodeView doesn't show break-points in small view (only works when showing full code)
+%	Fix bug where log source doesn't show in debugger (probably due to video mode)
 
 
  

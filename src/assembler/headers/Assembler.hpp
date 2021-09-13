@@ -328,6 +328,12 @@ namespace Omnia
 					{ "TimeDiff", (word)eComCodes::TimeDiff },
 					{ "TD_LOAD_TIME", (word)eComCodes::p_TimeDiff_load },
 					{ "TD_GET_DIFF", (word)eComCodes::p_TimeDiff_load },
+					{ "SetVideoMode", (word)eComCodes::SetVideoMode },
+					{ "RefreshScreen", (word)eComCodes::RefreshScreen },
+					{ "PlotChar", (word)eComCodes::PlotChar },
+					{ "GetScreenW", (word)eComCodes::GetScreenW },
+					{ "GetScreenH", (word)eComCodes::GetScreenH },
+					{ "Draw", (word)eComCodes::Draw },
 
 					{ "TU_SECONDS", (word)eTimeUnits::Seconds },
 					{ "TU_MILLISECONDS", (word)eTimeUnits::Milliseconds },
@@ -337,7 +343,12 @@ namespace Omnia
 				
 				//CONSTANTS
 					{ "True", 0xFFFF },
-					{ "False", 0x0000 }
+					{ "False", 0x0000 },
+
+				
+				//VIDEO MODES
+					{ "VIDEO_MODE_CONSOLE", (word)eVideoModes::Console },
+					{ "VIDEO_MODE_ASCII_GRID", (word)eVideoModes::AsciiGrid }
 				};
 		};
 

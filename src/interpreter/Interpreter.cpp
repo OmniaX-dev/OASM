@@ -59,6 +59,51 @@ namespace Omnia
 			}
 			return true;
 		}
+		bool EC_RefreshScreen_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
+		{
+			if (VirtualMachine::instance().getCPU().getVideoMode() != eVideoModes::AsciiGrid) return true;
+			//iomgr.getOutputHandler()->clear();
+			VirtualMachine::instance().getGPU().clearScreenBuffer();
+			Utils::hideCursor();
+			Utils::moveConsoleCursor(0, 0);
+			return true;
+		}
+		bool EC_Draw_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
+		{
+			if (VirtualMachine::instance().getCPU().getVideoMode() != eVideoModes::AsciiGrid) return true;
+			VirtualMachine::instance().getGPU().clock_tick();
+			return true;
+		}
+		bool EC_SetVideoMode_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
+		{
+			VirtualMachine::instance().getCPU().setVideoMode((eVideoModes)param.val());
+			return true;
+		}
+		bool EC_PlotChar_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
+		{
+			if (VirtualMachine::instance().getCPU().getVideoMode() != eVideoModes::AsciiGrid) return true;
+			BitEditor __x, __y, __c, __bg_c, __fg_c;
+			hw::CPU& cpu = VirtualMachine::instance().getCPU();
+			hw::GPU& gpu = VirtualMachine::instance().getGPU();
+			if (!VirtualMachine::instance().getRAM().read(cpu.offsetHeapAddress(param.val()), __x)) return false;
+			if (!VirtualMachine::instance().getRAM().read(cpu.offsetHeapAddress(param.val() + 1), __y)) return false;
+			if (!VirtualMachine::instance().getRAM().read(cpu.offsetHeapAddress(param.val() + 2), __c)) return false;
+			if (!VirtualMachine::instance().getRAM().read(cpu.offsetHeapAddress(param.val() + 3), __bg_c)) return false;
+			if (!VirtualMachine::instance().getRAM().read(cpu.offsetHeapAddress(param.val() + 4), __fg_c)) return false;
+			if (__x >= gpu.getScreenW() || __y >= gpu.getScreenH()) return true;
+			gpu.plotChar(__x.val(), __y.val(), (char)__c.val(), (eOasmColors)__bg_c.val(), (eOasmColors)__fg_c.val());
+			return true;
+		}
+		bool EC_GetScreenW_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
+		{
+			outData = VirtualMachine::instance().getGPU().getScreenW();
+			return true;
+		}
+		bool EC_GetScreenH_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
+		{
+			outData = VirtualMachine::instance().getGPU().getScreenH();
+			return true;
+		}
 		//----------------------------------------------------------------------------------------------------------
 
 
@@ -108,6 +153,12 @@ namespace Omnia
 			ECM::instance().addHandler((word)eComCodes::Sleep, __ec_sleep_cmd);
 			ECM::instance().addHandler((word)eComCodes::GetRunningTime, __ec_getRunningTime_cmd);
 			ECM::instance().addHandler((word)eComCodes::TimeDiff, __ec_timeDiff_cmd);
+			ECM::instance().addHandler((word)eComCodes::RefreshScreen, __ec_refreshScreen_cmd);
+			ECM::instance().addHandler((word)eComCodes::SetVideoMode, __ec_setVideoMode_cmd);
+			ECM::instance().addHandler((word)eComCodes::PlotChar, __ec_plotChar_cmd);
+			ECM::instance().addHandler((word)eComCodes::GetScreenW, __ec_getScreenW_cmd);
+			ECM::instance().addHandler((word)eComCodes::GetScreenH, __ec_getScreenH_cmd);
+			ECM::instance().addHandler((word)eComCodes::Draw, __ec_draw_cmd);
 
 			Flags::set(FLG__PRINT_ERROR_ON_PUSH);
 
@@ -209,6 +260,7 @@ namespace Omnia
 				m_const_op1 = false;
 				m_pop_r_flg = false;
 				m_offset = 0;
+				m_video_mode = eVideoModes::Console;
 
 				m_step_execution = false;
 				m_current_ipc = 0;
@@ -3120,12 +3172,158 @@ namespace Omnia
 			GPU::GPU(void)
 			{
 				m_vram.resize(D__VIDEO_MEMORY_SIZE);
+				Utils::get_terminal_size(m_screen_x, m_screen_y);
+				m_screen_buffer_addr = 0x00FF;
+				clearScreenBuffer();
+			}
+
+			void GPU::mapBgColor(eOasmColors __bg)
+			{
+				switch (__bg)
+				{
+					case eOasmColors::Grey:
+						VirtualMachine::instance().getOutputHandler()->bc_grey();
+					break;
+					case eOasmColors::Red:
+						VirtualMachine::instance().getOutputHandler()->bc_red();
+					break;
+					case eOasmColors::Green:
+						VirtualMachine::instance().getOutputHandler()->bc_green();
+					break;
+					case eOasmColors::Yellow:
+						VirtualMachine::instance().getOutputHandler()->bc_yellow();
+					break;
+					case eOasmColors::Blue:
+						VirtualMachine::instance().getOutputHandler()->bc_blue();
+					break;
+					case eOasmColors::Magenta:
+						VirtualMachine::instance().getOutputHandler()->bc_magenta();
+					break;
+					case eOasmColors::Cyan:
+						VirtualMachine::instance().getOutputHandler()->bc_cyan();
+					break;
+					case eOasmColors::White:
+						VirtualMachine::instance().getOutputHandler()->bc_white();
+					break;
+
+					case eOasmColors::BrightGrey:
+						VirtualMachine::instance().getOutputHandler()->bc_brightGrey();
+					break;
+					case eOasmColors::BrightRed:
+						VirtualMachine::instance().getOutputHandler()->bc_brightRed();
+					break;
+					case eOasmColors::BrightGreen:
+						VirtualMachine::instance().getOutputHandler()->bc_brightGreen();
+					break;
+					case eOasmColors::BrightYellow:
+						VirtualMachine::instance().getOutputHandler()->bc_brightYellow();
+					break;
+					case eOasmColors::BrightBlue:
+						VirtualMachine::instance().getOutputHandler()->bc_brightBlue();
+					break;
+					case eOasmColors::BrightMagenta:
+						VirtualMachine::instance().getOutputHandler()->bc_brightMagenta();
+					break;
+					case eOasmColors::BrightCyan:
+						VirtualMachine::instance().getOutputHandler()->bc_brightCyan();
+					break;
+					case eOasmColors::BrightWhite:
+						VirtualMachine::instance().getOutputHandler()->bc_brightWhite();
+					break;
+					default: break;
+				}
+			}
+
+			void GPU::mapFgColor(eOasmColors __fg)
+			{
+				switch (__fg)
+				{
+					case eOasmColors::Grey:
+						VirtualMachine::instance().getOutputHandler()->fc_grey();
+					break;
+					case eOasmColors::Red:
+						VirtualMachine::instance().getOutputHandler()->fc_red();
+					break;
+					case eOasmColors::Green:
+						VirtualMachine::instance().getOutputHandler()->fc_green();
+					break;
+					case eOasmColors::Yellow:
+						VirtualMachine::instance().getOutputHandler()->fc_yellow();
+					break;
+					case eOasmColors::Blue:
+						VirtualMachine::instance().getOutputHandler()->fc_blue();
+					break;
+					case eOasmColors::Magenta:
+						VirtualMachine::instance().getOutputHandler()->fc_magenta();
+					break;
+					case eOasmColors::Cyan:
+						VirtualMachine::instance().getOutputHandler()->fc_cyan();
+					break;
+					case eOasmColors::White:
+						VirtualMachine::instance().getOutputHandler()->fc_white();
+					break;
+
+					case eOasmColors::BrightGrey:
+						VirtualMachine::instance().getOutputHandler()->fc_brightGrey();
+					break;
+					case eOasmColors::BrightRed:
+						VirtualMachine::instance().getOutputHandler()->fc_brightRed();
+					break;
+					case eOasmColors::BrightGreen:
+						VirtualMachine::instance().getOutputHandler()->fc_brightGreen();
+					break;
+					case eOasmColors::BrightYellow:
+						VirtualMachine::instance().getOutputHandler()->fc_brightYellow();
+					break;
+					case eOasmColors::BrightBlue:
+						VirtualMachine::instance().getOutputHandler()->fc_brightBlue();
+					break;
+					case eOasmColors::BrightMagenta:
+						VirtualMachine::instance().getOutputHandler()->fc_brightMagenta();
+					break;
+					case eOasmColors::BrightCyan:
+						VirtualMachine::instance().getOutputHandler()->fc_brightCyan();
+					break;
+					case eOasmColors::BrightWhite:
+						VirtualMachine::instance().getOutputHandler()->fc_brightWhite();
+					break;
+					default: break;
+				}
 			}
 
 			bool GPU::clock_tick(void)
 			{
-				
+				BitEditor __char_data;
+				eOasmColors __bg, __fg;
+				for (MemAddress __addr = m_screen_buffer_addr; __addr < m_screen_buffer_addr + (m_screen_x * m_screen_y); __addr++)
+				{
+					__char_data = m_vram[__addr];
+					__fg = (eOasmColors)((ubyte)((__char_data.getMSB() & 0x0F)));
+					__bg = (eOasmColors)((ubyte)((__char_data.getMSB() & 0xF0) >> 4));
+					mapFgColor(__fg);
+					mapBgColor(__bg);
+
+					VirtualMachine::instance().getOutputHandler()->print(OmniaString("").add((char)__char_data.getLSB()));
+				}
 				return true;
+			}
+
+			void GPU::plotChar(word __x, word __y, char __c, eOasmColors __bg_col, eOasmColors __fg_col)
+			{
+				word __index = (m_screen_x * __y) + __x;
+				__index += m_screen_buffer_addr;
+				BitEditor __char_data;
+				ubyte __bg = (ubyte)__bg_col;
+				ubyte __fg = (ubyte)__fg_col;
+				__char_data.setLSB((ubyte)__c);
+				__char_data.setMSB((ubyte)((__bg << 4) | __fg));
+				m_vram[__index] = __char_data;
+			}
+
+			void GPU::clearScreenBuffer(void)
+			{
+				for (MemAddress __addr = m_screen_buffer_addr; __addr < m_screen_buffer_addr + (m_screen_x * m_screen_y); __addr++)
+					m_vram[__addr] = (word)(' ');
 			}
 
 

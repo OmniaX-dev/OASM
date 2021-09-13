@@ -48,6 +48,36 @@ namespace Omnia
 			private:
 				unsigned long int m_time;
         };
+		class EC_RefreshScreen_cmd : public ExtComHandler
+        {
+            public:
+                bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
+        };
+		class EC_Draw_cmd : public ExtComHandler
+        {
+            public:
+                bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
+        };
+		class EC_SetVideoMode_cmd : public ExtComHandler
+        {
+            public:
+                bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
+        };
+		class EC_PlotChar_cmd : public ExtComHandler
+        {
+            public:
+                bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
+        };
+		class EC_GetScreenW_cmd : public ExtComHandler
+        {
+            public:
+                bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
+        };
+		class EC_GetScreenH_cmd : public ExtComHandler
+        {
+            public:
+                bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
+        };
 		//----------------------------------------------------------------------------------------------------------
 
 
@@ -79,6 +109,12 @@ namespace Omnia
 				EC_Sleep_cmd __ec_sleep_cmd;
 				EC_GetRunningTime_cmd __ec_getRunningTime_cmd;
 				EC_TimeDiff_cmd __ec_timeDiff_cmd;
+				EC_RefreshScreen_cmd __ec_refreshScreen_cmd;
+				EC_SetVideoMode_cmd __ec_setVideoMode_cmd;
+				EC_PlotChar_cmd __ec_plotChar_cmd;
+				EC_GetScreenW_cmd __ec_getScreenW_cmd;
+				EC_GetScreenH_cmd __ec_getScreenH_cmd;
+				EC_Draw_cmd __ec_draw_cmd;
 
 				friend class Debugger;
 		};
@@ -119,6 +155,8 @@ namespace Omnia
 					inline void addBreakPoint(MemAddress __brp_addr) { m_break_points.push_back(__brp_addr); }
 					inline MemAddress getLastInstructionAddr(void) { return m_old_pc_val; }
 					inline TMemoryList getDecodedInstruction(void) { return m_decoded_inst; }
+					inline eVideoModes getVideoMode(void) { return m_video_mode; }
+					inline void setVideoMode(eVideoModes __vm) { m_video_mode = __vm; }
 
 					void pushError(ErrorCode __err_code);
 
@@ -158,6 +196,7 @@ namespace Omnia
 					MemAddress					m_break_point_addr;
 					TMemoryList					m_decoded_inst;
 					word						m_offset;
+					eVideoModes					m_video_mode;
 
 					word 						m_raw_1;
 					word 						m_raw_2;
@@ -193,9 +232,18 @@ namespace Omnia
 					GPU(void);
 					inline static GPU& instance(void) { return *GPU::s_instance; }
 					bool clock_tick(void);
+					void plotChar(word __x, word __y, char __c, eOasmColors __bg_col, eOasmColors __fg_col);
+					inline word getScreenW(void) { return (word)m_screen_x; }
+					inline word getScreenH(void) { return (word)m_screen_y; }
+					void clearScreenBuffer(void);
+					void mapBgColor(eOasmColors __bg);
+					void mapFgColor(eOasmColors __fg);
 
 				private:
 					TMemoryList m_vram;
+					int32 m_screen_x;
+					int32 m_screen_y;
+					MemAddress m_screen_buffer_addr;
 
 					static GPU* s_instance;
 					friend class Debugger;
