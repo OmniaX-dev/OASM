@@ -4,6 +4,7 @@ list(APPEND common_SOURCES
     ${CMAKE_CURRENT_LIST_DIR}/Flags.cpp
     ${CMAKE_CURRENT_LIST_DIR}/OmniaString.cpp
     ${CMAKE_CURRENT_LIST_DIR}/Utils.cpp
+    ${CMAKE_CURRENT_LIST_DIR}/Keyboard.cpp
 )
 
 list(APPEND common_HEADERS
@@ -16,5 +17,5 @@ list(APPEND common_HEADERS
     ${CMAKE_CURRENT_LIST_DIR}/headers/IOManager.hpp
     ${CMAKE_CURRENT_LIST_DIR}/headers/OmniaString.hpp
     ${CMAKE_CURRENT_LIST_DIR}/headers/TermColor.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/headers/Utils.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/headers/Keyboard.hpp
 )

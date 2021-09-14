@@ -352,6 +352,39 @@ common/Flags.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/oasm-vm.dir/build.make CMakeFiles/oasm-vm.dir/common/Flags.cpp.s
 .PHONY : common/Flags.cpp.s
 
+common/Keyboard.o: common/Keyboard.cpp.o
+.PHONY : common/Keyboard.o
+
+# target to build an object file
+common/Keyboard.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oasm-lib.dir/build.make CMakeFiles/oasm-lib.dir/common/Keyboard.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oasm-dbg.dir/build.make CMakeFiles/oasm-dbg.dir/common/Keyboard.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oasm-as.dir/build.make CMakeFiles/oasm-as.dir/common/Keyboard.cpp.o
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oasm-vm.dir/build.make CMakeFiles/oasm-vm.dir/common/Keyboard.cpp.o
+.PHONY : common/Keyboard.cpp.o
+
+common/Keyboard.i: common/Keyboard.cpp.i
+.PHONY : common/Keyboard.i
+
+# target to preprocess a source file
+common/Keyboard.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oasm-lib.dir/build.make CMakeFiles/oasm-lib.dir/common/Keyboard.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oasm-dbg.dir/build.make CMakeFiles/oasm-dbg.dir/common/Keyboard.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oasm-as.dir/build.make CMakeFiles/oasm-as.dir/common/Keyboard.cpp.i
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oasm-vm.dir/build.make CMakeFiles/oasm-vm.dir/common/Keyboard.cpp.i
+.PHONY : common/Keyboard.cpp.i
+
+common/Keyboard.s: common/Keyboard.cpp.s
+.PHONY : common/Keyboard.s
+
+# target to generate assembly for a file
+common/Keyboard.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oasm-lib.dir/build.make CMakeFiles/oasm-lib.dir/common/Keyboard.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oasm-dbg.dir/build.make CMakeFiles/oasm-dbg.dir/common/Keyboard.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oasm-as.dir/build.make CMakeFiles/oasm-as.dir/common/Keyboard.cpp.s
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/oasm-vm.dir/build.make CMakeFiles/oasm-vm.dir/common/Keyboard.cpp.s
+.PHONY : common/Keyboard.cpp.s
+
 common/OmniaString.o: common/OmniaString.cpp.o
 .PHONY : common/OmniaString.o
 
@@ -531,6 +564,9 @@ help:
 	@echo "... common/Flags.o"
 	@echo "... common/Flags.i"
 	@echo "... common/Flags.s"
+	@echo "... common/Keyboard.o"
+	@echo "... common/Keyboard.i"
+	@echo "... common/Keyboard.s"
 	@echo "... common/OmniaString.o"
 	@echo "... common/OmniaString.i"
 	@echo "... common/OmniaString.s"

@@ -19,6 +19,7 @@
 -	Unhide cursor on exit
 -	clear scren on exit
 -	Remove __MINOR_VER__ and __MAJOR_VER__ from Utils.hpp (move to source file)
+-	Add option to save oasm code beforefinal assemble step
 
 %	Fix bug where two macro calls one after the other causes assembler error
 %	Fix bug where an error occurs on the <end> instruction of "oasm_test_1" (and other scripts too) (hacked disableSafeMode before executing tick to solve this temporarily)
