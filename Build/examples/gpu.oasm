@@ -2,11 +2,7 @@
 
 .command(request, all=512)
 
-.include [ostd/timing.oasm]
-.def __om_load_colors_to_memory
-.include [ostd/base-video.oasm]
-.def __om_load_keys_to_memory
-.include [ostd/keyboard.oasm]
+.include [ostd.oasm]
 
 .data = reserve(time1, time2, screenx, screeny, toggle)
 .data = reserve(x, y, c, x2, y2, c2)

@@ -1,0 +1,226 @@
+.include_guard(__keyboard__oasm__)
+
+.include [keys.oasm]
+
+.ifdef __om_load_keys_to_memory
+	.alias InitKeyboard = call, Const_Const, __om_load_keys__, 0
+.else
+	.alias InitKeyboard = no_op
+.endif
+
+.ifdef __om_load_keys_to_memory
+	.data = array(__om_key_list, 104)
+	:__om_load_keys__:
+		@Load(%__om_key_list[#OM_KEY_NO_KEY_PRESS], #__OM_KEYCODE_NO_KEY_PRESS)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_ENTER], #__OM_KEYCODE_ENTER)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_TAB], #__OM_KEYCODE_TAB)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_BACKSPACE], #__OM_KEYCODE_BACKSPACE)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_ESCAPE], #__OM_KEYCODE_ESCAPE)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_UP_ARROW], #__OM_KEYCODE_UP_ARROW)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_DOWN_ARROW], #__OM_KEYCODE_DOWN_ARROW)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_RIGHT_ARROW], #__OM_KEYCODE_RIGHT_ARROW)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_LEFT_ARROW], #__OM_KEYCODE_LEFT_ARROW)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_SPACE], #__OM_KEYCODE_SPACE)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_EXCLAMATION], #__OM_KEYCODE_EXCLAMATION)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_DOUBLE_QUOTE], #__OM_KEYCODE_DOUBLE_QUOTE)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_POUND], #__OM_KEYCODE_POUND)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_DOLLAR], #__OM_KEYCODE_DOLLAR)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_PERCENT], #__OM_KEYCODE_PERCENT)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_AMPERSAND], #__OM_KEYCODE_AMPERSAND)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_SINGLE_QUOTE], #__OM_KEYCODE_SINGLE_QUOTE)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_LEFT_PARENTHESIS], #__OM_KEYCODE_LEFT_PARENTHESIS)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_RIGHT_PARENTHESIS], #__OM_KEYCODE_RIGHT_PARENTHESIS)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_ASTERISK], #__OM_KEYCODE_ASTERISK)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_PLUS], #__OM_KEYCODE_PLUS)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_COMMA], #__OM_KEYCODE_COMMA)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_MINUS], #__OM_KEYCODE_MINUS)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_PERIOD], #__OM_KEYCODE_PERIOD)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_SLASH], #__OM_KEYCODE_SLASH)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_NUM_0], #__OM_KEYCODE_NUM_0)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_NUM_1], #__OM_KEYCODE_NUM_1)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_NUM_2], #__OM_KEYCODE_NUM_2)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_NUM_3], #__OM_KEYCODE_NUM_3)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_NUM_4], #__OM_KEYCODE_NUM_4)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_NUM_5], #__OM_KEYCODE_NUM_5)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_NUM_6], #__OM_KEYCODE_NUM_6)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_NUM_7], #__OM_KEYCODE_NUM_7)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_NUM_8], #__OM_KEYCODE_NUM_8)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_NUM_9], #__OM_KEYCODE_NUM_9)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_COLON], #__OM_KEYCODE_COLON)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_SEMICOLON], #__OM_KEYCODE_SEMICOLON)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_LESS_THAN], #__OM_KEYCODE_LESS_THAN)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_EQUALS], #__OM_KEYCODE_EQUALS)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_GREATER_THAN], #__OM_KEYCODE_GREATER_THAN)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_QUESTION_MARK], #__OM_KEYCODE_QUESTION_MARK)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_AT_SIGN], #__OM_KEYCODE_AT_SIGN)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_LEFT_SQUARE_BRACKET], #__OM_KEYCODE_LEFT_SQUARE_BRACKET)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_BACKSLASH], #__OM_KEYCODE_BACKSLASH)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_RIGHT_SQUARE_BRACKET], #__OM_KEYCODE_RIGHT_SQUARE_BRACKET)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_CARET], #__OM_KEYCODE_CARET)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_UNDERSCORE], #__OM_KEYCODE_UNDERSCORE)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_GRAVE_ACCENT], #__OM_KEYCODE_GRAVE_ACCENT)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_LEFT_CURLY_BRACKET], #__OM_KEYCODE_LEFT_CURLY_BRACKET)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_VERTICAL_BAR], #__OM_KEYCODE_VERTICAL_BAR)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_RIGHT_CURLY_BRACKET], #__OM_KEYCODE_RIGHT_CURLY_BRACKET)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_TILDE], #__OM_KEYCODE_TILDE)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_a], #__OM_KEYCODE_a)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_b], #__OM_KEYCODE_b)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_c], #__OM_KEYCODE_c)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_d], #__OM_KEYCODE_d)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_e], #__OM_KEYCODE_e)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_f], #__OM_KEYCODE_f)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_g], #__OM_KEYCODE_g)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_h], #__OM_KEYCODE_h)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_i], #__OM_KEYCODE_i)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_j], #__OM_KEYCODE_j)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_k], #__OM_KEYCODE_k)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_l], #__OM_KEYCODE_l)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_m], #__OM_KEYCODE_m)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_n], #__OM_KEYCODE_n)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_o], #__OM_KEYCODE_o)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_p], #__OM_KEYCODE_p)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_q], #__OM_KEYCODE_q)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_r], #__OM_KEYCODE_r)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_s], #__OM_KEYCODE_s)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_t], #__OM_KEYCODE_t)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_u], #__OM_KEYCODE_u)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_v], #__OM_KEYCODE_v)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_w], #__OM_KEYCODE_w)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_x], #__OM_KEYCODE_x)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_y], #__OM_KEYCODE_y)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_z], #__OM_KEYCODE_z)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_A], #__OM_KEYCODE_A)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_B], #__OM_KEYCODE_B)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_C], #__OM_KEYCODE_C)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_D], #__OM_KEYCODE_D)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_E], #__OM_KEYCODE_E)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_F], #__OM_KEYCODE_F)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_G], #__OM_KEYCODE_G)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_H], #__OM_KEYCODE_H)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_I], #__OM_KEYCODE_I)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_J], #__OM_KEYCODE_J)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_K], #__OM_KEYCODE_K)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_L], #__OM_KEYCODE_L)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_M], #__OM_KEYCODE_M)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_N], #__OM_KEYCODE_N)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_O], #__OM_KEYCODE_O)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_P], #__OM_KEYCODE_P)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_Q], #__OM_KEYCODE_Q)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_R], #__OM_KEYCODE_R)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_S], #__OM_KEYCODE_S)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_T], #__OM_KEYCODE_T)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_U], #__OM_KEYCODE_U)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_V], #__OM_KEYCODE_V)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_W], #__OM_KEYCODE_W)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_X], #__OM_KEYCODE_X)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_Y], #__OM_KEYCODE_Y)
+		no_op
+		@Load(%__om_key_list[#OM_KEY_Z], #__OM_KEYCODE_Z)
+		no_op
+		ret, Single_Const, 0
+	//end __om_load_keys__
+.endif
+
+.close_include_guard

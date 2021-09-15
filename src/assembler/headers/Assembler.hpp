@@ -8,19 +8,7 @@ namespace Omnia
 {
 	namespace oasm
 	{
-        class PendingLabel
-        {
-            public:
-                inline PendingLabel(OmniaString n, MemAddress a, uint32 l, OmniaString ll) { name = n; addr = a; lineN = l; line = ll; pending = true; }
-
-                OmniaString name;
-                MemAddress addr;
-                bool pending;
-                uint32 lineN;
-                OmniaString line;
-        };
-
-        class PreProcessorOptions
+	    class PreProcessorOptions
         {
             public:
                 inline PreProcessorOptions(void)
@@ -29,6 +17,7 @@ namespace Omnia
                 }
 
                 uint16 passes;
+				std::vector<OmniaString> includePaths;
         };
 
         class Macro : public Validable
@@ -60,7 +49,7 @@ namespace Omnia
             private:
                 std::vector<OmniaString> process(std::vector<OmniaString> lines, PreProcessorOptions options);
                 std::vector<OmniaString> resolveIncludes(std::vector<OmniaString> mainFile, OmniaString curFile);
-                std::vector<OmniaString> resolveIncludes_r(std::vector<OmniaString> mainFile, OmniaString curFile);
+                std::vector<OmniaString> resolveIncludes_r(std::vector<OmniaString> mainFile, OmniaString curFile, int32 level = 0);
                 std::vector<OmniaString> removeComments(std::vector<OmniaString> lines);
                 std::vector<OmniaString> resolveAliases(std::vector<OmniaString> lines);
                 std::vector<OmniaString> resolveMacros(std::vector<OmniaString> lines);
@@ -86,6 +75,7 @@ namespace Omnia
                 PreProcessorOptions m_options;
                 std::vector<Macro> m_macros;
 				word m_nextTopInst;
+				OmniaString m_currentIncludeDir;
 
             public:
                 static PreProcessor s_instance;
@@ -133,9 +123,12 @@ namespace Omnia
 
 				bool p__dbg_symbol_table;
 				bool p__dbg_save_code;
+				bool p__save_final_code;
 				OmniaString p__input_file_path;
 				OmniaString p__output_file_path;
 				OmniaString p__output_file_dbg_table;
+
+				PreProcessorOptions m_options;
 
 				static Assembler* s_instance;
 

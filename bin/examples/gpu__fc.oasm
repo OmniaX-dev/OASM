@@ -1,0 +1,365 @@
+req,                 REQ_ALL,                    512
+call,  Const_Const,   __load__,  0x0000
+:__om_plot_char__:
+pop,	Single_Addr,	%__om_video_plot_data[4]
+pop,	Single_Addr,	%__om_video_plot_data[3]
+pop,	Single_Addr,	%__om_video_plot_data[2]
+pop,	Single_Addr,	%__om_video_plot_data[1]
+pop,	Single_Addr,	%__om_video_plot_data[0]
+cmd,	Const_Const,	PlotChar,		%__om_video_plot_data
+ret,	Single_Const,	0
+:__om_load_screen_size__:
+cmd,	Const_Const,	GetScreenW,				0
+mem,	Addr_Reg,		%__om_screen_size[0],	R31
+cmd,	Const_Const,	GetScreenH,				0
+mem,	Addr_Reg,		%__om_screen_size[1],	R31
+ret,	Single_Const,	0
+:__om_load_colors__:
+mem, Addr_Const, Grey, 0x0
+no_op
+mem, Addr_Const, Red, 0x1
+no_op
+mem, Addr_Const, Green, 0x2
+no_op
+mem, Addr_Const, Yellow, 0x3
+no_op
+mem, Addr_Const, Blue, 0x4
+no_op
+mem, Addr_Const, Magenta, 0x5
+no_op
+mem, Addr_Const, Cyan, 0x6
+no_op
+mem, Addr_Const, White, 0x7
+no_op
+mem, Addr_Const, BrightGrey, 0x8
+no_op
+mem, Addr_Const, BrightRed, 0x9
+no_op
+mem, Addr_Const, BrightGreen, 0xA
+no_op
+mem, Addr_Const, BrightYellow, 0xB
+no_op
+mem, Addr_Const, BrightBlue, 0xC
+no_op
+mem, Addr_Const, BrightMagenta, 0xD
+no_op
+mem, Addr_Const, BrightCyan, 0xE
+no_op
+mem, Addr_Const, BrightWhite, 0xF
+no_op
+ret, Single_Const, 0
+:__om_load_keys__:
+mem, Addr_Const, %__om_key_list[0], 0
+no_op
+mem, Addr_Const, %__om_key_list[1], 10
+no_op
+mem, Addr_Const, %__om_key_list[2], 9
+no_op
+mem, Addr_Const, %__om_key_list[3], 127
+no_op
+mem, Addr_Const, %__om_key_list[4], 27
+no_op
+mem, Addr_Const, %__om_key_list[5], 0x5B41
+no_op
+mem, Addr_Const, %__om_key_list[6], 0x5B42
+no_op
+mem, Addr_Const, %__om_key_list[7], 0x5B43
+no_op
+mem, Addr_Const, %__om_key_list[8], 0x5B44
+no_op
+mem, Addr_Const, %__om_key_list[9], 32
+no_op
+mem, Addr_Const, %__om_key_list[10], $.char('!')
+no_op
+mem, Addr_Const, %__om_key_list[11], $.char('"')
+no_op
+mem, Addr_Const, %__om_key_list[12], $.char('#')
+no_op
+mem, Addr_Const, %__om_key_list[13], $.char('$')
+no_op
+mem, Addr_Const, %__om_key_list[14], $.char('%')
+no_op
+mem, Addr_Const, %__om_key_list[15], $.char('&')
+no_op
+mem, Addr_Const, %__om_key_list[16], 39
+no_op
+mem, Addr_Const, %__om_key_list[17], 40
+no_op
+mem, Addr_Const, %__om_key_list[18], 41
+no_op
+mem, Addr_Const, %__om_key_list[19], $.char('*')
+no_op
+mem, Addr_Const, %__om_key_list[20], $.char('+')
+no_op
+mem, Addr_Const, %__om_key_list[21], 44
+no_op
+mem, Addr_Const, %__om_key_list[22], $.char('-')
+no_op
+mem, Addr_Const, %__om_key_list[23], $.char('.')
+no_op
+mem, Addr_Const, %__om_key_list[24], $.char('/')
+no_op
+mem, Addr_Const, %__om_key_list[25], $.char('0')
+no_op
+mem, Addr_Const, %__om_key_list[26], $.char('1')
+no_op
+mem, Addr_Const, %__om_key_list[27], $.char('2')
+no_op
+mem, Addr_Const, %__om_key_list[28], $.char('3')
+no_op
+mem, Addr_Const, %__om_key_list[29], $.char('4')
+no_op
+mem, Addr_Const, %__om_key_list[30], $.char('5')
+no_op
+mem, Addr_Const, %__om_key_list[31], $.char('6')
+no_op
+mem, Addr_Const, %__om_key_list[32], $.char('7')
+no_op
+mem, Addr_Const, %__om_key_list[33], $.char('8')
+no_op
+mem, Addr_Const, %__om_key_list[34], $.char('9')
+no_op
+mem, Addr_Const, %__om_key_list[35], $.char(':')
+no_op
+mem, Addr_Const, %__om_key_list[36], $.char(';')
+no_op
+mem, Addr_Const, %__om_key_list[37], $.char('<')
+no_op
+mem, Addr_Const, %__om_key_list[38], $.char('=')
+no_op
+mem, Addr_Const, %__om_key_list[39], $.char('>')
+no_op
+mem, Addr_Const, %__om_key_list[40], $.char('?')
+no_op
+mem, Addr_Const, %__om_key_list[41], $.char('@')
+no_op
+mem, Addr_Const, %__om_key_list[42], $.char('[')
+no_op
+mem, Addr_Const, %__om_key_list[43], 92
+no_op
+mem, Addr_Const, %__om_key_list[44], $.char(']')
+no_op
+mem, Addr_Const, %__om_key_list[45], $.char('^')
+no_op
+mem, Addr_Const, %__om_key_list[46], $.char('_')
+no_op
+mem, Addr_Const, %__om_key_list[47], 97
+no_op
+mem, Addr_Const, %__om_key_list[48], $.char('{')
+no_op
+mem, Addr_Const, %__om_key_list[49], $.char('|')
+no_op
+mem, Addr_Const, %__om_key_list[50], $.char('}')
+no_op
+mem, Addr_Const, %__om_key_list[51], $.char('~')
+no_op
+mem, Addr_Const, %__om_key_list[52], $.char('a')
+no_op
+mem, Addr_Const, %__om_key_list[53], $.char('b')
+no_op
+mem, Addr_Const, %__om_key_list[54], $.char('c')
+no_op
+mem, Addr_Const, %__om_key_list[55], $.char('d')
+no_op
+mem, Addr_Const, %__om_key_list[56], $.char('e')
+no_op
+mem, Addr_Const, %__om_key_list[57], $.char('f')
+no_op
+mem, Addr_Const, %__om_key_list[58], $.char('g')
+no_op
+mem, Addr_Const, %__om_key_list[59], $.char('h')
+no_op
+mem, Addr_Const, %__om_key_list[60], $.char('i')
+no_op
+mem, Addr_Const, %__om_key_list[61], $.char('j')
+no_op
+mem, Addr_Const, %__om_key_list[62], $.char('k')
+no_op
+mem, Addr_Const, %__om_key_list[63], $.char('l')
+no_op
+mem, Addr_Const, %__om_key_list[64], $.char('m')
+no_op
+mem, Addr_Const, %__om_key_list[65], $.char('n')
+no_op
+mem, Addr_Const, %__om_key_list[66], $.char('o')
+no_op
+mem, Addr_Const, %__om_key_list[67], $.char('p')
+no_op
+mem, Addr_Const, %__om_key_list[68], $.char('q')
+no_op
+mem, Addr_Const, %__om_key_list[69], $.char('r')
+no_op
+mem, Addr_Const, %__om_key_list[70], $.char('s')
+no_op
+mem, Addr_Const, %__om_key_list[71], $.char('t')
+no_op
+mem, Addr_Const, %__om_key_list[72], $.char('u')
+no_op
+mem, Addr_Const, %__om_key_list[73], $.char('v')
+no_op
+mem, Addr_Const, %__om_key_list[74], $.char('w')
+no_op
+mem, Addr_Const, %__om_key_list[75], $.char('x')
+no_op
+mem, Addr_Const, %__om_key_list[76], $.char('y')
+no_op
+mem, Addr_Const, %__om_key_list[77], $.char('z')
+no_op
+mem, Addr_Const, %__om_key_list[78], $.char('A')
+no_op
+mem, Addr_Const, %__om_key_list[79], $.char('B')
+no_op
+mem, Addr_Const, %__om_key_list[80], $.char('C')
+no_op
+mem, Addr_Const, %__om_key_list[81], $.char('D')
+no_op
+mem, Addr_Const, %__om_key_list[82], $.char('E')
+no_op
+mem, Addr_Const, %__om_key_list[83], $.char('F')
+no_op
+mem, Addr_Const, %__om_key_list[84], $.char('G')
+no_op
+mem, Addr_Const, %__om_key_list[85], $.char('H')
+no_op
+mem, Addr_Const, %__om_key_list[86], $.char('I')
+no_op
+mem, Addr_Const, %__om_key_list[87], $.char('J')
+no_op
+mem, Addr_Const, %__om_key_list[88], $.char('K')
+no_op
+mem, Addr_Const, %__om_key_list[89], $.char('L')
+no_op
+mem, Addr_Const, %__om_key_list[90], $.char('M')
+no_op
+mem, Addr_Const, %__om_key_list[91], $.char('N')
+no_op
+mem, Addr_Const, %__om_key_list[92], $.char('O')
+no_op
+mem, Addr_Const, %__om_key_list[93], $.char('P')
+no_op
+mem, Addr_Const, %__om_key_list[94], $.char('Q')
+no_op
+mem, Addr_Const, %__om_key_list[95], $.char('R')
+no_op
+mem, Addr_Const, %__om_key_list[96], $.char('S')
+no_op
+mem, Addr_Const, %__om_key_list[97], $.char('T')
+no_op
+mem, Addr_Const, %__om_key_list[98], $.char('U')
+no_op
+mem, Addr_Const, %__om_key_list[99], $.char('V')
+no_op
+mem, Addr_Const, %__om_key_list[100], $.char('W')
+no_op
+mem, Addr_Const, %__om_key_list[101], $.char('X')
+no_op
+mem, Addr_Const, %__om_key_list[102], $.char('Y')
+no_op
+mem, Addr_Const, %__om_key_list[103], $.char('Z')
+no_op
+ret, Single_Const, 0
+:__om_delay_on_time_diff:
+pop, Single_Reg, R29
+pop, Single_Reg, R28
+mem, Reg_Reg,	R27,R29
+sub,		Reg_Reg,			R27,					R28
+cmp,		Reg_Addr,			R27,					__om_fps_delta
+jmp,		Single_Const,		JMP_GREATER_OR_EQUALS,	__exceeded_frame_time
+mem,		Reg_Addr,			R28,					__om_fps_delta
+sub,		Reg_Reg,			R28,					R27
+mem,		Reg_Const,			R31,					TU_MILLISECONDS
+cmd,		Const_Reg,			Sleep,					R28
+ret,		Single_Const,		True
+:__exceeded_frame_time:
+ret, 		Single_Const, 		False
+:__main__:
+mem,Addr_Const,__om_fps,30
+mem,Addr_Const,__om_fps_delta,1000
+div,Addr_Addr,__om_fps_delta,__om_fps
+
+cmd, Const_Const, SetVideoMode, VIDEO_MODE_ASCII_GRID
+call, Const_Const, __om_load_screen_size__, 0
+call, Const_Const, __om_load_colors__, 0
+
+call, Const_Const, __om_load_keys__, 0
+mem, Addr_Addr, screenx, %__om_screen_size[0]
+mem, Addr_Addr, screeny, %__om_screen_size[1]
+
+mem, Addr_Const, c, 32
+mem, Addr_Const, c2, 97
+mem, Addr_Const, x2, 1
+mem, Addr_Const, y2, 10
+mem, Addr_Const, toggle, False
+:loop:
+cmd,Const_Const,GetRunningTime,0
+mem,Addr_Reg,time1,R31
+
+cmd,	Const_Const, RefreshScreen,	 0
+mem, Addr_Const, x, 0
+mem, Addr_Const, y, 0
+:x_loop_1:
+call, Const_Const, __om_plot_char__, 5, Single_Addr, x, Single_Addr, y, Single_Addr, c, Single_Addr, Blue, Single_Addr, White
+inc,	Single_Addr,	x
+cmp,	Addr_Addr,	x,	screenx
+jmp,	Single_Const,	JMP_LESS,	x_loop_1
+dec,	Single_Addr,	x
+:y_loop_1:
+call, Const_Const, __om_plot_char__, 5, Single_Addr, x, Single_Addr, y, Single_Addr, c, Single_Addr, Blue, Single_Addr, White
+inc,	Single_Addr,	y
+cmp,	Addr_Addr,	y,	screeny
+jmp,	Single_Const,	JMP_LESS,	y_loop_1
+dec,	Single_Addr,	y
+mem, Addr_Const, x, 0
+:x_loop_2:
+call, Const_Const, __om_plot_char__, 5, Single_Addr, x, Single_Addr, y, Single_Addr, c, Single_Addr, Blue, Single_Addr, White
+inc,	Single_Addr,	x
+cmp,	Addr_Addr,	x,	screenx
+jmp,	Single_Const,	JMP_LESS,	x_loop_2
+mem, Addr_Const, x, 0
+mem, Addr_Const, y, 0
+:y_loop_2:
+call, Const_Const, __om_plot_char__, 5, Single_Addr, x, Single_Addr, y, Single_Addr, c, Single_Addr, Blue, Single_Addr, White
+inc,	Single_Addr,	y
+cmp,	Addr_Addr,	y,	screeny
+jmp,	Single_Const,	JMP_LESS,	y_loop_2
+cmp, Addr_Const, toggle, True
+jmp, Single_Const, JMP_NOT_EQUALS, no_toggle_lbl
+:toggle_lbl:
+inc, Single_Addr, x2
+cmp, Addr_Addr, x2, screenx
+jmp, Single_Const, JMP_LESS, end_toggle
+mem, Addr_Const, toggle, False
+dec, Single_Addr, x2
+jmp, Single_Const, JMP_UNCONDITIONAL, end_toggle
+:no_toggle_lbl:
+dec, Single_Addr, x2
+cmp, Addr_Const, x2, 1
+jmp, Single_Const, JMP_GREATER, end_toggle
+mem, Addr_Const, toggle, True
+:end_toggle:
+call, Const_Const, __om_plot_char__, 5, Single_Addr, x2, Single_Addr, y2, Single_Addr, c2, Single_Addr, Red, Single_Addr, Grey
+cmd, Const_Const, Draw, 0
+:skip_inc:
+cmd,Const_Const,GetRunningTime,0
+mem,Addr_Reg,time2,R31
+
+no_op
+no_op
+no_op
+no_op
+no_op
+no_op
+no_op
+no_op
+no_op
+no_op
+no_op
+call,Const_Const,__om_delay_on_time_diff,2,Single_Addr,time1,Single_Addr,time2
+jmp,			Single_Const,		JMP_UNCONDITIONAL,			loop
+ret,		Single_Const,		0
+:__load__:
+reserve,  Single_Const,  0x008D
+lda_str,                    0x206F,0x6173,0x6D5F,0x7374,0x6162,0x6C65,0x2000
+mem,     Addr_Reg,    __omx_string,    R31
+call,  Const_Const,  __main__,  0x0000
+end,  Single_Reg,   RV

@@ -1,6 +1,6 @@
 .include_guard(fps_oasm)
 
-.include [ostd/timing.oasm]
+.include [sys/timing.oasm]
 
 .command(request, all=64)
 .data = reserve(fps, delta, time1, time2, str, t_sum, t_count, t_diff, t_avg, t_str, index, index2, index_str)

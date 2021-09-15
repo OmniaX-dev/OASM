@@ -1,0 +1,80 @@
+.include_guard(__base_video__oasm__)
+
+.include [colors.oasm]
+.include [../sys/system.oasm]
+
+.ifdef __om_load_colors_to_memory
+	.macro InitVideo(__video_mode) cmd, Const_Const, SetVideoMode, $(__video_mode) "&#" call, Const_Const, __om_load_screen_size__, 0 "&#" call, Const_Const, __om_load_colors__, 0
+.else
+	.macro InitVideo(__video_mode) cmd, Const_Const, SetVideoMode, $(__video_mode) "&#" call, Const_Const, __om_load_screen_size__, 0
+.endif
+.macro SetVideoMode(__video_mode) cmd, Const_Const, SetVideoMode, $(__video_mode)
+.macro PlotChar(__x, __y, __char, __bg_col, __fg_col) call, Const_Const, __om_plot_char__, 5, Single_Addr, $(__x), Single_Addr, $(__y), Single_Addr, $(__char), Single_Addr, $(__bg_col), Single_Addr, $(__fg_col)
+.macro GetScreenSize(__out_x, __out_y) mem, Addr_Addr, $(__out_x), %__om_screen_size[0] "&#" mem, Addr_Addr, $(__out_y), %__om_screen_size[1] 
+.alias ClearScreen = cmd,	Const_Const, RefreshScreen,	 0
+.alias Draw = cmd, Const_Const, Draw, 0
+
+.data = array(__om_video_plot_data, 5)
+.data = array(__om_screen_size, 2)
+
+:__om_plot_char__:
+	pop,	Single_Addr,	%__om_video_plot_data[4]  //fg color
+	pop,	Single_Addr,	%__om_video_plot_data[3]  //bg color
+	pop,	Single_Addr,	%__om_video_plot_data[2]  //char
+	pop,	Single_Addr,	%__om_video_plot_data[1]  //y
+	pop,	Single_Addr,	%__om_video_plot_data[0]  //x
+
+	cmd,	Const_Const,	PlotChar,		%__om_video_plot_data
+	ret,	Single_Const,	0
+//End __om_plot_char__
+
+:__om_load_screen_size__:
+	cmd,	Const_Const,	GetScreenW,				0
+	mem,	Addr_Reg,		%__om_screen_size[0],	R31
+	cmd,	Const_Const,	GetScreenH,				0
+	mem,	Addr_Reg,		%__om_screen_size[1],	R31
+	ret,	Single_Const,	0
+//End __om_load_screen_size__
+
+
+.ifdef __om_load_colors_to_memory
+	.data = reserve(Grey, Red, Green, Yellow, Blue, Magenta, Cyan, White)
+	.data = reserve(BrightGrey, BrightRed, BrightGreen, BrightYellow, BrightBlue, BrightMagenta, BrightCyan, BrightWhite)
+	:__om_load_colors__:
+		@Load(Grey, #OM_GREY)
+		no_op
+		@Load(Red, #OM_RED)
+		no_op
+		@Load(Green, #OM_GREEN)
+		no_op
+		@Load(Yellow, #OM_YELLOW)
+		no_op
+		@Load(Blue, #OM_BLUE)
+		no_op
+		@Load(Magenta, #OM_MAGENTA)
+		no_op
+		@Load(Cyan, #OM_CYAN)
+		no_op
+		@Load(White, #OM_WHITE)
+		no_op
+		@Load(BrightGrey, #OM_BRIGHT_GREY)
+		no_op
+		@Load(BrightRed, #OM_BRIGHT_RED)
+		no_op
+		@Load(BrightGreen, #OM_BRIGHT_GREEN)
+		no_op
+		@Load(BrightYellow, #OM_BRIGHT_YELLOW)
+		no_op
+		@Load(BrightBlue, #OM_BRIGHT_BLUE)
+		no_op
+		@Load(BrightMagenta, #OM_BRIGHT_MAGENTA)
+		no_op
+		@Load(BrightCyan, #OM_BRIGHT_CYAN)
+		no_op
+		@Load(BrightWhite, #OM_BRIGHT_WHITE)
+		no_op
+		ret, Single_Const, 0
+	//end __om_load_colors__
+.endif
+
+.close_include_guard

@@ -1,6 +1,6 @@
 #include "Assembler.hpp"
 #include <iostream>
-
+#include <filesystem>
 #include <fstream>
 
 namespace Omnia
@@ -34,6 +34,7 @@ namespace Omnia
             if (!m_def_stack.empty()) m_def_stack.clear();
             if (!m_struct_defs.empty()) m_struct_defs.clear();
             currentFile = fileName;
+            lineNumber = 0;
             return process(lines, options);
         }
 
@@ -54,23 +55,23 @@ namespace Omnia
             if (finalCode.size() == 0) return std::vector<OmniaString>();
 			finalCode = resolveDataDirective(finalCode);
             if (finalCode.size() == 0) return std::vector<OmniaString>();
-            m_dataSection.insert(m_dataSection.begin(), StringBuilder("reserve,         Single_Const,       ").add(Utils::intToHexStr(m_reserveCount)).get());
+            m_dataSection.insert(m_dataSection.begin(), StringBuilder("reserve,  Single_Const,  ").add(Utils::intToHexStr(m_reserveCount)).get());
             m_dataSection.insert(m_dataSection.begin(), ":__load__:");
-            m_dataSection.push_back("call,               Const_Const,                   __main__,                  0x0000");
-            m_dataSection.push_back("end,               Single_Reg,                   RV");
-			for (auto& _line : finalCode)
+            m_dataSection.push_back("call,  Const_Const,  __main__,  0x0000");
+            m_dataSection.push_back("end,  Single_Reg,   RV");
+			/*for (auto& _line : finalCode)
 			{
 				_line = _line.replaceAll(" ", "");
 				_line = _line.replaceAll("\t", "");
 				_line = _line.replaceAll("\n", "");
-			}
-            for (auto& _line : m_dataSection)
+			}*/
+            /*for (auto& _line : m_dataSection)
 			{
 				_line = _line.replaceAll(" ", "");
 				_line = _line.replaceAll("\t", "");
 				_line = _line.replaceAll("\n", "");
-			}
-            finalCode.insert(finalCode.begin() + m_nextTopInst++, OmniaString("call,              Const_Const,                    __load__,             0x0000"));
+			}*/
+            finalCode.insert(finalCode.begin() + m_nextTopInst++, OmniaString("call,  Const_Const,   __load__,  0x0000"));
             return finalCode;
         }
 
@@ -417,7 +418,11 @@ namespace Omnia
 
         std::vector<OmniaString> PreProcessor::resolveIncludes(std::vector<OmniaString> mainFile, OmniaString curFile)
         {
+            getOutputHandler()->fc_brightWhite().print(Utils::duplicateChar('=', 20));
+            getOutputHandler()->fc_cyan().print("[ Inclusion tree ]");
+            getOutputHandler()->fc_brightWhite().print(Utils::duplicateChar('=', 20)).newLine();
             std::vector<OmniaString> ilines = resolveIncludes_r(mainFile, curFile);
+            getOutputHandler()->fc_brightWhite().print(Utils::duplicateChar('=', 58)).newLine().newLine();
             std::vector<OmniaString> nlines;
             bool include_skip = false;
             uint32 grdCount = 0;
@@ -461,13 +466,18 @@ namespace Omnia
             return nlines;
         }
         
-        std::vector<OmniaString> PreProcessor::resolveIncludes_r(std::vector<OmniaString> mainFile, OmniaString curFile)
+        std::vector<OmniaString> PreProcessor::resolveIncludes_r(std::vector<OmniaString> mainFile, OmniaString curFile, int32 level)
         {
             _line = "";
             lineNumber = 0;
             currentFile = curFile;
+            if (!curFile.contains("/"))
+                m_currentIncludeDir = ".";
+            else
+                m_currentIncludeDir = curFile.substr(0, curFile.lastIndexOf("/")).trim();
             std::vector<OmniaString> incl;
             std::vector<OmniaString> tmp;
+            getOutputHandler()->fc_brightGrey().print(Utils::duplicateChar(' ', level * 2)).fc_cyan().print("@").fc_magenta().print(curFile).newLine().tc_reset();
             for (auto& l : mainFile) //Includes round
             {
                 _line = l;
@@ -484,15 +494,49 @@ namespace Omnia
                     return std::vector<OmniaString>();
                 }
                 line = line.substr(1, line.length() - 1).trim();
-                if (!Utils::readFile(line, incl))
+                OmniaString __ln = StringBuilder(m_currentIncludeDir).add("/").add(line).get();
+                bool __inc_found = false;
+                if (std::filesystem::exists(__ln.cpp()))
                 {
-                    error(ePreProcessorErrors::FailedToOpenFile, OmniaString("File in .include directive could not be found.").add(line), true);
+                    line = __ln;
+                    __inc_found = true;
+                }
+                else
+                {
+                    for (auto __inc_dir : m_options.includePaths)
+                    {
+                        __inc_dir = __inc_dir.trim();
+                        if (!__inc_dir.endsWith("/")) __inc_dir.add("/");
+                        OmniaString __new_path = StringBuilder(__inc_dir).add(line).get();
+                        __new_path = __new_path.replaceAll("//", "/");
+                        if (std::filesystem::exists(__new_path.cpp()))
+                        {
+                            __inc_found = true;
+                            line = __new_path;
+                            break;
+                        }
+                    }
+                }
+                if (!__inc_found || !Utils::readFile(line, incl))
+                {
+                    int32 tx, ty;
+                    Utils::get_terminal_size(tx, ty);
+                    getOutputHandler()->newLine().print(Utils::duplicateChar('=', tx));
+                    error(ePreProcessorErrors::FailedToOpenFile, OmniaString("File in .include directive could not be found. ").add(line), true);
+                    getOutputHandler()->fc_red().print("In File ").fc_magenta().print(curFile).newLine();
+                    getOutputHandler()->fc_cyan();
+                    getOutputHandler()->print("    ").print((int32)lineNumber).print("    ").fc_brightWhite().print(_line).newLine().tc_reset();
+                    getOutputHandler()->print(Utils::duplicateChar('=', tx)).newLine().newLine();
                     return std::vector<OmniaString>();
                 }
                 if (incl.size() > 0)
                 {
-                    std::vector<OmniaString> nincl = resolveIncludes_r(incl, line);
+                    int32 ln = (signed)lineNumber;
+                    OmniaString __tmp_cid = m_currentIncludeDir;
+                    std::vector<OmniaString> nincl = resolveIncludes_r(incl, line, level + 1);
                     tmp.insert(tmp.end(), nincl.begin(), nincl.end());
+                    lineNumber = ln;
+                    m_currentIncludeDir = __tmp_cid;
                 }
             }
             return tmp;
@@ -754,6 +798,7 @@ namespace Omnia
 			OutputManager &out = *getOutputHandler();
             p__dbg_symbol_table = false;
             p__dbg_save_code = false;
+            p__save_final_code = false;
 			p__input_file_path = "";
             p__output_file_path = "";
             p__output_file_dbg_table = "";
@@ -789,6 +834,16 @@ namespace Omnia
 					{
                         p__dbg_save_code = true;
                     }
+                    else if (OmniaString(argv[i]).trim().equals("--include-path") || OmniaString(argv[i]).trim().equals("-I"))
+					{
+						if (i + 1 >= argc) continue; //TODO: Warning
+						i++;
+                        m_options.includePaths.push_back(OmniaString(argv[i]));
+                    }
+                    else if (OmniaString(argv[i]).trim().equals("--save-final-code") || OmniaString(argv[i]).trim().equals("-SC"))
+					{
+                        p__save_final_code = true;
+                    }
 				}
 			}
             if (p__dbg_save_code && !p__dbg_symbol_table) p__dbg_save_code = false;
@@ -820,7 +875,7 @@ namespace Omnia
             writeFile.open(__outputFile.cpp(), std::ios::out | std::ios::binary);
             writeFile.write((char*)(&__program[0]), __program.size() * sizeof(word));
             writeFile.close();
-            getOutputHandler()->print("*** Generated executable file: ").print(__outputFile).print(" (").print((int64)(__program.size() * sizeof(BitEditor))).print(" bytes)").newLine();
+            getOutputHandler()->print("*** Generated executable file: <").print(__outputFile).print("> (").print((int64)(__program.size() * sizeof(BitEditor))).print(" bytes)").newLine();
             return true;
         }
 
@@ -863,13 +918,13 @@ namespace Omnia
                 writeFile << "}";
             }
             writeFile.close();
-            getOutputHandler()->print("*** Generated debug-file: ").print(__outputFile).newLine();
+            getOutputHandler()->print("*** Generated debug-file: <").print(__outputFile).print(">").newLine();
             return true;
         }
 
 		TMemoryList Assembler::assemble(OmniaString __source_file_path)
 		{
-            std::vector<OmniaString> __source = PreProcessor::instance().open(__source_file_path);
+            std::vector<OmniaString> __source = PreProcessor::instance().open(__source_file_path, m_options);
             std::vector<OmniaString> source = PreProcessor::instance().m_dataSection;
             source.insert(source.begin(), __source.begin(), __source.end());
             if (p__dbg_save_code)
@@ -886,6 +941,15 @@ namespace Omnia
                     __curr_addr += __st.count();
                 }
                 PreProcessor::instance().m_symTable.m_source = __dbg_src;
+            }
+            if (p__save_final_code)
+            {
+                OmniaString __sfc_file = p__output_file_path.substr(0, p__output_file_path.lastIndexOf(".")).add("__fc.oasm");
+                std::ofstream __fc_file(__sfc_file.cpp(), std::ofstream::out | std::ofstream::trunc);
+                for (auto& line : source)
+                    __fc_file << line.cpp() << "\n";
+                __fc_file.close();
+                getOutputHandler()->print("*** Generated final-step code: <").print(__sfc_file).print(">").newLine();
             }
 			std::vector<OmniaString> code = resolveKeyWords(source);
 			return assemble(code);
