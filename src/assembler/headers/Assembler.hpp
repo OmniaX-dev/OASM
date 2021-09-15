@@ -108,6 +108,7 @@ namespace Omnia
 				TMemoryList assemble(std::vector<OmniaString>& __source);
 				TMemoryList assemble(OmniaString __source_file_path);
 				std::vector<OmniaString> resolveKeyWords(std::vector<OmniaString> lines);
+				OmniaString executeAssemblerFunction(OmniaString __func);
                 inline static bool isKeyword(OmniaString __kw, word& outKeyword)
 				{
 					if (Assembler::m_keyWords.count(__kw.cpp()) != 0)

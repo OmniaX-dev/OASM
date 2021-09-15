@@ -1,0 +1,97 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"hasInstallRule" : true,
+					"jsonFile" : "directory-.-Debug-2d8cb15a2be5c63c2ad4.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.21.2"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "OmniaScript",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "IncBnr::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-IncBnr-Debug-85b6459c6c47b1de4a96.json",
+					"name" : "IncBnr",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "oasm-as::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-oasm-as-Debug-745500bbfbfe9f1629c7.json",
+					"name" : "oasm-as",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "oasm-dbg::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-oasm-dbg-Debug-a2d115081c32bcb652e2.json",
+					"name" : "oasm-dbg",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "oasm-lib::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-oasm-lib-Debug-ea37a58a1796f84fffdb.json",
+					"name" : "oasm-lib",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "oasm-vm::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-oasm-vm-Debug-74294366d530d72d69e5.json",
+					"name" : "oasm-vm",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/sylar/Git Repos/OASM/build",
+		"source" : "/home/sylar/Git Repos/OASM/src"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 3
+	}
+}

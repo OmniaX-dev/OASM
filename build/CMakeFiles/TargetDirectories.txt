@@ -1,0 +1,11 @@
+/home/sylar/Git Repos/OASM/build/CMakeFiles/install/strip.dir
+/home/sylar/Git Repos/OASM/build/CMakeFiles/install/local.dir
+/home/sylar/Git Repos/OASM/build/CMakeFiles/install.dir
+/home/sylar/Git Repos/OASM/build/CMakeFiles/list_install_components.dir
+/home/sylar/Git Repos/OASM/build/CMakeFiles/rebuild_cache.dir
+/home/sylar/Git Repos/OASM/build/CMakeFiles/IncBnr.dir
+/home/sylar/Git Repos/OASM/build/CMakeFiles/oasm-lib.dir
+/home/sylar/Git Repos/OASM/build/CMakeFiles/edit_cache.dir
+/home/sylar/Git Repos/OASM/build/CMakeFiles/oasm-dbg.dir
+/home/sylar/Git Repos/OASM/build/CMakeFiles/oasm-as.dir
+/home/sylar/Git Repos/OASM/build/CMakeFiles/oasm-vm.dir

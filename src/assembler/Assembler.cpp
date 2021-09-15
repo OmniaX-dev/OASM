@@ -914,6 +914,48 @@ namespace Omnia
 			return __code;
 		}
 		
+		OmniaString Assembler::executeAssemblerFunction(OmniaString __func)
+        {
+            StringBuilder __generated_code;
+            
+            if (!__func.contains("(") || !__func.contains(")") || __func.lastIndexOf(")") <= __func.indexOf("("))
+            {
+                //TODO: Error
+                std::cout << "Err 1 - Invalid syntax for assembler command: ";
+                std::cout << "$." << __func.cpp() << "\n";
+                return OmniaString("$.").add(__func);
+            }
+            OmniaString __params = __func.substr(__func.indexOf("(") + 1, __func.lastIndexOf(")")).trim();
+            if (__func.startsWith("char"))
+            {
+                if (__params.length() < 3 || !__params.startsWith("\'") || !__params.endsWith("\'"))
+                {
+                    //TODO: Error
+                    std::cout << "Err 2 - Invalid parameter for assembler command: ";
+                    std::cout << "$." << __func.cpp() << "\n";
+                    return OmniaString("$.").add(__func);
+                }
+                __params = __params.replaceAll("\\", "");
+                __params = __params.substr(1, __params.length() - 1);
+                if (__params.length() == 1)
+                    __generated_code.add((int32)__params[0]);
+                else
+                {
+                    //TODO: Error
+                    std::cout << "Err 3 - Invalid parameter for assembler command: ";
+                    std::cout << "$." << __func.cpp() << "\n";
+                    return OmniaString("$.").add(__func);
+                }
+            }
+            else
+            {
+                //TODO: Error
+                std::cout << "Err 4 - Unknown assembler command: ";
+                std::cout << "$." << __func.cpp() << "\n";
+                return OmniaString("$.").add(__func);
+            }
+            return __generated_code.get();
+        }
 
 		std::vector<OmniaString> Assembler::resolveKeyWords(std::vector<OmniaString> lines)
 		{
@@ -994,7 +1036,12 @@ namespace Omnia
 					{
 						__new_line.add(Utils::intToHexStr(__addr)).add(",");
 					}
-					else
+					else if (__data.startsWith("$."))
+                    {
+                        OmniaString __as_cmd = __data.substr(2).trim();
+                        __new_line.add(executeAssemblerFunction(__as_cmd)).add(",");
+                    }
+                    else
 					{
 						//TODO: Error
 						std::cout << "Unknown symbol: ";
