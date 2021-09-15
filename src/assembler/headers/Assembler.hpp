@@ -34,7 +34,7 @@ namespace Omnia
                 OmniaString name;
         };
 
-        class PreProcessor : public IOReciever, public ErrorReciever
+        class PreProcessor : public IOReciever, public CompileErrorReciever
         {
             public:
                 inline static PreProcessor& instance(void) { return s_instance; }
@@ -56,8 +56,6 @@ namespace Omnia
 				std::vector<OmniaString> resolveCommandDirective(std::vector<OmniaString> lines);
 				std::vector<OmniaString> resolveDataDirective(std::vector<OmniaString> lines);
 				std::vector<OmniaString> resolveDefines(std::vector<OmniaString> lines);
-
-                void error(ePreProcessorErrors err, OmniaString msg, bool skipFileInfo = false);
 
             private:
                 OmniaString _line;
@@ -87,7 +85,7 @@ namespace Omnia
 
         inline PreProcessor PreProcessor::s_instance;
 		
-		class Assembler : public IOReciever, public ErrorReciever
+		class Assembler : public IOReciever, public CompileErrorReciever
 		{
 			public:
 				inline static Assembler& instance(void) { return *Assembler::s_instance; }
@@ -117,6 +115,7 @@ namespace Omnia
 					}
 					return false;
 				}
+				
 
 			private:
 				std::map<_string, MemAddress> m_labels;

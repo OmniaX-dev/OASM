@@ -11,16 +11,17 @@
 ***	Add bool info to all message(...) calls
 *** Add include directories option for assembler
 *** Add option to save oasm code before final assemble step
+*** Add info when using the "assemble" top-level command
+*** Unhide cursor on exit
 
 
 
--	Add info when using the "assemble" top-level command
 -	Add reset function to debugger
 -	Add offset to data-view in debugger
--	Unhide cursor on exit
--	clear scren on exit
+-	clear screen on exit
 -	Remove __MINOR_VER__ and __MAJOR_VER__ from Utils.hpp (move to source file)
 -	Move assembler commands execution to separate loop (to avoid tokenization of commas inside the command)
+-	Make .def, .undef, .ifdef, ifndef, only effective if inside vali block
 
 %	Fix bug where two macro calls one after the other causes assembler error
 %	Fix bug where an error occurs on the <end> instruction of "oasm_test_1" (and other scripts too) (hacked disableSafeMode before executing tick to solve this temporarily)

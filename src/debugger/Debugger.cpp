@@ -310,7 +310,7 @@ namespace Omnia
 				out.print(m_prompt);
 				out.tc_reset();
 				in.read(m_cmd_input);
-				m_cmd_input = m_cmd_input.trim().toLowerCase();
+				m_cmd_input = m_cmd_input.trim();
 				if (m_cmd_input == "run" || m_cmd_input == "r")
 				{
 					m_mode = eDebuggerMode::Normal;

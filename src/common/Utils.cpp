@@ -474,6 +474,30 @@ namespace Omnia
 			putp( tparm( tigetstr( "cup" ), y, x, 0, 0, 0, 0, 0, 0, 0 ) );
 		}
 
-		#endif 
+		#endif
+
+        void Utils::message(OmniaString __msg, OutputManager& out, eMsgType __type)
+        {
+            out.tc_reset();
+            if (__type == eMsgType::Info) out.fc_magenta();
+            else if (__type == eMsgType::Success) out.fc_green();
+            else if (__type == eMsgType::Error) out.fc_red();
+            else if (__type == eMsgType::Special) out.fc_cyan();
+            else if (__type == eMsgType::Warning) out.fc_yellow();
+            else if (__type == eMsgType::Version) out.fc_brightYellow();
+            out.print("*** ").print(__msg);
+            out.tc_reset().newLine();
+        }
+
+        void Utils::printTitle(OmniaString __title, OutputManager& out, word __line_length)
+		{
+			__title = StringBuilder("[ ").add(__title).add(" ]").get();
+			word __l = (__line_length / 2) - (__title.length() / 2);
+
+            out.fc_brightGrey().print(Utils::duplicateChar('-', __l));
+            out.fc_cyan().print(__title);
+            out.fc_brightGrey().print(Utils::duplicateChar('-', __l)).newLine();
+            out.tc_reset();
+		}
 	}
 }

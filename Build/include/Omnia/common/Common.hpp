@@ -112,6 +112,57 @@ namespace Omnia
 				SR_CallTree m_callTree;
 
 		};
+
+		class CompileErrorReciever
+		{
+			public:
+				inline CompileErrorReciever(void) {  }
+				virtual ErrorCode printError(ErrorCode __err, OutputManager& out, OmniaString __extra_info = "", OmniaString __line = "", OmniaString __file = "", int32 __line_number = -1, bool __print_end_line = true);
+
+			public:
+				inline static std::map<const ErrorCode, const OmniaString> __error_map = {
+					{ D__NO_ERROR, "No Error." },
+					{ D__ASSEMBLER_ERR_NO_INPUT_FILE, "Error: No input file specified." },
+					{ D__ASSEMBLER_ERR_NO_OUTPUT_FILE, "Error: No output file specified." },
+					{ D__ASSEMBLER_ERR_FAILED_TO_CREATE_EXEC, "Error: Failed to create executable file." },
+					{ D__ASSEMBLER_ERR_FAILED_TO_CREATE_DBG_FILE, "Error: Failed to create debug-file." },
+					{ D__ASSEMBLER_ERR_INVALID_ASSEMBLER_TOKEN, "Error: Invalid statement." },
+					{ D__ASSEMBLER_ERR_INVALID_LABEL_NAME, "Error: Invalid label definition." },
+					{ D__ASSEMBLER_ERR_UNKNOWN_SYMBOL, "Error: Unknown symbol." },
+					{ D__ASSEMBLER_ERR_NON_CONST_ARRAY_INDEX, "Error: Non-const array index." },
+					{ D__ASSEMBLER_ERR_INVALID_AS_CMD_SYNTAX, "Error: Invalid assembler-command syntax." },
+					{ D__ASSEMBLER_ERR_INVALID_AS_CMD_PARAM, "Error: Invalid assembler-command param." },
+					{ D__ASSEMBLER_ERR_UNKNOWN_AS_CMD, "Error: Unknown assembler-command." },
+					
+					{ D__ASSEMBLER_ERR_FAILED_TO_OPEN_INPUT_FILE, "Error: Failed to open input file." },
+					{ D__ASSEMBLER_ERR_EMPTY_IMPUT_FILE, "Error: Input file is empty." },
+					{ D__ASSEMBLER_ERR_RESOLVE_INCLUDES_FAILED, "Error: Failed to resolve includes." },
+					{ D__ASSEMBLER_ERR_REMOVE_COMMENTS_FAILED, "Error: Failed to remove comments." },
+					{ D__ASSEMBLER_ERR_RESOLVE_DEFINES_FAILED, "Error: Failed to resolve defines." },
+					{ D__ASSEMBLER_ERR_RESOLVE_ALIASES_FAILED, "Error: Failed to resolve aliases." },
+					{ D__ASSEMBLER_ERR_RESOLVE_MACROS_FAILED, "Error: Failed to resolve macros." },
+					{ D__ASSEMBLER_ERR_RESOLVE_CMD_DIRECTIVE_FAILED, "Error: Failed to resolve command directives." },
+					{ D__ASSEMBLER_ERR_RESOLVE_DATA_DIRECTIVE_FAILED, "Error: Failed to resolve data directives." },
+					{ D__ASSEMBLER_ERR_MISSING_PARENTH_IN_COMMAND_DIRECTIVE, "Error: Missing parenthesis in command directive." },
+					{ D__ASSEMBLER_ERR_FEW_ARGS_IN_COMMAND_DIRECTIVE, "Error: Invalid number of arguments in command directive." },
+					{ D__ASSEMBLER_ERR_MISSING_EQUALS_IN_COMMAND_DIRECTIVE, "Error: Missing equals sign in command directive." },
+					{ D__ASSEMBLER_ERR_MISSING_PARENTH_IN_END_STRUCT_DIRECTIVE, "Error: Missing parenthesis in end-struct directive." },
+					{ D__ASSEMBLER_ERR_MISSING_EQUALS_IN_DATA_DIRECTIVE, "Error: Missing equals sign in data directive." },
+					{ D__ASSEMBLER_ERR_MISSING_PARENTH_IN_RESERVE_DIRECTIVE, "Error: Missing parenthesis in reserve directive." },
+					{ D__ASSEMBLER_ERR_MISSING_PARENTH_IN_ARRAY_DIRECTIVE, "Error: Missing parenthesis in array directive." },
+					{ D__ASSEMBLER_ERR_WRONG_ARGS_IN_ARRAY_DIRECTIVE, "Error: Invalid number of arguments in array directive." },
+					{ D__ASSEMBLER_ERR_NON_INT_ARRAY_SIZE, "Error: Non-Integer array size." },
+					{ D__ASSEMBLER_ERR_MISSING_PARENTH_IN_LOAD_STRING_DIRECTIVE, "Error: Missing parenthesis in load_string directive." },
+					{ D__ASSEMBLER_ERR_WRONG_ARGS_IN_LOAD_STRING_DIRECTIVE, "Error: Invalid number of arguments in load_string directive." },
+					{ D__ASSEMBLER_ERR_MISSING_DOUBLE_QUOTE_IN_LOAD_STRING_DIR, "Error: Missing double-quote in load_string directive." },
+					{ D__ASSEMBLER_ERR_SYM_NOT_FOUND_IN_LOAD_STRING_DIRECTIVE, "Error: Invalid variable in load_string directive." },
+					{ D__ASSEMBLER_ERR_MISSING_PARENTH_IN_STRUCT_DIRECTIVE, "Error: Missing parenthesis in struct directive." },
+					{ D__ASSEMBLER_ERR_MISSING_EQUALS_IN_ALIAS_DIRECTIVE, "Error: Missing equals sign in alias directive." },
+					{ D__ASSEMBLER_ERR_INVALID_MACRO_SYNTAX, "Error: Invalid macro syntax." },
+					{ D__ASSEMBLER_ERR_MISSING_SQUARE_BRACKET_IN_INCLUDE_DIR, "Error: Missing square-bracket in include directive." },
+					{ D__ASSEMBLER_ERR_UNABLE_TO_READ_FILE_IN_INCLUDE_DIRECTIVE, "Error: Unable to read file in include directive." }
+				};
+		};
 		
 		class ErrorReciever
 		{

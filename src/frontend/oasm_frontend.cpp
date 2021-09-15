@@ -9,8 +9,10 @@
 #endif
 
 #define __exit_verbose(__base_instance, __err_code) \
-	__base_instance.getOutputHandler()->newLine().newLine().print("*** Exit Error: ").print(Omnia::common::Utils::intToHexStr(__err_code)).newLine().newLine(); \
+	if (__err_code != D__NO_ERROR) \
+		__base_instance.getOutputHandler()->newLine().fc_red().print("*** Exit Error: ").print(Omnia::common::Utils::intToHexStr(__err_code)).newLine().newLine(); \
 	Omnia::common::Utils::hideCursor(false); \
+	__base_instance.getOutputHandler()->tc_reset(); \
 	return __err_code;
 
 int main(int argc, char** argv)
@@ -19,20 +21,30 @@ int main(int argc, char** argv)
 #ifdef __COMPILE_AS__   //Assembler frontend
 	Omnia::common::Utils::init();
 
-	Omnia::oasm::Assembler::instance().getOutputHandler()->newLine().print("oasm_as: version ")
-	.print((long int)Omnia::eVersion::Major).print(".").print((long int)Omnia::eVersion::Minor)
-	.print(".").print((long int)Omnia::eVersion::Build).newLine().newLine();
+	Omnia::common::StringBuilder __ver("oasm_as: version ");
+	__ver.add((long int)Omnia::eVersion::Major).add(".").add((long int)Omnia::eVersion::Minor)
+	.add(".").add((long int)Omnia::eVersion::Build);
+
+	Omnia::oasm::Assembler::instance().getOutputHandler()->newLine();
+	Omnia::common::Utils::message(__ver.get(), *Omnia::oasm::Assembler::instance().getOutputHandler(), Omnia::eMsgType::Version);
+	Omnia::oasm::Assembler::instance().getOutputHandler()->newLine();
 
 	Omnia::common::ErrorCode __err = Omnia::oasm::Assembler::instance().run(argc, argv);
-
-	__exit_verbose(Omnia::oasm::Assembler::instance(), __err)
+	Omnia::oasm::Assembler::instance().getOutputHandler()->tc_reset();
+	Omnia::common::Utils::hideCursor(false);
+	
+	return __err;
 
 #elif defined(__COMPILE_VM__)  //Interpreter frontend
 	Omnia::common::Utils::init();
 
-	Omnia::oasm::Interpreter::instance().getOutputHandler()->newLine().print("oasm_vm: version ")
-	.print((long int)Omnia::eVersion::Major).print(".").print((long int)Omnia::eVersion::Minor)
-	.print(".").print((long int)Omnia::eVersion::Build).newLine().newLine();
+	Omnia::common::StringBuilder __ver("oasm_as: version ");
+	__ver.add((long int)Omnia::eVersion::Major).add(".").add((long int)Omnia::eVersion::Minor)
+	.add(".").add((long int)Omnia::eVersion::Build);
+
+	Omnia::oasm::Interpreter::instance().getOutputHandler()->newLine();
+	Omnia::common::Utils::message(__ver.get(), *Omnia::oasm::Interpreter::instance().getOutputHandler(), Omnia::eMsgType::Version);
+	Omnia::oasm::Interpreter::instance().getOutputHandler()->newLine();
 
 	Omnia::common::ErrorCode __err = Omnia::oasm::Interpreter::instance().run(argc, argv);
 
@@ -42,7 +54,7 @@ int main(int argc, char** argv)
 	Omnia::common::Utils::init();
 
 	Omnia::common::ErrorCode __err = Omnia::oasm::Debugger::instance().run(argc, argv);
-
+	Omnia::oasm::Debugger::instance().getOutputHandler()->tc_reset();
 	Omnia::common::Utils::hideCursor(false);
 	return __err;
 

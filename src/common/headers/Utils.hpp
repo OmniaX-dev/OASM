@@ -344,103 +344,11 @@ namespace Omnia
             ForceQuit           =   0xA000,
             ExitSuccess         =   0x000F
         };
-        enum class eOperandType
-        {
-            Invalid = 0,
-            Register,
-            Variable,
-            Integer,
-            OmniaString,
-            Char,
-            VariablePointer,
-            VariableRef,
-            RegisterRef
-        };
-        enum class eVersion
+        enum class eVersion //TODO: Remove definitions from header
         {
             Major = __MAJOR_VER__,
             Minor = __MINOR_VER__,
             Build = __BUILD_NUMBER__
-        };
-        
-        enum class eAssemblerErrors
-        {
-            NoError = 0,
-            WrongReqLocal,
-            WrongReqHeap,
-            WrongReqStack,
-            ReqLocalMissing,
-            ReqHeapMissing,
-            ReqStackMissing,
-            WrongMemInstruction,
-            WrongCatInstruction,
-            UnknownSymbol,
-            UnknownRegister,
-            BadMemAssign,
-            BadCat,
-            CatNoStringSrc,
-            StrAssignToReg,
-            DereferenceReg,
-            BadAllocH,
-            BadEnd,
-            BadFreeH,
-            UnknownPointer,
-            BadFlg,
-            BadDec,
-            BadInc,
-            BadCom,
-            WrongJmpInstruction,
-            BadJmp,
-            UnknownLabel,
-            WrongCmpInstruction,
-            BadCmp,
-            RegOrValCmp,
-            UnknownInstruction,
-            WrongAddInstruction,
-            WrongSubInstruction,
-            WrongMulInstruction,
-            WrongDivInstruction,
-            BadAdd,
-            BadSub,
-            BadMul,
-            BadDiv,
-            FlgValNumeric,
-            UnknownFlgVal,
-            LowDirectiveInt,
-            OpenSRLeft,
-            UnknownDirective
-        };
-        enum class eRuntimeErrors
-        {
-            RequestMemSetFail = 1000,
-            CopyProcFail,
-            CopyProcOutOfBounds,
-            ACCVmemPermission,
-            ACCVmemProtected,
-            ACCVmemStack,
-            ACCVsetPermission,
-            ACCVsetProtected,
-            ACCVsetReadOnly,
-            ACCVsetStack,
-            AssignFault,
-            CMPFlagUnknown,
-            UnknownCommand,
-            DivZero,
-            JMPFlagUnknown,
-            CATFlagUnknown,
-            HeapAllocFail,
-            StackOverflow,
-            PopReg,
-            SPDiscrepancy,
-            EntryPointMissing,
-            EntryPointInvalid
-        };
-        enum class ePreProcessorErrors
-        {
-            FailedToOpenFile,
-            WrongInclDirective,
-            WrongAliasDir,
-            EmptyFile
         };
         enum class ePPMC
         {
@@ -632,6 +540,8 @@ namespace Omnia
                 static uint64 getRunningTime_ms(void);
                 static void hideCursor(bool hide = true);
                 static void moveConsoleCursor(int x, int y);
+                static void message(OmniaString __msg, OutputManager& out, eMsgType __type = eMsgType::Info);
+                static void printTitle(OmniaString __title, OutputManager& out, word __line_length);
 
             private:
                 inline static OmniaString VERSION_STR = "";

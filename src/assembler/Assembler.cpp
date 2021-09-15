@@ -12,14 +12,12 @@ namespace Omnia
             std::vector<OmniaString> lines;
             if (!Utils::readFile(fileName, lines))
             {
-                //TODO: Repllace error
-                error(ePreProcessorErrors::FailedToOpenFile, OmniaString("Failed to open source file: ").add(fileName), true);
+                printError(D__ASSEMBLER_ERR_FAILED_TO_OPEN_INPUT_FILE, *getOutputHandler(), fileName);
                 return std::vector<OmniaString>();
             }
             if (lines.size() == 0)
             {
-                //TODO: Replace error
-                error(ePreProcessorErrors::EmptyFile, OmniaString("Empty source file provided: ").add(fileName), true);
+                printError(D__ASSEMBLER_ERR_EMPTY_IMPUT_FILE, *getOutputHandler(), fileName);
                 return std::vector<OmniaString>();
             }
 			_line = "";
@@ -42,19 +40,47 @@ namespace Omnia
         {
             m_options = options;
             std::vector<OmniaString> finalCode = resolveIncludes(lines, currentFile);
-            if (finalCode.size() == 0) return std::vector<OmniaString>(); //TODO: Diversify errors
+            if (finalCode.size() == 0)
+            {
+                printError(D__ASSEMBLER_ERR_RESOLVE_INCLUDES_FAILED, *getOutputHandler());
+                return std::vector<OmniaString>();
+            }
             finalCode = removeComments(finalCode);
-            if (finalCode.size() == 0) return std::vector<OmniaString>();
+            if (finalCode.size() == 0)
+            {
+                printError(D__ASSEMBLER_ERR_REMOVE_COMMENTS_FAILED, *getOutputHandler());
+                return std::vector<OmniaString>();
+            }
             finalCode = resolveDefines(finalCode);
-            if (finalCode.size() == 0) return std::vector<OmniaString>();
+            if (finalCode.size() == 0)
+            {
+                printError(D__ASSEMBLER_ERR_RESOLVE_DEFINES_FAILED, *getOutputHandler());
+                return std::vector<OmniaString>();
+            }
             finalCode = resolveAliases(finalCode);
-            if (finalCode.size() == 0) return std::vector<OmniaString>();
+            if (finalCode.size() == 0)
+            {
+                printError(D__ASSEMBLER_ERR_RESOLVE_ALIASES_FAILED, *getOutputHandler());
+                return std::vector<OmniaString>();
+            }
             finalCode = resolveMacros(finalCode);
-            if (finalCode.size() == 0) return std::vector<OmniaString>();
+            if (finalCode.size() == 0)
+            {
+                printError(D__ASSEMBLER_ERR_RESOLVE_MACROS_FAILED, *getOutputHandler());
+                return std::vector<OmniaString>();
+            }
 			finalCode = resolveCommandDirective(finalCode);
-            if (finalCode.size() == 0) return std::vector<OmniaString>();
+            if (finalCode.size() == 0)
+            {
+                printError(D__ASSEMBLER_ERR_RESOLVE_CMD_DIRECTIVE_FAILED, *getOutputHandler());
+                return std::vector<OmniaString>();
+            }
 			finalCode = resolveDataDirective(finalCode);
-            if (finalCode.size() == 0) return std::vector<OmniaString>();
+            if (finalCode.size() == 0)
+            {
+                printError(D__ASSEMBLER_ERR_RESOLVE_DATA_DIRECTIVE_FAILED, *getOutputHandler());
+                return std::vector<OmniaString>();
+            }
             m_dataSection.insert(m_dataSection.begin(), StringBuilder("reserve,  Single_Const,  ").add(Utils::intToHexStr(m_reserveCount)).get());
             m_dataSection.insert(m_dataSection.begin(), ":__load__:");
             m_dataSection.push_back("call,  Const_Const,  __main__,  0x0000");
@@ -80,7 +106,7 @@ namespace Omnia
 		{
             std::vector<OmniaString> code;
             lineNumber = 0;
-            currentFile = "Processed_file";
+            currentFile = "Generated_source";
 
 			for (auto& l : lines)
             {
@@ -95,14 +121,14 @@ namespace Omnia
                 OmniaString line = l.substr(8).trim();
                 if (!line.startsWith("(") || !line.endsWith(")"))
                 {
-					//TODO: Add error
+                    printError(D__ASSEMBLER_ERR_MISSING_PARENTH_IN_COMMAND_DIRECTIVE, *getOutputHandler(), "", _line, currentFile);
                     return std::vector<OmniaString>();
                 }
                 line = line.substr(1, line.length() - 1).trim();
 				OmniaString::StringTokens __st = line.tokenize(",", true);
 				if (__st.count() < 2)
 				{
-					//TODO: Add error
+                    printError(D__ASSEMBLER_ERR_FEW_ARGS_IN_COMMAND_DIRECTIVE, *getOutputHandler(), "", _line, currentFile);
 					return std::vector<OmniaString>();
 				}
 				OmniaString __cmd = __st.next().toLowerCase();
@@ -112,7 +138,7 @@ namespace Omnia
 					param = __st.next().toLowerCase();
 					if (!param.contains("="))
 					{
-						//TODO: Add error
+                        printError(D__ASSEMBLER_ERR_MISSING_EQUALS_IN_COMMAND_DIRECTIVE, *getOutputHandler(), "", _line, currentFile);
 						return std::vector<OmniaString>();
 					}
 					value = param.substr(param.indexOf("=") + 1).trim();
@@ -135,7 +161,7 @@ namespace Omnia
 		{
             std::vector<OmniaString> code;
             lineNumber = 0;
-            currentFile = "Processed_file";
+            currentFile = "Generated_source";
             bool __struct = false;
             StringBuilder __struct_code;
             OmniaString __struct_name = "";
@@ -152,7 +178,7 @@ namespace Omnia
                         line = line.substr(11).trim();
                         if (!line.startsWith("(") || !line.endsWith(")"))
                         {
-                            //TODO: Add error
+                            printError(D__ASSEMBLER_ERR_MISSING_PARENTH_IN_END_STRUCT_DIRECTIVE, *getOutputHandler(), "", _line, currentFile);
                             return std::vector<OmniaString>();
                         }
                         line = line.substr(1, line.length() - 1).trim();
@@ -161,7 +187,6 @@ namespace Omnia
                             __struct = false;
                             __struct_name = "";
                             m_struct_defs.push_back(__struct_code.get());
-                            std::cout << "\n\n\n" << m_struct_defs[m_struct_defs.size() - 1].cpp() << "\n\n\n";
                             __struct_code = StringBuilder();
                             continue;
                         }
@@ -177,7 +202,7 @@ namespace Omnia
                 OmniaString line = l.substr(5).trim();
                 if (!line.startsWith("="))
                 {
-					//TODO: Add error
+                    printError(D__ASSEMBLER_ERR_MISSING_EQUALS_IN_DATA_DIRECTIVE, *getOutputHandler(), "", _line, currentFile);
                     return std::vector<OmniaString>();
                 }
                 line = line.substr(1).trim();
@@ -187,8 +212,8 @@ namespace Omnia
 					line = line.substr(7).trim();
                 	if (!line.startsWith("(") || !line.endsWith(")"))
 					{
-						//TODO: Add error
-						return std::vector<OmniaString>();
+                        printError(D__ASSEMBLER_ERR_MISSING_PARENTH_IN_RESERVE_DIRECTIVE, *getOutputHandler(), "", _line, currentFile);
+                        return std::vector<OmniaString>();
 					}
                 	line = line.substr(1, line.length() - 1).trim();
 					__st = line.tokenize(",", true);
@@ -196,7 +221,6 @@ namespace Omnia
 					while (__st.hasNext())
 					{
 						param = __st.next();
-						//m_dataSection.push_back(StringBuilder("reserve,                 Single_Reg,                     R30").get());
 						m_reserves[param.cpp()] = (MemAddress)(m_reserveCount++);
                         m_symTable.m_reserves[(MemAddress)(m_reserveCount - 1)] = param;
 					}
@@ -206,21 +230,21 @@ namespace Omnia
 					line = line.substr(5).trim();
                 	if (!line.startsWith("(") || !line.endsWith(")"))
 					{
-						//TODO: Add error
-						return std::vector<OmniaString>();
+                        printError(D__ASSEMBLER_ERR_MISSING_PARENTH_IN_ARRAY_DIRECTIVE, *getOutputHandler(), "", _line, currentFile);
+                        return std::vector<OmniaString>();
 					}
                 	line = line.substr(1, line.length() - 1).trim();
 					__st = line.tokenize(",", true);
                     if (__st.count() != 2)
                     {
-                        //TODO: Error
+                        printError(D__ASSEMBLER_ERR_WRONG_ARGS_IN_ARRAY_DIRECTIVE, *getOutputHandler(), "", _line, currentFile);
                         return std::vector<OmniaString>();
                     }
 					OmniaString def = __st.next();
                     OmniaString __tmp = __st.next();
                     if (!Utils::isInt(__tmp))
                     {
-                        //TODO: Error
+                        printError(D__ASSEMBLER_ERR_NON_INT_ARRAY_SIZE, *getOutputHandler(), "", _line, currentFile);
                         return std::vector<OmniaString>();
                     }
 
@@ -233,27 +257,27 @@ namespace Omnia
 					line = line.substr(11).trim();
                 	if (!line.startsWith("(") || !line.endsWith(")"))
 					{
-						//TODO: Add error
-						return std::vector<OmniaString>();
+                        printError(D__ASSEMBLER_ERR_MISSING_PARENTH_IN_LOAD_STRING_DIRECTIVE, *getOutputHandler(), "", _line, currentFile);
+                        return std::vector<OmniaString>();
 					}
                 	line = line.substr(1, line.length() - 1).trim();
 					__st = line.tokenize(",", true);
 					if (__st.count() != 2)
 					{
-						//TODO: Add error
-						return std::vector<OmniaString>();
+                        printError(D__ASSEMBLER_ERR_WRONG_ARGS_IN_LOAD_STRING_DIRECTIVE, *getOutputHandler(), "", _line, currentFile);
+                        return std::vector<OmniaString>();
 					}
 					OmniaString param = __st.next();
 					OmniaString __str = __st.next();
 					if (!__str.endsWith("\"") || !__str.startsWith("\""))
 					{
-						//TODO: Add error
-						return std::vector<OmniaString>();
+                        printError(D__ASSEMBLER_ERR_MISSING_DOUBLE_QUOTE_IN_LOAD_STRING_DIR, *getOutputHandler(), "", _line, currentFile);
+                        return std::vector<OmniaString>();
 					}
 					if (!hasReserved(param))
 					{
-						//TODO: Add error
-						return std::vector<OmniaString>();
+                        printError(D__ASSEMBLER_ERR_SYM_NOT_FOUND_IN_LOAD_STRING_DIRECTIVE, *getOutputHandler(), "", _line, currentFile);
+                        return std::vector<OmniaString>();
 					}
 					__str = __str.substr(1, __str.length() - 1);
 					TMemoryList __str_stream = BitEditor::stringToConstSream(__str);
@@ -269,7 +293,7 @@ namespace Omnia
                     line = line.substr(6).trim();
                     if (!line.startsWith("(") || !line.endsWith(")"))
                     {
-                        //TODO: Add error
+                        printError(D__ASSEMBLER_ERR_MISSING_PARENTH_IN_STRUCT_DIRECTIVE, *getOutputHandler(), "", _line, currentFile);
                         return std::vector<OmniaString>();
                     }
                     line = line.substr(1, line.length() - 1).trim();
@@ -287,7 +311,7 @@ namespace Omnia
         {
             std::vector<OmniaString> code;
             lineNumber = 0;
-            currentFile = "Processed_file";
+            currentFile = "Generated_source";
             for (auto& l : lines) //Aliases round
             {
                 _line = l;
@@ -301,7 +325,7 @@ namespace Omnia
                 OmniaString line = l.substr(7).trim();
                 if (!line.contains("="))
                 {
-                    error(ePreProcessorErrors::WrongAliasDir, "Wrong .alias directive.");
+                    printError(D__ASSEMBLER_ERR_MISSING_EQUALS_IN_ALIAS_DIRECTIVE, *getOutputHandler(), "", _line, currentFile);
                     return std::vector<OmniaString>();
                 }
                 OmniaString alias = line.substr(0, line.indexOf("=")).trim();
@@ -323,7 +347,7 @@ namespace Omnia
         {
             std::vector<OmniaString> code;
             lineNumber = 0;
-            currentFile = "Processed_file";
+            currentFile = "Generated_source";
             for (auto& l : lines) //Macros round
             {
                 _line = l;
@@ -338,7 +362,7 @@ namespace Omnia
                 Macro mac(line);
                 if (!mac.isValid())
                 {
-                    //TODO: Error
+                    printError(D__ASSEMBLER_ERR_INVALID_MACRO_SYNTAX, *getOutputHandler(), "", _line, currentFile);
                     return std::vector<OmniaString>();
                 }
                 m_macros.push_back(mac);
@@ -418,11 +442,11 @@ namespace Omnia
 
         std::vector<OmniaString> PreProcessor::resolveIncludes(std::vector<OmniaString> mainFile, OmniaString curFile)
         {
-            getOutputHandler()->fc_brightWhite().print(Utils::duplicateChar('=', 20));
-            getOutputHandler()->fc_cyan().print("[ Inclusion tree ]");
-            getOutputHandler()->fc_brightWhite().print(Utils::duplicateChar('=', 20)).newLine();
+            int tx, ty;
+            Utils::get_terminal_size(tx, ty);
+            Utils::printTitle("INCLUSION TREE", *getOutputHandler(), tx);
             std::vector<OmniaString> ilines = resolveIncludes_r(mainFile, curFile);
-            getOutputHandler()->fc_brightWhite().print(Utils::duplicateChar('=', 58)).newLine().newLine();
+            getOutputHandler()->fc_brightGrey().print(Utils::duplicateChar('-', tx)).newLine().newLine();
             std::vector<OmniaString> nlines;
             bool include_skip = false;
             uint32 grdCount = 0;
@@ -490,7 +514,7 @@ namespace Omnia
                 OmniaString line = l.substr(9).trim();
                 if (!line.startsWith("[") || !line.endsWith("]"))
                 {
-                    error(ePreProcessorErrors::WrongInclDirective, "Wrong .include directive.", true);
+                    printError(D__ASSEMBLER_ERR_MISSING_SQUARE_BRACKET_IN_INCLUDE_DIR, *getOutputHandler(), "", _line, currentFile, lineNumber);
                     return std::vector<OmniaString>();
                 }
                 line = line.substr(1, line.length() - 1).trim();
@@ -521,12 +545,7 @@ namespace Omnia
                 {
                     int32 tx, ty;
                     Utils::get_terminal_size(tx, ty);
-                    getOutputHandler()->newLine().print(Utils::duplicateChar('=', tx));
-                    error(ePreProcessorErrors::FailedToOpenFile, OmniaString("File in .include directive could not be found. ").add(line), true);
-                    getOutputHandler()->fc_red().print("In File ").fc_magenta().print(curFile).newLine();
-                    getOutputHandler()->fc_cyan();
-                    getOutputHandler()->print("    ").print((int32)lineNumber).print("    ").fc_brightWhite().print(_line).newLine().tc_reset();
-                    getOutputHandler()->print(Utils::duplicateChar('=', tx)).newLine().newLine();
+                    printError(D__ASSEMBLER_ERR_UNABLE_TO_READ_FILE_IN_INCLUDE_DIRECTIVE, *getOutputHandler(), line, _line, currentFile, lineNumber, false);
                     return std::vector<OmniaString>();
                 }
                 if (incl.size() > 0)
@@ -546,7 +565,7 @@ namespace Omnia
         {
             std::vector<OmniaString> code;
             lineNumber = 0;
-            currentFile = "Processed_file";
+            currentFile = "Generated_source";
             for (auto& l : lines)
             {
                 _line = l;
@@ -557,8 +576,7 @@ namespace Omnia
                     OmniaString line = l.substr(5).trim();
                     if (line == "")
                     {
-                        m_out->print("*** Warning, no name for .def directive.").newLine();
-                        //TODO: Warning, no name for .def directive
+                        Utils::message("Warning: No name specified in .def directive.", *getOutputHandler(), eMsgType::Warning);
                         continue;
                     }
                     if (line.contains(" "))
@@ -566,20 +584,14 @@ namespace Omnia
                         OmniaString __def = line.substr(0, line.indexOf(" ")).trim();
                         line = line.substr(line.indexOf(" ") + 1).trim();
                         if (hasDefine(__def))
-                        {
-                            m_out->print("*** Warning, <").print(__def).print("> symbol already defined").newLine();
-                            //TODO: Warning, redefinition
-                        }
+                            Utils::message(StringBuilder("Warning: <").add(__def).add("> symbol redefined here.").get(), *getOutputHandler(), eMsgType::Warning);
                         m_defines[__def.cpp()] = { line, true };
                         continue;
                     }
                     else
                     {
                         if (hasDefine(line))
-                        {
-                            m_out->print("*** Warning, <").print(line).print("> symbol already defined").newLine();
-                            //TODO: Warning, redefinition
-                        }
+                            Utils::message(StringBuilder("Warning: <").add(line).add("> symbol redefined here.").get(), *getOutputHandler(), eMsgType::Warning);
                         m_defines[line.cpp()] = { "", true };
                         continue;
                     }
@@ -589,14 +601,12 @@ namespace Omnia
                     OmniaString line = l.substr(7).trim();
                     if (line == "")
                     {
-                        m_out->print("*** Warning, no name for .def directive.").newLine();
-                        //TODO: Warning, no name for .def directive
+                        Utils::message(StringBuilder("Warning: No name specified in .undef directive.").get(), *getOutputHandler(), eMsgType::Warning);
                         continue;
                     }
                     if (!hasDefine(line))
                     {
-                        m_out->print("*** Warning, <").print(line).print("> symbol undefined").newLine();
-                        //TODO: Warning, undefined 
+                        Utils::message(StringBuilder("Warning: <").add(line).add("> symbol undefined.").get(), *getOutputHandler(), eMsgType::Warning);
                         continue;
                     }
                     m_defines[line.cpp()].second = false;
@@ -607,8 +617,7 @@ namespace Omnia
                     OmniaString line = l.substr(7).trim();
                     if (line == "")
                     {
-                        m_out->print("*** Warning, no name for .ifdef directive.").newLine();
-                        //TODO: Warning, no name for .def directive
+                        Utils::message(StringBuilder("Warning: No define specified in .ifdef directive.").get(), *getOutputHandler(), eMsgType::Warning);
                         continue;
                     }
                     if (!hasDefine(line))
@@ -625,8 +634,7 @@ namespace Omnia
                     OmniaString line = l.substr(8).trim();
                     if (line == "")
                     {
-                        m_out->print("*** Warning, no name for .ifndef directive.").newLine();
-                        //TODO: Warning, no name for .def directive
+                        Utils::message(StringBuilder("Warning: No define specified in .ifndef directive.").get(), *getOutputHandler(), eMsgType::Warning);
                         continue;
                     }
                     if (!hasDefine(line))
@@ -642,8 +650,7 @@ namespace Omnia
                 {
                     if (m_def_stack.size() == 0)
                     {
-                        m_out->print("*** Warning, dead .else directive, missing .ifdef.").newLine();
-                        //TODO: Warning, undefined 
+                        Utils::message(StringBuilder("Warning: Dead .else directive. Missing .if* statement").get(), *getOutputHandler(), eMsgType::Warning);
                         continue;
                     }
                     if (m_skip_rest_of_branches)
@@ -659,14 +666,12 @@ namespace Omnia
                     OmniaString line = l.substr(9).trim();
                     if (m_def_stack.size() == 0)
                     {
-                        m_out->print("*** Warning, dead .elifdef directive, missing .ifdef.").newLine();
-                        //TODO: Warning, undefined 
+                        Utils::message(StringBuilder("Warning: Dead .elifdef directive. Missing .if* statement").get(), *getOutputHandler(), eMsgType::Warning);
                         continue;
                     }
                     if (line == "")
                     {
-                        m_out->print("*** Warning, no name for .elifdef directive.").newLine();
-                        //TODO: Warning, no name for .def directive
+                        Utils::message(StringBuilder("Warning: No define specified in .elifdef directive.").get(), *getOutputHandler(), eMsgType::Warning);
                         continue;
                     }
                     if (m_def_stack[m_def_stack.size() - 1] || m_skip_rest_of_branches)
@@ -687,14 +692,12 @@ namespace Omnia
                     OmniaString line = l.substr(10).trim();
                     if (m_def_stack.size() == 0)
                     {
-                        m_out->print("*** Warning, dead .elifndef directive, missing .ifdef.").newLine();
-                        //TODO: Warning, undefined 
+                        Utils::message(StringBuilder("Warning: Dead .elifndef directive. Missing .if* statement").get(), *getOutputHandler(), eMsgType::Warning);
                         continue;
                     }
                     if (line == "")
                     {
-                        m_out->print("*** Warning, no name for .elifndef directive.").newLine();
-                        //TODO: Warning, no name for .def directive
+                        Utils::message(StringBuilder("Warning: No define specified in .elifndef directive.").get(), *getOutputHandler(), eMsgType::Warning);
                         continue;
                     }
                     if (m_def_stack[m_def_stack.size() - 1] || m_skip_rest_of_branches)
@@ -714,8 +717,7 @@ namespace Omnia
                 {
                     if (m_def_stack.size() == 0)
                     {
-                        m_out->print("*** Warning, dead .endif directive, missing .ifdef.").newLine();
-                        //TODO: Warning, undefined 
+                        Utils::message(StringBuilder("Warning: Dead .endif directive. Missing .if* or .else* statement").get(), *getOutputHandler(), eMsgType::Warning);
                         continue;
                     }
                     STDVEC_REMOVE(m_def_stack, m_def_stack.size() - 1);
@@ -740,18 +742,6 @@ namespace Omnia
                 }
             }
             return code;
-        }
-
-		//TODO: Replace with ErrorReciever methods
-        void PreProcessor::error(ePreProcessorErrors err, OmniaString msg, bool skipFileInfo)
-        {
-            m_out->newLine().print("PreProcessor Error ").print((int32)err).newLine().print(msg).newLine();
-            if (!skipFileInfo)
-            {
-                m_out->print("File: ").print(currentFile).newLine();
-                m_out->print("Line ").print((int32)(lineNumber + 1)).newLine();
-                m_out->tab().print(_line).newLine();
-            }
         }
 
 
@@ -809,21 +799,14 @@ namespace Omnia
 					if (OmniaString(argv[i]).trim().equals("--input-file") || OmniaString(argv[i]).trim().equals("-i"))
 					{
 						if (i + 1 >= argc)
-						{
-							out.print("Error: No input file specified.").newLine();
-							return 0xFFFF; //TODO: Add error code
-						}
+                            return printError(D__ASSEMBLER_ERR_NO_INPUT_FILE, out);
 						i++;
 						p__input_file_path = OmniaString(argv[i]);
 					}
                     else if (OmniaString(argv[i]).trim().equals("--output-file") || OmniaString(argv[i]).trim().equals("-o"))
 					{
 						if (i + 1 >= argc)
-						{
-							out.print("Error: No output file specified.").newLine();
-							return 0xFFFA; //TODO: Add error code
-						}
-						i++;
+                            return printError(D__ASSEMBLER_ERR_NO_OUTPUT_FILE, out);
 						p__output_file_path = OmniaString(argv[i]);
 					}
                     else if (OmniaString(argv[i]).trim().equals("--debug-table") || OmniaString(argv[i]).trim().equals("-dt"))
@@ -836,7 +819,11 @@ namespace Omnia
                     }
                     else if (OmniaString(argv[i]).trim().equals("--include-path") || OmniaString(argv[i]).trim().equals("-I"))
 					{
-						if (i + 1 >= argc) continue; //TODO: Warning
+						if (i + 1 >= argc)
+                        {
+                            Utils::message("Warning: No path specified after --include-path option.", out, eMsgType::Warning);
+                            continue;
+                        }
 						i++;
                         m_options.includePaths.push_back(OmniaString(argv[i]));
                     }
@@ -847,23 +834,18 @@ namespace Omnia
 				}
 			}
             if (p__dbg_save_code && !p__dbg_symbol_table) p__dbg_save_code = false;
-			if (p__input_file_path.trim() == "") return 0xFFFE; //TODO: Error
+			if (p__input_file_path.trim() == "")
+                return printError(D__ASSEMBLER_ERR_NO_INPUT_FILE, out);
 			if (p__output_file_path.trim() == "")
                 p__output_file_path = p__input_file_path.substr(0, p__input_file_path.lastIndexOf(".")).add(".oex");
 			TMemoryList __program = assemble(p__input_file_path);
             if (!createExecutableFile(p__output_file_path, __program))
-            {
-                out.print("Error: Failed to create executable.").newLine();
-                return 0xCFCF; //TODO: Add error code
-            }
+                return printError(D__ASSEMBLER_ERR_FAILED_TO_CREATE_EXEC, out);
             if (p__dbg_symbol_table)
             {
                 p__output_file_dbg_table = p__output_file_path.substr(0, p__output_file_path.lastIndexOf(".")).add(".odb");
                 if (!createDebugTableFile(p__output_file_dbg_table))
-                {
-                    out.print("Error: Failed to create debug table file.").newLine();
-                    return 0xAFAF; //TODO: Add error code
-                }
+                    return printError(D__ASSEMBLER_ERR_FAILED_TO_CREATE_DBG_FILE, out);
             }
 			return 0;
 		}
@@ -875,7 +857,7 @@ namespace Omnia
             writeFile.open(__outputFile.cpp(), std::ios::out | std::ios::binary);
             writeFile.write((char*)(&__program[0]), __program.size() * sizeof(word));
             writeFile.close();
-            getOutputHandler()->print("*** Generated executable file: <").print(__outputFile).print("> (").print((int64)(__program.size() * sizeof(BitEditor))).print(" bytes)").newLine();
+            Utils::message(StringBuilder("Generated executable file: <").add(__outputFile).add("> (").add((int64)(__program.size() * sizeof(BitEditor))).add(" bytes)").get(), *getOutputHandler(), eMsgType::Success);
             return true;
         }
 
@@ -903,7 +885,7 @@ namespace Omnia
                 for (auto& __line : PreProcessor::instance().m_symTable.m_source)
                 {
                     OmniaString __src_line = __line.second;
-                    if (__src_line.startsWith("lda_str,"))
+                    if (__src_line.startsWith("lda_str,") && !__src_line.contains("\""))
                     {
                         OmniaString::StringTokens __st = __src_line.tokenize(",", true);
                         __st.next();
@@ -918,7 +900,7 @@ namespace Omnia
                 writeFile << "}";
             }
             writeFile.close();
-            getOutputHandler()->print("*** Generated debug-file: <").print(__outputFile).print(">").newLine();
+            Utils::message(StringBuilder("Generated debug-file: <").add(__outputFile).add(">").get(), *getOutputHandler(), eMsgType::Success);
             return true;
         }
 
@@ -949,7 +931,7 @@ namespace Omnia
                 for (auto& line : source)
                     __fc_file << line.cpp() << "\n";
                 __fc_file.close();
-                getOutputHandler()->print("*** Generated final-step code: <").print(__sfc_file).print(">").newLine();
+                Utils::message(StringBuilder("Generated final-step code: <").add(__sfc_file).add(">").get(), *getOutputHandler(), eMsgType::Success);
             }
 			std::vector<OmniaString> code = resolveKeyWords(source);
 			return assemble(code);
@@ -969,7 +951,7 @@ namespace Omnia
 					if (__data == "") continue;
 					if (!Utils::isInt(__data))
 					{
-						//TODO: Error
+						printError(D__ASSEMBLER_ERR_INVALID_ASSEMBLER_TOKEN, *getOutputHandler());
 						return TMemoryList();
 					}
 					__code.push_back(Utils::strToInt(__data));
@@ -984,9 +966,7 @@ namespace Omnia
             
             if (!__func.contains("(") || !__func.contains(")") || __func.lastIndexOf(")") <= __func.indexOf("("))
             {
-                //TODO: Error
-                std::cout << "Err 1 - Invalid syntax for assembler command: ";
-                std::cout << "$." << __func.cpp() << "\n";
+                printError(D__ASSEMBLER_ERR_INVALID_AS_CMD_SYNTAX, *getOutputHandler(), OmniaString("$.").add(__func));
                 return OmniaString("$.").add(__func);
             }
             OmniaString __params = __func.substr(__func.indexOf("(") + 1, __func.lastIndexOf(")")).trim();
@@ -994,9 +974,7 @@ namespace Omnia
             {
                 if (__params.length() < 3 || !__params.startsWith("\'") || !__params.endsWith("\'"))
                 {
-                    //TODO: Error
-                    std::cout << "Err 2 - Invalid parameter for assembler command: ";
-                    std::cout << "$." << __func.cpp() << "\n";
+                    printError(D__ASSEMBLER_ERR_INVALID_AS_CMD_PARAM, *getOutputHandler(), OmniaString("$.").add(__func));
                     return OmniaString("$.").add(__func);
                 }
                 __params = __params.replaceAll("\\", "");
@@ -1005,17 +983,13 @@ namespace Omnia
                     __generated_code.add((int32)__params[0]);
                 else
                 {
-                    //TODO: Error
-                    std::cout << "Err 3 - Invalid parameter for assembler command: ";
-                    std::cout << "$." << __func.cpp() << "\n";
+                    printError(D__ASSEMBLER_ERR_INVALID_AS_CMD_PARAM, *getOutputHandler(), OmniaString("$.").add(__func));
                     return OmniaString("$.").add(__func);
                 }
             }
             else
             {
-                //TODO: Error
-                std::cout << "Err 4 - Unknown assembler command: ";
-                std::cout << "$." << __func.cpp() << "\n";
+                printError(D__ASSEMBLER_ERR_UNKNOWN_AS_CMD, *getOutputHandler(), OmniaString("$.").add(__func));
                 return OmniaString("$.").add(__func);
             }
             return __generated_code.get();
@@ -1037,7 +1011,7 @@ namespace Omnia
 					l = l.substr(1, l.length() - 1).trim();
 					if (l.contains(" ") || l.contains("\t"))
 					{
-						//TODO: Error
+                        printError(D__ASSEMBLER_ERR_INVALID_LABEL_NAME, *getOutputHandler(), l);
 						return std::vector<OmniaString>();
 					}
 					m_labels[l.cpp()] = __addr;
@@ -1088,10 +1062,7 @@ namespace Omnia
                         OmniaString __off_str = __data.substr(__data.indexOf("[") + 1, __data.length() - 1);
                         if (!Utils::isInt(__off_str))
                         {
-						    //TODO: Error
-                            std::cout << "Non-constant array index: ";
-                            std::cout << __off_str.cpp() << "\n";
-                            std::cout << "\n\t" << l.cpp() << "\n";
+                            printError(D__ASSEMBLER_ERR_NON_CONST_ARRAY_INDEX, *getOutputHandler(), __off_str, l);
                             return std::vector<OmniaString>();
                         }
 						__new_line.add(Utils::intToHexStr(PP.m_reserves[__res_name.cpp()] + Utils::strToInt(__off_str))).add(",");
@@ -1107,10 +1078,7 @@ namespace Omnia
                     }
                     else
 					{
-						//TODO: Error
-						std::cout << "Unknown symbol: ";
-						std::cout << __data.cpp() << "\n";
-						std::cout << "\n\t" << l.cpp() << "\n";
+                        printError(D__ASSEMBLER_ERR_UNKNOWN_SYMBOL, *getOutputHandler(), __data, l);
 						return std::vector<OmniaString>();
 					}
 				}

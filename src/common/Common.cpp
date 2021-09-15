@@ -291,6 +291,34 @@ namespace Omnia
 
 
 
+		
+		ErrorCode CompileErrorReciever::printError(ErrorCode __err, OutputManager& out, OmniaString __extra_info, OmniaString __line, OmniaString __file, int32 __line_number, bool __print_end_line)
+		{
+			bool print_borders = (__extra_info.trim() != "" || __line.trim() != "" || __file.trim() != "" || __line_number > 0);
+			int32 tx, ty;
+			Utils::get_terminal_size(tx, ty);
+			OmniaString __str_err = Utils::intToHexStr((word)__err);
+			if (print_borders)
+				Utils::printTitle("ERROR", out, tx);
+			out.fc_red().print("*** Code ").print(__str_err).print(": ");
+			Utils::message(__error_map[__err], out, eMsgType::Error);
+			if (__extra_info.trim() != "")
+				out.fc_brightGrey().print("Token:  ").fc_brightCyan().print(__extra_info).newLine();
+			if (__file.trim() != "")
+				out.fc_brightWhite().print("In File ").fc_magenta().print(__file).newLine();
+			if (__line_number > 0)
+				out.fc_brightGrey().print("    Line:  ").fc_cyan().print((int32)__line_number);
+			if (__line.trim() != "")
+				out.print("    ").fc_brightWhite().print(__line).newLine();
+			if (__print_end_line && print_borders)
+				out.fc_brightGrey().print(Utils::duplicateChar('-', tx)).newLine();
+			out.tc_reset();
+			return __err;
+		}
+
+
+
+
 
 		void ErrorReciever::pushError(ErrorCode __err_code, OutputManager& out, OmniaString __extra_text, MemAddress __addr, word __op_code)
 		{
