@@ -110,6 +110,7 @@ namespace Omnia
 			m_g_log_lines = 5;
 			m_gui_error_on_block = eGuiBlockPosition::Extra;
 			m_gui_data_under = eGuiBlockPosition::Top;
+			m_disable_protected_mode = false;
 
 			out.clear();
 			message(StringBuilder("oasm_dbg: version ")
@@ -181,9 +182,23 @@ namespace Omnia
 				__skip_next_input_round = false;
 				if (exec_tick && !m_error && !__done)
 				{
-					ram.disableProtectedMode(); //TODO: Find out why I get an error on <end> instruction
+					if (m_disable_protected_mode)
+					{
+						ram.disableProtectedMode();
+						cpu.disableProtectedMode();
+						reg.disableProtectedMode();
+						gpu.disableProtectedMode();
+					}
+					else
+					{
+						ram.enableProtectedMode();
+						cpu.enableProtectedMode();
+						reg.enableProtectedMode();
+						gpu.enableProtectedMode();
+					}
+					//ram.disableProtectedMode(); //TODO: Find out why I get an error on <end> instruction
 					tick_res = cpu.clock_tick();
-					ram.enableProtectedMode();
+					//ram.enableProtectedMode();
 					__ip = cpu.getLastInstructionAddr();
 					__off_ip = __ip - proc.m_codeAddr;
 
@@ -445,27 +460,7 @@ namespace Omnia
 				getInputHandler()->read(__tmp);
 				return;
 			}
-			m_sym_table.m_callTree.tick();
-			__total_tick_count++;
 			__br_sig = cpu.__break_point_signal();
-			__dec_inst = cpu.getDecodedInstruction();
-			if (__dec_inst.size() >= 3 && __dec_inst[0].val() == (word)eInstructionSet::call)
-			{
-				OmniaString __tmp_lbl = "";
-				if (m_sym_table.isLabel(__dec_inst[2].val(), __tmp_lbl))
-					m_sym_table.m_callTree.call(__tmp_lbl);
-				else
-					m_sym_table.m_callTree.call(Utils::intToHexStr(__dec_inst[2].val()));
-
-			}
-			else if (__dec_inst.size() >= 1 && __dec_inst[0].val() == (word)eInstructionSet::ret)
-			{
-				m_sym_table.m_callTree.ret();
-			}
-			else if (__dec_inst.size() >= 1 && __dec_inst[0].val() == (word)eInstructionSet::end)
-			{
-				m_sym_table.m_callTree.ret();
-			}
 			proc_out = m_vm_buff.flush();
 			if (proc_out.size() > 0)
 			{
@@ -1090,6 +1085,114 @@ namespace Omnia
 					exec_tick = false;
 					m_skip_next_draw = true;
 				}
+				else if (m_cmd_input.startsWith("mem-state "))
+				{
+					exec_tick = false;
+					m_cmd_input = m_cmd_input.substr(10).trim();
+					if (!Utils::isInt(m_cmd_input))
+					{
+						message("Warning: mem-state expects an integer as the address parameter..", eMsgType::Warning, true, false, true);
+						return;
+					}
+					const hw::RAM::MemCell __state = ram.getReadOnlyMemState()[Utils::strToInt(m_cmd_input)];
+					StringBuilder __msg("(addr=");
+					OmniaString __tmp = "";
+					__msg.add(m_cmd_input).add("):    state=");
+					switch (__state.state)
+					{
+					case eMemState::Allocated:
+						__tmp = "Allocated";
+						break;
+					case eMemState::Code:
+						__tmp = "Code";
+						break;
+					case eMemState::Reserved:
+						__tmp = "Reserved";
+						break;
+					case eMemState::Used:
+						__tmp = "Used";
+						break;
+					case eMemState::Free:
+						__tmp = "Free";
+						break;
+					default:
+						__tmp = "Unknown";
+						break;
+					}
+					__msg.add(__tmp).add(";    flag=");
+
+					switch (__state.flag)
+					{
+					case eMemCellFlag::ConstCell:
+						__tmp = "Const";
+						break;
+					case eMemCellFlag::ConstHeapPtr:
+						__tmp = "ConstPtr";
+						break;
+					case eMemCellFlag::HeapBlockStart:
+						__tmp = "HeapBlockStart";
+						break;
+					case eMemCellFlag::HeapPtr:
+						__tmp = "HeapPtr";
+						break;
+					case eMemCellFlag::NoFlag:
+						__tmp = "NoFlag";
+						break;
+					case eMemCellFlag::StackBlockStart:
+						__tmp = "StackBlockStart";
+						break;
+					case eMemCellFlag::UsedSingleHeapCell:
+						__tmp = "UsedSingle";
+						break;
+					default:
+						__tmp = "Unknown";
+						break;
+					}
+					__msg.add(__tmp);
+					__msg.add(";    type=");
+					switch (__state.type)
+					{
+					case eMemCellType::Heap:
+						__tmp = "HEAP";
+						break;
+					case eMemCellType::Library:
+						__tmp = "LIB";
+						break;
+					case eMemCellType::Normal:
+						__tmp = "CODE";
+						break;
+					case eMemCellType::Stack:
+						__tmp = "STACK";
+						break;
+					default:
+						__tmp = "Unknown";
+						break;
+					}
+					__msg.add(__tmp).add(";    pid=");
+					__msg.add(Utils::intToHexStr(__state.proc->getID())).add(";    value=");
+					__msg.add(Utils::intToHexStr(ram.getAsReadOnly()[Utils::strToInt(m_cmd_input)].val())).add(";");
+					message(__msg.get(), eMsgType::Special, true, false, true);
+				}
+				else if (m_cmd_input == "enable-protected-mode")
+				{
+					exec_tick = false;
+					ram.enableProtectedMode();
+					cpu.enableProtectedMode();
+					reg.enableProtectedMode();
+					gpu.enableProtectedMode();
+					m_disable_protected_mode = false;
+					message("Mode: Enabled protected mode for all virtual devices.", eMsgType::Special, true, false, true);
+				}
+				else if (m_cmd_input == "disable-protected-mode")
+				{
+					exec_tick = false;
+					ram.disableProtectedMode();
+					cpu.disableProtectedMode();
+					reg.disableProtectedMode();
+					gpu.disableProtectedMode();
+					m_disable_protected_mode = true;
+					message("Mode: Disabled protected mode for all virtual devices.", eMsgType::Special, true, false, true);
+				}
 			}
 		}
 
@@ -1448,7 +1551,7 @@ namespace Omnia
 		
 		void Debugger::setColorFromTimeGradient(OutputManager& out, uint8 __tc)
 		{
-			if (__tc == 0) out.bc_red().fc_brightWhite();
+			if (__tc == 0) out.bc_red().fc_brightGreen();
 			else if (__tc == 1) out.bc_brightRed().fc_brightWhite();
 			else if (__tc == 2) out.bc_yellow().fc_brightWhite();
 			else if (__tc == 3) out.bc_brightYellow().fc_grey();

@@ -15,12 +15,14 @@
  add_executable(oasm-dbg ${frontend_SOURCES} ${dbg_SOURCES} ${common_SOURCES})
  add_library(oasm-lib SHARED ${vm_SOURCES} ${as_SOURCES} ${dbg_SOURCES} ${common_SOURCES})
 
- add_compile_options(-m32 -MMD -MP -Wall -g)
+ add_compile_options(-m32 -MMD -MP -Wall -ggdb)
 
  target_compile_definitions(oasm-vm PUBLIC __COMPILE_VM__ __DEBUG__ __BUILD_NUMBER__=${BUILD_NUMBER} __MAJOR_VER__=0 __MINOR_VER__=3)
  target_compile_definitions(oasm-as PUBLIC __COMPILE_AS__ __DEBUG__ __BUILD_NUMBER__=${BUILD_NUMBER} __MAJOR_VER__=0 __MINOR_VER__=3)
  target_compile_definitions(oasm-dbg PUBLIC __COMPILE_DBG__ __DEBUG__ __BUILD_NUMBER__=${BUILD_NUMBER} __MAJOR_VER__=0 __MINOR_VER__=3)
  target_compile_definitions(oasm-lib PUBLIC __DEBUG__ __BUILD_NUMBER__=${BUILD_NUMBER} __MAJOR_VER__=0 __MINOR_VER__=3)
+
+ set(CMAKE_BUILD_TYPE Debug)
 
  include_directories(assembler/headers debugger/headers common/headers interpreter/headers)
 

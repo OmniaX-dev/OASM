@@ -14,10 +14,13 @@ namespace Omnia
                 inline PreProcessorOptions(void)
                 {
                     passes = 2;
+					makeStaticLib = false;
                 }
 
                 uint16 passes;
 				std::vector<OmniaString> includePaths;
+				std::vector<OmniaString> libIncludePaths;
+				bool makeStaticLib;
         };
 
         class Macro : public Validable
@@ -38,7 +41,7 @@ namespace Omnia
         {
             public:
                 inline static PreProcessor& instance(void) { return s_instance; }
-                std::vector<OmniaString> open(OmniaString fileName, PreProcessorOptions options = PreProcessorOptions());
+                std::vector<OmniaString> open(OmniaString fileName, OmniaString outputName, PreProcessorOptions options = PreProcessorOptions());
                 inline bool hasAlias(OmniaString alias) { return (m_aliases.count(alias.cpp()) != 0); }
                 inline bool hasReserved(OmniaString res) { return (m_reserves.count(res.cpp()) != 0); }
                 inline bool hasDefine(OmniaString def) { return (m_defines.count(def.cpp()) != 0); }
@@ -47,7 +50,7 @@ namespace Omnia
                 inline PreProcessor(void) {  }
 
             private:
-                std::vector<OmniaString> process(std::vector<OmniaString> lines, PreProcessorOptions options);
+                std::vector<OmniaString> process(std::vector<OmniaString> lines, PreProcessorOptions options, OmniaString outputName);
                 std::vector<OmniaString> resolveIncludes(std::vector<OmniaString> mainFile, OmniaString curFile);
                 std::vector<OmniaString> resolveIncludes_r(std::vector<OmniaString> mainFile, OmniaString curFile, int32 level = 0);
                 std::vector<OmniaString> removeComments(std::vector<OmniaString> lines);
@@ -57,10 +60,13 @@ namespace Omnia
 				std::vector<OmniaString> resolveDataDirective(std::vector<OmniaString> lines);
 				std::vector<OmniaString> resolveDefines(std::vector<OmniaString> lines);
 
+				void findIncludedFileSource(std::vector<OmniaString>& __source, int32 __current_index);
+
             private:
                 OmniaString _line;
                 uint32 lineNumber;
                 OmniaString currentFile;
+				word m_nextReserve;
 				word m_reserveCount;
                 std::vector<OmniaString> m_includeGuards;
 				std::vector<OmniaString> m_dataSection;
@@ -74,6 +80,7 @@ namespace Omnia
                 std::vector<Macro> m_macros;
 				word m_nextTopInst;
 				OmniaString m_currentIncludeDir;
+				std::vector<OmniaString> __static_lib_defs;
 
             public:
                 static PreProcessor s_instance;
@@ -87,6 +94,27 @@ namespace Omnia
 		
 		class Assembler : public IOReciever, public CompileErrorReciever
 		{
+			public: struct tExternSubroutine
+			{
+				OmniaString libName;
+				MemAddress localAddress;
+				OmniaString labelName;
+
+				inline OmniaString getScopedName(void)
+				{
+					return OmniaString(libName).add("::").add(labelName);
+				}
+			};
+			public: struct tStaticLib
+			{
+				OmniaString filePath;
+				OmniaString name;
+				TMemoryList code;
+				MemAddress baseAddress;
+				TMemoryList reserveRefs;
+				word reserveCount;
+				bool debugTable;
+			};
 			public:
 				inline static Assembler& instance(void) { return *Assembler::s_instance; }
 				int64 run(int argc, char** argv);
@@ -115,6 +143,17 @@ namespace Omnia
 					}
 					return false;
 				}
+				inline bool isStaticLib(OmniaString __lib)
+				{
+					for (auto& lib : m_static_libs)
+					{
+						if (lib.name == __lib)
+							return true;
+					}
+					return false;
+				}
+				TMemoryList linkStaticLibs(TMemoryList code);
+				
 				
 
 			private:
@@ -123,9 +162,17 @@ namespace Omnia
 				bool p__dbg_symbol_table;
 				bool p__dbg_save_code;
 				bool p__save_final_code;
+				bool p__build_static_lib;
 				OmniaString p__input_file_path;
 				OmniaString p__output_file_path;
 				OmniaString p__output_file_dbg_table;
+
+				std::vector<tStaticLib> m_static_libs;
+				std::vector<tExternSubroutine> m_extern_subroutines;
+				std::map<MemAddress, OmniaString> m_extern_links;
+				std::vector<MemAddress> m_slib_reserve_addresses;
+
+				bool m_export_to_static_lib;
 
 				PreProcessorOptions m_options;
 

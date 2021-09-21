@@ -1,6 +1,6 @@
 .include_guard(__gpu__oasm__)
 
-.command(request, all=512)
+.command(request, all=1024)
 
 .include [ostd.oasm]
 

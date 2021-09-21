@@ -1,0 +1,35 @@
+.include_guard(__use_lib__oasm__)
+
+.command(request, ALL=1536)
+
+.include [sys/system.oasm]
+.include [sys/timing.oasm]
+.include [test-lib.oh]
+.include [ostdlib.oh]
+
+.data = reserve(time1, time2, str, count)
+.data = load_string(str, "Ciao Ciccio")
+
+:__main__:
+	@SetFPS(10)
+	@Load(count, 0)
+
+	:loop:
+		@CurrentTime(time1)
+			cmd, Const_Addr, PrintStringToConsole, str
+			cmd, Const_Const, PrintNewLineToConsole, 0
+			call, Const_Const, test-lib::__test_function_1, 0
+			call, Const_Const, test-lib::__test_function_2, 0
+			call, Const_Const, test-lib::__test_function_3, 0
+			call, Const_Const, ostdlib::__test_function_1, 0
+			call, Const_Const, ostdlib::__test_function_2, 0
+			call, Const_Const, ostdlib::__test_function_3, 0
+			inc, Single_Addr, count
+		@CurrentTime(time2)
+		no_op
+		@WaitForFrame(time1, time2)
+		cmp, Addr_Const, count, 5
+	jmp, Single_Const, JMP_LESS_OR_EQUALS, loop
+ret, Single_Const, 0
+
+.close_include_guard

@@ -28,5 +28,8 @@
 /home/sylar/Git Repos/OASM/src/../Build//ostd/ostd.oasm
 /home/sylar/Git Repos/OASM/src/../Build//ostd/io/keyboard.oasm
 /home/sylar/Git Repos/OASM/src/../Build//ostd/io/keys.oasm
+/home/sylar/Git Repos/OASM/src/../Build/examples/ostdlib.oasm
+/home/sylar/Git Repos/OASM/src/../Build/examples/use-lib.oasm
+/home/sylar/Git Repos/OASM/src/../Build/examples/test-lib.oasm
 /home/sylar/Git Repos/OASM/src/../Build/examples/fps.oasm
 /home/sylar/Git Repos/OASM/src/../Build/examples/gpu.oasm

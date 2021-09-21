@@ -182,7 +182,7 @@ namespace Omnia
 			proc.validate();
 			vm.setCurrentProc(proc);
 			MemAddress __tmp_code_addr;
-			if (!ram.request(proc.m_code.size(), __tmp_code_addr, eMemCellType::Normal, proc))
+			if (!ram.request(proc.m_code.size() + 6, __tmp_code_addr, eMemCellType::Normal, proc)) //TODO: +6 adds offset because of a weird bug
 			{
 				//TODO: Error
 				return 0xAFFA;
@@ -2206,8 +2206,7 @@ namespace Omnia
 						pushError(D__CPU_ERR__READ_PTR_FAILED);
 						__return_and_set_ip(false, m_old_pc_val)
 					}
-					for (auto& __c : __stream)
-						std::cout << Utils::intToHexStr(__c.val()).cpp() << "\n";
+
 					if (outData2 <= _ram.m_memory[__op1_val.val() - 1] - __op1_val)
 					{
 						pushError(D__CPU_ERR__REALLOC_SIZE_TOO_SMALL);
@@ -2875,36 +2874,29 @@ namespace Omnia
 			{
 				Process& __proc = VirtualMachine::instance().getCurrentProcess();
 				RAM& _ram = VirtualMachine::instance().getRAM();
-				MemAddress result = m_next_single_heap++;
-				MemAddress __tmp_offset = offsetHeapAddress(m_next_single_heap);
-				if (__tmp_offset == oasm_nullptr) return false;
-				if (_ram.m_memCells[__tmp_offset].flag == eMemCellFlag::UsedSingleHeapCell)
+
+				MemAddress __addr = __proc.m_heapAddr + 1;
+				bool found = false;
+				for ( ; __addr < __proc.m_heapAddr + __proc.m_heapSize + 1; __addr++)
 				{
-					MemAddress __addr = __proc.m_heapAddr + 1;
-					bool found = false;
-					for ( ; __addr < __proc.m_heapAddr + __proc.m_heapSize + 1; __addr++)
-					{
-						if (_ram.m_memCells[__addr].proc->getID() != __proc.getID()) return false;;
-						if (_ram.m_memCells[__addr].flag == eMemCellFlag::UsedSingleHeapCell) continue;
-						if (_ram.m_memCells[__addr].state != eMemState::Allocated) continue;
-						found = true;
-						break;
-					}
-					if (!found) return false;
-					m_next_single_heap = __addr - (__proc.m_heapAddr + 1);
+					if (_ram.m_memCells[__addr].proc->getID() != __proc.getID()) return false;;
+					if (_ram.m_memCells[__addr].flag != eMemCellFlag::NoFlag) continue;
+					if (_ram.m_memCells[__addr].state != eMemState::Allocated) continue;
+					found = true;
+					break;
 				}
-				m_heap_reserve_count++;
-				__tmp_offset = offsetHeapAddress(result);
-				if (__tmp_offset == oasm_nullptr) return false;
-				_ram.m_memCells[__tmp_offset].flag = eMemCellFlag::UsedSingleHeapCell;
-				_ram.m_memory[__tmp_offset] = 0x0000;
-				outAddr = result;
+				if (!found) return false;
+
+				_ram.m_memCells[__addr].flag = eMemCellFlag::UsedSingleHeapCell;
+				_ram.m_memory[__addr] = 0x0000;
+				__addr -= (__proc.m_heapAddr + 1);
+				outAddr = __addr;
 				return true;
 			}
 
 			bool CPU::__free_single_heap_cell(MemAddress __addr)
 			{
-				if (m_heap_reserve_count == 0) return false;
+				//if (m_heap_reserve_count == 0) return false;
 				//Process& __proc = VirtualMachine::instance().getCurrentProcess();
 				RAM& _ram = VirtualMachine::instance().getRAM();
 				MemAddress __tmp_offset = offsetHeapAddress(__addr);
@@ -2912,7 +2904,7 @@ namespace Omnia
 				if (_ram.m_memCells[__tmp_offset].flag != eMemCellFlag::UsedSingleHeapCell) return false;
 				if (_ram.m_memCells[__tmp_offset].state != eMemState::Allocated) return false;
 				m_next_single_heap = __addr;
-				m_heap_reserve_count--;
+				//m_heap_reserve_count--;
 				_ram.m_memory[__tmp_offset] = 0xFFFF;
 				_ram.m_memCells[__tmp_offset].flag = eMemCellFlag::NoFlag;
 				return true;

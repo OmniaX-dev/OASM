@@ -1,0 +1,64 @@
+#version(0.3.2759)
+.label __om_delay_on_time_diff = 0x0007
+.label __exceeded_frame_time = 0x0030
+.label __main__ = 0x0033
+.label loop = 0x0043
+.label __load__ = 0x008A
+.data __omx_string = 0x0000
+.data __om_fps = 0x0009
+.data __om_fps_delta = 0x000A
+.data time1 = 0x000B
+.data time2 = 0x000C
+.data str = 0x000D
+.data count = 0x000E
+.source = { 
+		0x0000:req,                 REQ_ALL,                    1536
+		0x0003:call,  Const_Const,   __load__,  0x0000
+		0x0007:pop, Single_Reg, R29
+		0x000A:pop, Single_Reg, R28
+		0x000D:mem, Reg_Reg,	R27,R29
+		0x0011:sub,		Reg_Reg,			R27,					R28
+		0x0015:cmp,		Reg_Addr,			R27,					__om_fps_delta
+		0x0019:jmp,		Single_Const,		JMP_GREATER_OR_EQUALS,	__exceeded_frame_time
+		0x001D:mem,		Reg_Addr,			R28,					__om_fps_delta
+		0x0021:sub,		Reg_Reg,			R28,					R27
+		0x0025:mem,		Reg_Const,			R31,					TU_MILLISECONDS
+		0x0029:cmd,		Const_Reg,			Sleep,					R28
+		0x002D:ret,		Single_Const,		True
+		0x0030:ret, 		Single_Const, 		False
+		0x0033:mem,Addr_Const,__om_fps,10
+		0x0037:mem,Addr_Const,__om_fps_delta,1000
+		0x003B:div,Addr_Addr,__om_fps_delta,__om_fps
+		0x003F:mem, Addr_Const, count, 0
+		0x0043:cmd,Const_Const,GetRunningTime,0
+		0x0047:mem,Addr_Reg,time1,R31
+		0x004B:cmd, Const_Addr, PrintStringToConsole, str
+		0x004F:cmd, Const_Const, PrintNewLineToConsole, 0
+		0x0053:call, Const_Const, test-lib::__test_function_1, 0
+		0x0057:call, Const_Const, test-lib::__test_function_2, 0
+		0x005B:call, Const_Const, test-lib::__test_function_3, 0
+		0x005F:call, Const_Const, ostdlib::__test_function_1, 0
+		0x0063:call, Const_Const, ostdlib::__test_function_2, 0
+		0x0067:call, Const_Const, ostdlib::__test_function_3, 0
+		0x006B:inc, Single_Addr, count
+		0x006E:cmd,Const_Const,GetRunningTime,0
+		0x0072:mem,Addr_Reg,time2,R31
+		0x0076:no_op
+		0x0077:call,Const_Const,__om_delay_on_time_diff,2,Single_Addr,time1,Single_Addr,time2
+		0x007F:cmp, Addr_Const, count, 5
+		0x0083:jmp, Single_Const, JMP_LESS_OR_EQUALS, loop
+		0x0087:ret, Single_Const, 0
+		0x008A:reserve,  Single_Const,  0x0001
+		0x008D:lda_str," oasm_stable "
+		0x0095:mem,     Addr_Reg,    __omx_string,    R31
+		0x0099:reserve,  Single_Const,  0x0002
+		0x009C:reserve,  Single_Const,  0x0004
+		0x009F:lda_str,"Ciao Ciccio"
+		0x00A6:mem,     Addr_Reg,    str,    R31
+		0x00AA:call, Const_Const, test-lib::__init__, 0
+		0x00AE:call, Const_Const, ostdlib::__init__, 0
+		0x00B2:call,  Const_Const,  __main__,  0x0000
+		0x00B6:end,  Single_Reg,   RV
+}
+.attach_lib_debug_table examples/test-lib.odb 0x00B9
+.attach_lib_debug_table examples/ostdlib.odb 0x0146

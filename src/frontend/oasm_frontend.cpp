@@ -25,9 +25,7 @@ int main(int argc, char** argv)
 	__ver.add((long int)Omnia::eVersion::Major).add(".").add((long int)Omnia::eVersion::Minor)
 	.add(".").add((long int)Omnia::eVersion::Build);
 
-	Omnia::oasm::Assembler::instance().getOutputHandler()->newLine();
 	Omnia::common::Utils::message(__ver.get(), *Omnia::oasm::Assembler::instance().getOutputHandler(), Omnia::eMsgType::Version);
-	Omnia::oasm::Assembler::instance().getOutputHandler()->newLine();
 
 	Omnia::common::ErrorCode __err = Omnia::oasm::Assembler::instance().run(argc, argv);
 	Omnia::oasm::Assembler::instance().getOutputHandler()->tc_reset();

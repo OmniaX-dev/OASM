@@ -1,0 +1,60 @@
+@@__om_included_file_here(examples/ostdlib.oasm)
+.include_guard(__test_lib__oasm__)
+
+//$.static_lib(test)
+//-L option for lib include paths
+//lib-test.oslib
+// -sl test  -> will search for a file called libtest.oslib,
+//				in current working dir or in any of the lib include paths
+//				and will append the code to the end
+//				It will also add the load code for the lib, inside the
+//				inside the load code of the script using the library
+//
+//				--make-static-lib, -SL option to compile as lib
+
+//$.extern(sub-routine, test::__test_function, 0x007D)
+//call,  Const_Const,  test::__test_function,  0
+
+.data = reserve(__test_str_1, __test_str_2, __test_str_3)
+.data = load_string(__test_str_1, "CIAO BELLA From Function-1!!")
+.data = load_string(__test_str_2, "CIAO BELLA From Function-2 uuuhuuu!!")
+.data = load_string(__test_str_3, "CIAO BELLA From Function-3 HEY!!")
+
+:__test_function_1:
+cmd,	Const_Addr,		PrintStringToConsole,	__test_str_1
+cmd, Const_Const, PrintNewLineToConsole, 0
+cmd, Const_Const, PrintNewLineToConsole, 0
+ret,	Single_Const,	0
+
+:__test_function_2:
+cmd,	Const_Addr,		PrintStringToConsole,	__test_str_2
+cmd, Const_Const, PrintNewLineToConsole, 0
+cmd,	Const_Addr,		PrintStringToConsole,	__test_str_2
+cmd, Const_Const, PrintNewLineToConsole, 0
+cmd, Const_Const, PrintNewLineToConsole, 0
+ret,	Single_Const,	0
+
+:__test_function_3:
+cmd,	Const_Addr,		PrintStringToConsole,	__test_str_3
+cmd, Const_Const, PrintNewLineToConsole, 0
+cmd,	Const_Addr,		PrintStringToConsole,	__test_str_3
+cmd, Const_Const, PrintNewLineToConsole, 0
+cmd,	Const_Addr,		PrintStringToConsole,	__test_str_3
+cmd, Const_Const, PrintNewLineToConsole, 0
+cmd, Const_Const, PrintNewLineToConsole, 0
+ret,	Single_Const,	0
+//End __test_function
+
+
+
+.close_include_guard
+@@__om_end_included_file_here
+:__init__:
+reserve,  Single_Const,  0x0003
+lda_str,                    0x4349,0x414F,0x2042,0x454C,0x4C41,0x2046,0x726F,0x6D20,0x4675,0x6E63,0x7469,0x6F6E,0x2D31,0x2121,0x0000
+mem,     Addr_Reg,    __test_str_1,    R31
+lda_str,                    0x4349,0x414F,0x2042,0x454C,0x4C41,0x2046,0x726F,0x6D20,0x4675,0x6E63,0x7469,0x6F6E,0x2D32,0x2075,0x7575,0x6875,0x7575,0x2121,0x0000
+mem,     Addr_Reg,    __test_str_2,    R31
+lda_str,                    0x4349,0x414F,0x2042,0x454C,0x4C41,0x2046,0x726F,0x6D20,0x4675,0x6E63,0x7469,0x6F6E,0x2D33,0x2048,0x4559,0x2121,0x0000
+mem,     Addr_Reg,    __test_str_3,    R31
+ret, Const_Const, 0

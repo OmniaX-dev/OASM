@@ -116,6 +116,7 @@ namespace Omnia
 				bool m_print_end_msg;
 				bool m_allow_diff_version;
 				bool m_skip_next_draw;
+				bool m_disable_protected_mode;
 				eDebuggerMode m_mode;
 				Process* m_process;
 
