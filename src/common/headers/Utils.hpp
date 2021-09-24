@@ -456,6 +456,13 @@ namespace Omnia
             BrightCyan,
             BrightWhite
         };
+        enum class eExternSymType
+        {
+            Invalid = 0,
+            Reserve,
+            SubRoutine,
+            Array
+        };
 
 
         class Protectable

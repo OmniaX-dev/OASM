@@ -1,4 +1,4 @@
-#version(0.3.2759)
+#version(0.3.2851)
 .label __test_function_1 = 0x0000
 .label __test_function_2 = 0x000F
 .label __test_function_3 = 0x0026

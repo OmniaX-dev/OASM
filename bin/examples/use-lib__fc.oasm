@@ -9,34 +9,24 @@ call,  Const_Const,   __load__,  0x0000
 @@__om_included_file_here(ostd/sys/system.oasm)
 .include_guard(__sys__oasm__)
 
-.data = reserve(__omx_string)
-
-@@_extern_start
+@@_export_start
 .alias __OM_STABLE = 0x0000
 .alias __OM_EXPERIMENTAL = 0x0001
 .alias __OM_DEV = 0x0002
-@@_extern_end
-
 
 .ifdef __oasm_experimental
 @@__om_space__@@
-@@__om_space__@@
 .elifdef __oasm_dev
 @@__om_space__@@
-@@__om_space__@@
 .else
-.data = load_string(__omx_string, " oasm_stable ")
 .alias __OMX_VER = 0x0000
 .endif
 
-@@_extern_start
 .macro Load(__addr, __const_val) mem, Addr_Const, $(__addr), $(__const_val)
 .macro LoadString(__addr, __string)	 lda_str, $(__string) "&#" mem, Addr_Reg, $(__addr), R31
 
 .macro ArrayAt(__arr, __index, __out_addr) mem, Addr_Const, $(__out_addr), $(__arr) "&#" add, Addr_Addr, $(__out_addr), $(__index)
-@@_extern_end
-
-
+@@_export_end
 
 .close_include_guard
 @@__om_end_included_file_here
@@ -67,16 +57,6 @@ call,  Const_Const,   __load__,  0x0000
 @@__om_space__@@
 @@__om_space__@@
 @@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
 .close_include_guard
 @@__om_end_included_file_here
 
@@ -84,11 +64,11 @@ call,  Const_Const,   __load__,  0x0000
 .alias __OM_FPS_DELTA_BASE = 1000
 .data = reserve(__om_fps, __om_fps_delta)
 
-@@_extern_start
+@@_export_start
 .macro SetFPS(__fps) mem,Addr_Const,__om_fps,$(__fps) "&#" mem,Addr_Const,__om_fps_delta,1000 "&#" div,Addr_Addr,__om_fps_delta,__om_fps
 .macro CurrentTime(__out_addr) cmd,Const_Const,GetRunningTime,0 "&#" mem,Addr_Reg,$(__out_addr),R31
 .macro WaitForFrame(__time_1, __time_2) call,Const_Const,__om_delay_on_time_diff,2,Single_Addr,$(__time_1),Single_Addr,$(__time_2)
-@@_extern_end
+@@_export_end
 
 //Function to sleep for the rest of the frame if it took less time than __om_fps_delta
 :__om_delay_on_time_diff:
@@ -112,23 +92,7 @@ ret, 		Single_Const, 		False
 
 .close_include_guard
 @@__om_end_included_file_here
-.include [test-lib.oh]
-@@__om_included_file_here(examples/test-lib.oh)
-.include_guard(__test_lib_oslib)
-
-
-.def TEST_DEF 0xABFA
-.alias TEST_ALIAS = 0x8998
-
-
-$.extern(sub-routine, test-lib::__test_function_1, 0x0000)
-$.extern(sub-routine, test-lib::__test_function_2, 0x000F)
-$.extern(sub-routine, test-lib::__test_function_3, 0x0026)
-$.extern(sub-routine, test-lib::__init__, 0x0045)
-
-
-.close_include_guard
-@@__om_end_included_file_here
+//.include [test-lib.oh]
 .include [ostdlib.oh]
 @@__om_included_file_here(examples/ostdlib.oh)
 .include_guard(__ostdlib_oslib)
@@ -142,6 +106,8 @@ $.extern(sub-routine, ostdlib::__init__, 0x0045)
 
 .close_include_guard
 @@__om_end_included_file_here
+
+//$.extern(sub-routine, test-lib::__init__, 0x0045)
 
 .data = reserve(time1, time2, str, count)
 .data = load_string(str, "Ciao Ciccio")
@@ -159,9 +125,9 @@ mem,Addr_Reg,time1,R31
 
 cmd, Const_Addr, PrintStringToConsole, str
 cmd, Const_Const, PrintNewLineToConsole, 0
-call, Const_Const, test-lib::__test_function_1, 0
-call, Const_Const, test-lib::__test_function_2, 0
-call, Const_Const, test-lib::__test_function_3, 0
+call, Const_Const, ::__test_function_1, 0
+call, Const_Const, ::__test_function_2, 0
+call, Const_Const, ::__test_function_3, 0
 call, Const_Const, ostdlib::__test_function_1, 0
 call, Const_Const, ostdlib::__test_function_2, 0
 call, Const_Const, ostdlib::__test_function_3, 0
@@ -178,9 +144,6 @@ ret, Single_Const, 0
 .close_include_guard
 @@__om_end_included_file_here
 :__load__:
-reserve,  Single_Const,  0x0001
-lda_str,                    0x206F,0x6173,0x6D5F,0x7374,0x6162,0x6C65,0x2000
-mem,     Addr_Reg,    __omx_string,    R31
 reserve,  Single_Const,  0x0002
 reserve,  Single_Const,  0x0004
 lda_str,                    0x4369,0x616F,0x2043,0x6963,0x6369,0x6F00
@@ -189,3 +152,5 @@ call, Const_Const, test-lib::__init__, 0
 call, Const_Const, ostdlib::__init__, 0
 call,  Const_Const,  __main__,  0x0000
 end,  Single_Reg,   RV
+$.extern(sub-routine, test-lib::__init__, 0x0045)
+$.extern(sub-routine, ostdlib::__init__, 0x0045)

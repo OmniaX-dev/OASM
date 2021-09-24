@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/bash -v
 
 make
 ./copy-res
-./oasm-as -i examples/ostdlib.oasm -dt -sc -SC -SL
-./oasm-as -i examples/test-lib.oasm -dt -sc -SC -SL
-./oasm-as -i examples/use-lib.oasm -dt -sc -SC -I ostd -L examples -lsd test-lib -lsd ostdlib
+./oasm-as -i examples/ostdlib.oasm -D -SL -gh
+./oasm-as -i examples/test-lib.oasm -D -SL
+./oasm-as -i examples/use-lib.oasm -D -I ostd -L examples -lsd test-lib -lsd ostdlib
 ./vm use-lib

@@ -20,10 +20,14 @@
 .data = load_string(__test_str_2, "Hello World From Function-2 uuuhuuu!!")
 .data = load_string(__test_str_3, "Hello World From Function-3 HEY!!")
 
-@@_export_start
+$.export(RESERVE, __test_str_1)
+$.export(RESERVE, __test_str_2)
+$.export(SUB-ROUTINE, __test_function_1)
+$.export(SUB-ROUTINE, __test_function_2)
+$.export(SUB-ROUTINE, __test_function_3)
+
 .def TEST_DEF 0xABFA
 .alias TEST_ALIAS = 0x8998
-@@_export_end
 
 :__test_function_1:
 cmd,	Const_Addr,		PrintStringToConsole,	__test_str_1

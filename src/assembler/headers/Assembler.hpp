@@ -15,12 +15,14 @@ namespace Omnia
                 {
                     passes = 2;
 					makeStaticLib = false;
+					genHeader = false;
                 }
 
                 uint16 passes;
 				std::vector<OmniaString> includePaths;
 				std::vector<OmniaString> libIncludePaths;
 				bool makeStaticLib;
+				bool genHeader;
         };
 
         class Macro : public Validable
@@ -105,6 +107,18 @@ namespace Omnia
 					return OmniaString(libName).add("::").add(labelName);
 				}
 			};
+			public: struct tExternSymbol
+			{
+				tExternSymbol(void)
+				{
+					type = eExternSymType::Invalid;
+					name = "invalid_symbol";
+					address = oasm_nullptr;
+				}
+				eExternSymType type;
+				OmniaString name;
+				MemAddress address;
+			};
 			public: struct tStaticLib
 			{
 				OmniaString filePath;
@@ -114,6 +128,7 @@ namespace Omnia
 				TMemoryList reserveRefs;
 				word reserveCount;
 				bool debugTable;
+				std::vector<tExternSymbol> externSymbols;
 			};
 			public:
 				inline static Assembler& instance(void) { return *Assembler::s_instance; }
@@ -163,6 +178,7 @@ namespace Omnia
 				bool p__dbg_save_code;
 				bool p__save_final_code;
 				bool p__build_static_lib;
+				bool p__generate_header;
 				OmniaString p__input_file_path;
 				OmniaString p__output_file_path;
 				OmniaString p__output_file_dbg_table;
@@ -171,6 +187,8 @@ namespace Omnia
 				std::vector<tExternSubroutine> m_extern_subroutines;
 				std::map<MemAddress, OmniaString> m_extern_links;
 				std::vector<MemAddress> m_slib_reserve_addresses;
+				std::vector<tExternSymbol> m_exported_symbols;
+				std::vector<OmniaString> m_extra_code;
 
 				bool m_export_to_static_lib;
 

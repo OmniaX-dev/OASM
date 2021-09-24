@@ -92,6 +92,4 @@
         "syncstream": "cpp",
         "filesystem": "cpp"
     },
-    "cmake.configureOnOpen": true,
-    "cmake.sourceDirectory": "${workspaceFolder}/src"
 }

@@ -48,7 +48,7 @@ namespace Omnia
                 return std::vector<OmniaString>();
             }
             
-            if (options.makeStaticLib)
+            if (options.makeStaticLib && options.genHeader)
             {
                 StringBuilder __sb(".include_guard(__");
                 OmniaString __ig = outputName;
@@ -249,7 +249,6 @@ namespace Omnia
 				OmniaString::StringTokens __st;
 				if (line.toLowerCase().startsWith("reserve"))
 				{
-                    //std::cout << line.cpp() << "\n";
 					line = line.substr(7).trim();
                 	if (!line.startsWith("(") || !line.endsWith(")"))
 					{
@@ -263,17 +262,13 @@ namespace Omnia
 					{
 						param = __st.next();
 						m_reserves[param.cpp()] = (MemAddress)(m_nextReserve++);
-                       // std::cout << Utils::intToHexStr(m_reserves[param.cpp()]).cpp() << "\n";
                         m_reserveCount++;
                         m_symTable.m_reserves[(MemAddress)(m_nextReserve - 1)] = param;
 					}
                     m_dataSection.push_back(StringBuilder("reserve,  Single_Const,  ").add(Utils::intToHexStr(__st.count())).get());
-                    //std::cout << "RES_CNT: " << (int)m_reserveCount << "\n";
-                    //std::cout << "NXT_RES: " << (int)m_nextReserve << "\n";
 				}
                 else if (line.toLowerCase().startsWith("array"))
 				{
-                    //std::cout << line.cpp() << "\n";
 					line = line.substr(5).trim();
                 	if (!line.startsWith("(") || !line.endsWith(")"))
 					{
@@ -299,12 +294,9 @@ namespace Omnia
                     m_symTable.m_reserves[(MemAddress)m_nextReserve] = OmniaString("%").add(def);
                     m_nextReserve += Utils::strToInt(__tmp);
                     m_reserveCount += Utils::strToInt(__tmp);
-                    //std::cout << "RES_CNT: " << (int)m_reserveCount << "\n";
-                    //std::cout << "NXT_RES: " << (int)m_nextReserve << "\n";
 				}
 				else if (line.toLowerCase().startsWith("load_string"))
 				{
-                    //std::cout << line.cpp() << "\n";
 					line = line.substr(11).trim();
                 	if (!line.startsWith("(") || !line.endsWith(")"))
 					{
@@ -339,8 +331,6 @@ namespace Omnia
 					m_dataSection.push_back(__str);
 					m_dataSection.push_back(StringBuilder("mem,     Addr_Reg,    ").add(param.cpp()).add(",    R31").get());
                     m_nextReserve += __str_stream.size() + 1;
-                    //std::cout << "RES_CNT: " << (int)m_reserveCount << "\n";
-                    //std::cout << "NXT_RES: " << (int)m_nextReserve << "\n";
 				}
                 else if (line.toLowerCase().startsWith("struct"))
 				{
@@ -943,6 +933,7 @@ namespace Omnia
             p__dbg_symbol_table = false;
             p__dbg_save_code = false;
             p__save_final_code = false;
+            p__generate_header = false;
 			p__input_file_path = "";
             p__output_file_path = "";
             p__output_file_dbg_table = "";
@@ -1005,6 +996,17 @@ namespace Omnia
                         p__build_static_lib = true;
                         m_options.makeStaticLib = true;
                     }
+                    else if (OmniaString(argv[i]).trim().equals("--generate-header") || OmniaString(argv[i]).trim().equals("-gh"))
+					{
+                        p__generate_header = true;
+                        m_options.genHeader = true;
+                    }
+                    else if (OmniaString(argv[i]).trim().equals("--DEBUG") || OmniaString(argv[i]).trim().equals("-D"))
+                    {
+                        p__dbg_save_code = true;
+                        p__dbg_symbol_table = true;
+                        p__save_final_code = true;
+                    }
                     else if (OmniaString(argv[i]).trim().startsWith("--link-static") || OmniaString(argv[i]).trim().startsWith("-ls"))
 					{
                         bool __lsd = false;
@@ -1058,15 +1060,38 @@ namespace Omnia
                                 __lib = __lp;
                         }
                         tStaticLib __slib;
+                        MemAddress __lib_init_addr = oasm_nullptr;
                         if (__lib_code.size() > 0)
                         {
-                            /*int __t = 0;
-                            for (auto& __cell : __lib_code)
+                            __lib_init_addr = __lib_code[0].val();
+                            STDVEC_REMOVE(__lib_code, 0);
+
+                            word __export_cnt = __lib_code[0].val();
+                            STDVEC_REMOVE(__lib_code, 0);
+                            
+                            if (__export_cnt > 0)
                             {
-                                if (++__t % 16 == 0) std::cout << "\n";
-                                std::cout << Utils::intToHexStr(__cell.val()).cpp() << "  ";
+                                TMemoryList __tmp_str_stream;
+                                for (uint16 i = 0; i < __export_cnt; i++)
+                                {
+                                    tExternSymbol __sym;
+                                    __sym.type = (eExternSymType)__lib_code[0].val();
+                                    STDVEC_REMOVE(__lib_code, 0);
+                                    __sym.address = __lib_code[0].val();
+                                    STDVEC_REMOVE(__lib_code, 0);
+                                    word __c = 0;
+                                    do
+                                    {
+                                        __c = __lib_code[0].val();
+                                        STDVEC_REMOVE(__lib_code, 0);
+                                        __tmp_str_stream.push_back(__c);
+                                    } while (__c != 0);
+                                    __sym.name = BitEditor::constStreamToString(__tmp_str_stream);
+                                    __tmp_str_stream.clear();
+                                    __slib.externSymbols.push_back(__sym);
+                                }
                             }
-                            std::cout << "\n";*/
+
                             __slib.reserveCount = __lib_code[0].val();
                             STDVEC_REMOVE(__lib_code, 0);
                             word __ref_count = __lib_code[0].val();
@@ -1076,20 +1101,13 @@ namespace Omnia
                                 __slib.reserveRefs.push_back(__lib_code[0]);
                                 STDVEC_REMOVE(__lib_code, 0);
                             }
-                            /*std::cout << "\n\n\n";
-                            __t = 0;
-                            for (auto& __cell : __lib_code)
-                            {
-                                if (++__t % 16 == 0) std::cout << "\n";
-                                std::cout << Utils::intToHexStr(__cell.val()).cpp() << "  ";
-                            }
-                            std::cout << "\n";*/
                         }
                         __slib.name = lib_name;
                         __slib.code = __lib_code;
                         __slib.baseAddress = 0;
                         __slib.debugTable = __lsd;
                         __slib.filePath = __lib;
+                        m_extra_code.push_back(StringBuilder("$.extern(sub-routine, ").add(__slib.name).add("::__init__, ").add(Utils::intToHexStr(__lib_init_addr)).add(")").get());
                         m_static_libs.push_back(__slib);
                         Utils::message(StringBuilder("Loaded static library: <").add(__lib).add("> as <").add(lib_name).add("> (").add((int64)(__lib_code.size() * sizeof(BitEditor))).add(" bytes)").get(), *getOutputHandler(), eMsgType::Success);
                     }
@@ -1125,6 +1143,27 @@ namespace Omnia
                 __program.insert(__program.begin(), PreProcessor::instance().m_nextReserve);
                 __program.insert(__program.begin() + 1, m_slib_reserve_addresses.size());
                 __program.insert(__program.begin() + 2, m_slib_reserve_addresses.begin(), m_slib_reserve_addresses.end());
+            }
+            TMemoryList __temp;
+            if (p__build_static_lib)
+            {
+                __temp.push_back((word)m_exported_symbols.size());
+                if (m_exported_symbols.size() > 0)
+                {
+                    TMemoryList __tmp_str_stream;
+                    for (auto& __sym : m_exported_symbols)
+                    {
+                        __temp.push_back((word)__sym.type);
+                        __temp.push_back((word)__sym.address);
+                        __tmp_str_stream = BitEditor::stringToConstSream(__sym.name);
+                        __temp.insert(__temp.end(), __tmp_str_stream.begin(), __tmp_str_stream.end());
+                        if (__temp[__temp.size() - 1] != 0)
+                            __temp.push_back(0);
+                    }
+                }
+                __temp.insert(__temp.end(), __program.begin(), __program.end());
+                __program = __temp;
+                __program.insert(__program.begin(), (word)m_labels["__init__"]);
             }
             std::ofstream writeFile;
             writeFile.open(__outputFile.cpp(), std::ios::out | std::ios::binary);
@@ -1218,9 +1257,38 @@ namespace Omnia
                 __tmp_res_count += lib.reserveCount;
             }
             uint32 __check = 0;
-            for (auto& ext : m_extern_subroutines)
+            bool __next = false;
+            for (auto& link : m_extern_links)
             {
-                for (auto& link : m_extern_links)
+                if (link.second.startsWith("::"))
+                {
+                    for (auto& lib : m_static_libs)
+                    {
+                        for (auto& __sym : lib.externSymbols)
+                        {
+                            if (link.second == StringBuilder("::").add(__sym.name).get())
+                            {
+                                if (__sym.type == eExternSymType::SubRoutine)
+                                    __code[link.first] = lib.baseAddress + __sym.address;
+                                else
+                                    continue;
+                                __check++;
+                                __next = true;
+                                break;
+                            }
+                        }
+                        if (__next) break;
+                    }
+                    if (!__next)
+                    {
+                        //TODO: Error, unknown symbol link.second
+                        std::cout << "Linker Error: Unknown symbol\n";
+                        return TMemoryList();
+                    }
+                    __next = false;
+                    continue;
+                }
+                for (auto& ext : m_extern_subroutines)
                 {
                     if (link.second == ext.getScopedName())
                     {
@@ -1254,6 +1322,7 @@ namespace Omnia
                 source.insert(source.end() - 2, OmniaString("call, Const_Const, ").add(lib.name).add("::__init__, 0"));
             }
             source.insert(source.begin(), __source.begin(), __source.end());
+            source.insert(source.end(), m_extra_code.begin(), m_extra_code.end());
             if (p__dbg_save_code)
             {
                 std::map<MemAddress, OmniaString> __dbg_src;
@@ -1301,13 +1370,22 @@ namespace Omnia
 					if (__data == "") continue;
                     if (__data.contains("::"))
                     {
-                        for (auto& __ext : m_extern_subroutines)
+                        if (__data.startsWith("::"))
                         {
-                            if (__ext.getScopedName() == __data)
+                            //__data = __data.substr(2).trim();
+                            m_extern_links[__addr] = __data;
+                            found = true;
+                        }
+                        else
+                        {
+                            for (auto& __ext : m_extern_subroutines)
                             {
-                                m_extern_links[__addr] = __data;
-                                found = true;
-                                break;
+                                if (__ext.getScopedName() == __data)
+                                {
+                                    m_extern_links[__addr] = __data;
+                                    found = true;
+                                    break;
+                                }
                             }
                         }
                         if (!found)
@@ -1394,6 +1472,62 @@ namespace Omnia
                     m_extern_subroutines.push_back(__ext);
                 }
             }
+            else if (__func.startsWith("export"))
+            {
+                if (!p__build_static_lib) return "";
+                OmniaString::StringTokens __st = __params.tokenize(",", true);
+                if (__st.count() < 2)
+                {
+                    //TODO: Error wrong syntax
+                    return OmniaString("$.").add(__func);
+                }
+                OmniaString __type = __st.next(), __symbol = "";
+                while (__st.hasNext())
+                {
+                    tExternSymbol __sym;
+                    __symbol = __st.next();
+                    if (__type.toLowerCase() == "sub-routine")
+                    {
+                        __sym.type = eExternSymType::SubRoutine;
+                        __sym.address = 0;
+                        __sym.name = __symbol;
+                        m_exported_symbols.push_back(__sym);
+                    }
+                    else if (__type.toLowerCase() == "reserve")
+                    {
+                        if (!PreProcessor::instance().hasReserved(__symbol))
+                        {
+                            //TODO: Error unknown reserve
+                            std::cout << "Error: unknown reserve\n";
+                            return OmniaString("$.").add(__func);
+                        }
+                        __sym.type = eExternSymType::Reserve;
+                        __sym.address = PreProcessor::instance().m_reserves[__symbol.cpp()];;
+                        __sym.name = __symbol;
+                        m_exported_symbols.push_back(__sym);
+                    }
+                    else if (__type.toLowerCase() == "array")
+                    {
+                        if (!PreProcessor::instance().hasReserved(OmniaString("%").add(__symbol)))
+                        {
+                            //TODO: Error unknown reserve
+                            std::cout << "Error: unknown array\n";
+                            return OmniaString("$.").add(__func);
+                        }
+                        __sym.type = eExternSymType::Array;
+                        __sym.address = PreProcessor::instance().m_reserves[OmniaString("%").add(__symbol).cpp()];;
+                        __sym.name = __symbol;
+                        m_exported_symbols.push_back(__sym);
+                    }
+                    else
+                    {
+                        //TODO: Error Unknown export type
+                        return OmniaString("$.").add(__func);
+                    }
+                }
+
+                return "";
+            }
             else
             {
                 printError(D__ASSEMBLER_ERR_UNKNOWN_AS_CMD, *getOutputHandler(), OmniaString("$.").add(__func));
@@ -1444,7 +1578,10 @@ namespace Omnia
                     }
                     i++;
                     OmniaString __c = l.substr(j, i);
-                    l = l.replaceAll(__c, executeAssemblerFunction(__cmd));
+                    OmniaString __result = executeAssemblerFunction(__cmd);
+                    if (__cmd.startsWith("$."))
+                        return std::vector<OmniaString>();
+                    l = l.replaceAll(__c, __result);
                 }
             }
             for (auto& l : lines) //Resolve labels
@@ -1480,7 +1617,9 @@ namespace Omnia
 					code.push_back(l);
 				}
 			}
-            if (p__build_static_lib)
+			lines = code;
+			code.clear();
+            if (p__build_static_lib && p__generate_header)
             { 
                 OmniaString h_name = p__output_file_path;
                 if (h_name.endsWith(".oslib"))
@@ -1494,8 +1633,6 @@ namespace Omnia
                 h_file.close();
                 Utils::message(StringBuilder("Generated header file: <").add(h_name).add(">").get(), *getOutputHandler(), eMsgType::Success);
             }
-			lines = code;
-			code.clear();
 
             MemAddress __cur_addr = 0;
             for (auto& l : lines)
@@ -1559,6 +1696,20 @@ namespace Omnia
                 }
 				code.push_back(__new_line.get());
 			}
+
+            for (auto& __ext : m_exported_symbols)
+            {
+                if (__ext.type == eExternSymType::SubRoutine)
+                {
+                    if (!isLabel(__ext.name, __ext.address))
+                    {
+                        //TODO: Error, unknown sub-routine name
+                        std::cout << "Error: Unknown subroutine\n";
+                        return std::vector<OmniaString>();
+                    }
+                }
+            }
+
 			return code;
 		}
 	}

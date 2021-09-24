@@ -2,11 +2,13 @@
 
 .include [keys.oasm]
 
-.ifdef __om_load_keys_to_memory
-	.alias InitKeyboard = call, Const_Const, __om_load_keys__, 0
-.else
-	.alias InitKeyboard = no_op
-.endif
+@@_export_start
+	.ifdef __om_load_keys_to_memory
+		.alias InitKeyboard = call, Const_Const, __om_load_keys__, 0
+	.else
+		.alias InitKeyboard = no_op
+	.endif
+@@_export_end
 
 .ifdef __om_load_keys_to_memory
 	.data = array(__om_key_list, 104)
