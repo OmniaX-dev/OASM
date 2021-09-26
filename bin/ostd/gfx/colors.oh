@@ -1,0 +1,20 @@
+.include_guard(__colors__oh__)
+
+.alias OM_GREY = 0x0
+.alias OM_RED = 0x1
+.alias OM_GREEN = 0x2
+.alias OM_YELLOW = 0x3
+.alias OM_BLUE = 0x4
+.alias OM_MAGENTA = 0x5
+.alias OM_CYAN = 0x6
+.alias OM_WHITE = 0x7
+.alias OM_BRIGHT_GREY = 0x8
+.alias OM_BRIGHT_RED = 0x9
+.alias OM_BRIGHT_GREEN = 0xA
+.alias OM_BRIGHT_YELLOW = 0xB
+.alias OM_BRIGHT_BLUE = 0xC
+.alias OM_BRIGHT_MAGENTA = 0xD
+.alias OM_BRIGHT_CYAN = 0xE
+.alias OM_BRIGHT_WHITE = 0xF
+
+.close_include_guard

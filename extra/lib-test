@@ -2,7 +2,8 @@
 
 make
 ./copy-res
-./oasm-as -i examples/ostdlib.oasm -D -SL -gh
-./oasm-as -i examples/test-lib.oasm -D -SL
-./oasm-as -i examples/use-lib.oasm -D -I ostd -L examples -lsd test-lib -lsd ostdlib
+#./oasm-as -i examples/test-lib.oasm -D -SL
+#./oasm-as -i ostd/ostd.oasm -D -SL
+./oasm-as -i examples/use-lib.oasm -D -I ostd  -lsd ostd/ostd.oslib 
+#./oasm-as -i examples/use-lib.oasm -D -I ostd -L examples -lsd test-lib
 ./vm use-lib

@@ -1,0 +1,3 @@
+ #!/bin/bash -v
+ 
+ ./../../bin/oasm-as -i ostd.oasm -D -SL

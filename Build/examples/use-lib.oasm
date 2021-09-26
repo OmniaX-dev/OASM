@@ -2,36 +2,35 @@
 
 .command(request, ALL=1536)
 
-.include [sys/system.oasm]
-.include [sys/timing.oasm]
-//.include [test-lib.oh]
-.include [ostdlib.oh]
+.include [sys/system.oh]
+.include [sys/timing.oh]
+.include [gfx/base-video.oh]
+.include [gfx/colors.oh]
 
-//$.extern(sub-routine, test-lib::__init__, 0x0045)
-
-.data = reserve(time1, time2, str, count)
-.data = load_string(str, "Ciao Ciccio")
+.data = reserve(time1, time2, screenx, screeny, rndx, rndy, rndc)
 
 :__main__:
-	@SetFPS(10)
-	@Load(count, 0)
+	@SetFPS(30)
+	@InitVideo(VIDEO_MODE_ASCII_GRID)
+	@GetScreenSize(screenx, screeny)
 
 	:loop:
 		@CurrentTime(time1)
-			cmd, Const_Addr, PrintStringToConsole, str
-			cmd, Const_Const, PrintNewLineToConsole, 0
-			call, Const_Const, ::__test_function_1, 0
-			call, Const_Const, ::__test_function_2, 0
-			call, Const_Const, ::__test_function_3, 0
-			call, Const_Const, ostdlib::__test_function_1, 0
-			call, Const_Const, ostdlib::__test_function_2, 0
-			call, Const_Const, ostdlib::__test_function_3, 0
-			inc, Single_Addr, count
+			#ClearScreen
+			mem, Reg_Const, R30, 0
+			mem, Reg_Addr, R31, screenx
+			cmd, Const_Const, Random, rndx
+			mem, Reg_Addr, R31, screeny
+			cmd, Const_Const, Random, rndy
+			mem, Reg_Const, R30, $.char('A')
+			mem, Reg_Addr, R31, $.char('Z')
+			cmd, Const_Const, Random, rndc
+			@PlotChar(rndx, rndy, rndc, ::Yellow, ::Red)
+			#Draw
 		@CurrentTime(time2)
 		no_op
 		@WaitForFrame(time1, time2)
-		cmp, Addr_Const, count, 5
-	jmp, Single_Const, JMP_LESS_OR_EQUALS, loop
+	jmp, Single_Const, JMP_UNCONDITIONAL, loop
 ret, Single_Const, 0
 
 .close_include_guard

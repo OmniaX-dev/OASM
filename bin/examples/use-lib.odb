@@ -1,60 +1,47 @@
-#version(0.3.2851)
-.label __om_delay_on_time_diff = 0x0007
-.label __exceeded_frame_time = 0x0030
-.label __main__ = 0x0033
-.label loop = 0x0043
-.label __load__ = 0x008A
-.data __om_fps = 0x0000
-.data __om_fps_delta = 0x0001
-.data time1 = 0x0002
-.data time2 = 0x0003
-.data str = 0x0004
-.data count = 0x0005
+#version(0.3.2891)
+.label __main__ = 0x0007
+.label loop = 0x0027
+.label __load__ = 0x007D
+.data time1 = 0x0000
+.data time2 = 0x0001
+.data screenx = 0x0002
+.data screeny = 0x0003
+.data rndx = 0x0004
+.data rndy = 0x0005
+.data rndc = 0x0006
 .source = { 
 		0x0000:req,                 REQ_ALL,                    1536
 		0x0003:call,  Const_Const,   __load__,  0x0000
-		0x0007:pop, Single_Reg, R29
-		0x000A:pop, Single_Reg, R28
-		0x000D:mem, Reg_Reg,	R27,R29
-		0x0011:sub,		Reg_Reg,			R27,					R28
-		0x0015:cmp,		Reg_Addr,			R27,					__om_fps_delta
-		0x0019:jmp,		Single_Const,		JMP_GREATER_OR_EQUALS,	__exceeded_frame_time
-		0x001D:mem,		Reg_Addr,			R28,					__om_fps_delta
-		0x0021:sub,		Reg_Reg,			R28,					R27
-		0x0025:mem,		Reg_Const,			R31,					TU_MILLISECONDS
-		0x0029:cmd,		Const_Reg,			Sleep,					R28
-		0x002D:ret,		Single_Const,		True
-		0x0030:ret, 		Single_Const, 		False
-		0x0033:mem,Addr_Const,__om_fps,10
-		0x0037:mem,Addr_Const,__om_fps_delta,1000
-		0x003B:div,Addr_Addr,__om_fps_delta,__om_fps
-		0x003F:mem, Addr_Const, count, 0
-		0x0043:cmd,Const_Const,GetRunningTime,0
-		0x0047:mem,Addr_Reg,time1,R31
-		0x004B:cmd, Const_Addr, PrintStringToConsole, str
-		0x004F:cmd, Const_Const, PrintNewLineToConsole, 0
-		0x0053:call, Const_Const, ::__test_function_1, 0
-		0x0057:call, Const_Const, ::__test_function_2, 0
-		0x005B:call, Const_Const, ::__test_function_3, 0
-		0x005F:call, Const_Const, ostdlib::__test_function_1, 0
-		0x0063:call, Const_Const, ostdlib::__test_function_2, 0
-		0x0067:call, Const_Const, ostdlib::__test_function_3, 0
-		0x006B:inc, Single_Addr, count
-		0x006E:cmd,Const_Const,GetRunningTime,0
-		0x0072:mem,Addr_Reg,time2,R31
-		0x0076:no_op
-		0x0077:call,Const_Const,__om_delay_on_time_diff,2,Single_Addr,time1,Single_Addr,time2
-		0x007F:cmp, Addr_Const, count, 5
-		0x0083:jmp, Single_Const, JMP_LESS_OR_EQUALS, loop
-		0x0087:ret, Single_Const, 0
-		0x008A:reserve,  Single_Const,  0x0002
-		0x008D:reserve,  Single_Const,  0x0004
-		0x0090:lda_str,"Ciao Ciccio"
-		0x0097:mem,     Addr_Reg,    str,    R31
-		0x009B:call, Const_Const, test-lib::__init__, 0
-		0x009F:call, Const_Const, ostdlib::__init__, 0
-		0x00A3:call,  Const_Const,  __main__,  0x0000
-		0x00A7:end,  Single_Reg,   RV
+		0x0007:mem,Addr_Const,::__om_fps,30
+		0x000B:mem,Addr_Const,::__om_fps_delta,1000
+		0x000F:div,Addr_Addr,::__om_fps_delta,::__om_fps
+		0x0013:cmd, Const_Const, SetVideoMode, VIDEO_MODE_ASCII_GRID
+		0x0017:call, Const_Const, ::__om_load_screen_size__, 0
+		0x001B:call, Const_Const, ::__om_load_colors__, 0
+		0x001F:mem, Addr_Addr, screenx, ::%__om_screen_size[0]
+		0x0023:mem, Addr_Addr, screeny, ::%__om_screen_size[1]
+		0x0027:cmd,Const_Const,GetRunningTime,0
+		0x002B:mem,Addr_Reg,time1,R31
+		0x002F:cmd,	Const_Const, RefreshScreen,	 0
+		0x0033:mem, Reg_Const, R30, 0
+		0x0037:mem, Reg_Addr, R31, screenx
+		0x003B:cmd, Const_Const, Random, rndx
+		0x003F:mem, Reg_Addr, R31, screeny
+		0x0043:cmd, Const_Const, Random, rndy
+		0x0047:mem, Reg_Const, R30, $.char('A')
+		0x004B:mem, Reg_Addr, R31, $.char('Z')
+		0x004F:cmd, Const_Const, Random, rndc
+		0x0053:call, Const_Const, ::__om_plot_char__, 5, Single_Addr, rndx, Single_Addr, rndy, Single_Addr, rndc, Single_Addr, ::Yellow, Single_Addr, ::Red
+		0x0061:cmd, Const_Const, Draw, 0
+		0x0065:cmd,Const_Const,GetRunningTime,0
+		0x0069:mem,Addr_Reg,time2,R31
+		0x006D:no_op
+		0x006E:call,Const_Const,::__om_delay_on_time_diff,2,Single_Addr,time1,Single_Addr,time2
+		0x0076:jmp, Single_Const, JMP_UNCONDITIONAL, loop
+		0x007A:ret, Single_Const, 0
+		0x007D:reserve,  Single_Const,  0x0007
+		0x0080:call, Const_Const, ostd::__init__, 0
+		0x0084:call,  Const_Const,  __main__,  0x0000
+		0x0088:end,  Single_Reg,   RV
 }
-.attach_lib_debug_table examples/test-lib.odb 0x00AA
-.attach_lib_debug_table examples/ostdlib.odb 0x0137
+.attach_lib_debug_table ostd/ostd.odb 0x008B

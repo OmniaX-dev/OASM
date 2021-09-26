@@ -1,0 +1,5 @@
+.include_guard(__keyboard__oh__) 
+
+.alias InitKeyboard = call, Const_Const, ::__om_load_keys__, 0
+
+.close_include_guard

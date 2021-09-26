@@ -392,6 +392,7 @@ namespace Omnia
 					{ "GetScreenW", (word)eComCodes::GetScreenW },
 					{ "GetScreenH", (word)eComCodes::GetScreenH },
 					{ "Draw", (word)eComCodes::Draw },
+					{ "Random", (word)eComCodes::Random },
 
 					{ "TU_SECONDS", (word)eTimeUnits::Seconds },
 					{ "TU_MILLISECONDS", (word)eTimeUnits::Milliseconds },

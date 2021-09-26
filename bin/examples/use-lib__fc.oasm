@@ -5,11 +5,10 @@ call,  Const_Const,   __load__,  0x0000
 
 .command(request, ALL=1536)
 
-.include [sys/system.oasm]
-@@__om_included_file_here(ostd/sys/system.oasm)
-.include_guard(__sys__oasm__)
+.include [sys/system.oh]
+@@__om_included_file_here(ostd/sys/system.oh)
+.include_guard(__system__oh__)
 
-@@_export_start
 .alias __OM_STABLE = 0x0000
 .alias __OM_EXPERIMENTAL = 0x0001
 .alias __OM_DEV = 0x0002
@@ -26,131 +25,102 @@ call,  Const_Const,   __load__,  0x0000
 .macro LoadString(__addr, __string)	 lda_str, $(__string) "&#" mem, Addr_Reg, $(__addr), R31
 
 .macro ArrayAt(__arr, __index, __out_addr) mem, Addr_Const, $(__out_addr), $(__arr) "&#" add, Addr_Addr, $(__out_addr), $(__index)
-@@_export_end
 
 .close_include_guard
 @@__om_end_included_file_here
-.include [sys/timing.oasm]
-@@__om_included_file_here(ostd/sys/timing.oasm)
-.include_guard(__timing__oasm__)
-
-.include [system.oasm]
-@@__om_included_file_here(ostd/sys/system.oasm)
-.include_guard(__sys__oasm__)
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-@@__om_space__@@
-.close_include_guard
-@@__om_end_included_file_here
+.include [sys/timing.oh]
+@@__om_included_file_here(ostd/sys/timing.oh)
+.include_guard(__timing__oh__)
 
 //FPS_Manager structure
 .alias __OM_FPS_DELTA_BASE = 1000
-.data = reserve(__om_fps, __om_fps_delta)
 
-@@_export_start
-.macro SetFPS(__fps) mem,Addr_Const,__om_fps,$(__fps) "&#" mem,Addr_Const,__om_fps_delta,1000 "&#" div,Addr_Addr,__om_fps_delta,__om_fps
+.macro SetFPS(__fps) mem,Addr_Const,::__om_fps,$(__fps) "&#" mem,Addr_Const,::__om_fps_delta,1000 "&#" div,Addr_Addr,::__om_fps_delta,::__om_fps
 .macro CurrentTime(__out_addr) cmd,Const_Const,GetRunningTime,0 "&#" mem,Addr_Reg,$(__out_addr),R31
-.macro WaitForFrame(__time_1, __time_2) call,Const_Const,__om_delay_on_time_diff,2,Single_Addr,$(__time_1),Single_Addr,$(__time_2)
-@@_export_end
-
-//Function to sleep for the rest of the frame if it took less time than __om_fps_delta
-:__om_delay_on_time_diff:
-pop, Single_Reg, R29
-pop, Single_Reg, R28
-mem, Reg_Reg,	R27,R29
-
-sub,		Reg_Reg,			R27,					R28
-
-cmp,		Reg_Addr,			R27,					__om_fps_delta
-jmp,		Single_Const,		JMP_GREATER_OR_EQUALS,	__exceeded_frame_time
-
-mem,		Reg_Addr,			R28,					__om_fps_delta
-sub,		Reg_Reg,			R28,					R27
-mem,		Reg_Const,			R31,					TU_MILLISECONDS
-cmd,		Const_Reg,			Sleep,					R28
-ret,		Single_Const,		True
-:__exceeded_frame_time:
-ret, 		Single_Const, 		False
-//end __om_delay_on_time_diff
+.macro WaitForFrame(__time_1, __time_2) call,Const_Const,::__om_delay_on_time_diff,2,Single_Addr,$(__time_1),Single_Addr,$(__time_2)
 
 .close_include_guard
 @@__om_end_included_file_here
-//.include [test-lib.oh]
-.include [ostdlib.oh]
-@@__om_included_file_here(examples/ostdlib.oh)
-.include_guard(__ostdlib_oslib)
+.include [gfx/base-video.oh]
+@@__om_included_file_here(ostd/gfx/base-video.oh)
+.include_guard(__base_video__oh__)
 
+.macro InitVideo(__video_mode) cmd, Const_Const, SetVideoMode, $(__video_mode) "&#" call, Const_Const, ::__om_load_screen_size__, 0 "&#" call, Const_Const, ::__om_load_colors__, 0
+.macro SetVideoMode(__video_mode) cmd, Const_Const, SetVideoMode, $(__video_mode)
+.macro PlotChar(__x, __y, __char, __bg_col, __fg_col) call, Const_Const, ::__om_plot_char__, 5, Single_Addr, $(__x), Single_Addr, $(__y), Single_Addr, $(__char), Single_Addr, $(__bg_col), Single_Addr, $(__fg_col)
+.macro GetScreenSize(__out_x, __out_y) mem, Addr_Addr, $(__out_x), ::%__om_screen_size[0] "&#" mem, Addr_Addr, $(__out_y), ::%__om_screen_size[1]
+.alias ClearScreen = cmd,	Const_Const, RefreshScreen,	 0
+.alias Draw = cmd, Const_Const, Draw, 0
 
-$.extern(sub-routine, ostdlib::__test_function_1, 0x0000)
-$.extern(sub-routine, ostdlib::__test_function_2, 0x000F)
-$.extern(sub-routine, ostdlib::__test_function_3, 0x0026)
-$.extern(sub-routine, ostdlib::__init__, 0x0045)
+.close_include_guard
+@@__om_end_included_file_here
+.include [gfx/colors.oh]
+@@__om_included_file_here(ostd/gfx/colors.oh)
+.include_guard(__colors__oh__)
 
+.alias OM_GREY = 0x0
+.alias OM_RED = 0x1
+.alias OM_GREEN = 0x2
+.alias OM_YELLOW = 0x3
+.alias OM_BLUE = 0x4
+.alias OM_MAGENTA = 0x5
+.alias OM_CYAN = 0x6
+.alias OM_WHITE = 0x7
+.alias OM_BRIGHT_GREY = 0x8
+.alias OM_BRIGHT_RED = 0x9
+.alias OM_BRIGHT_GREEN = 0xA
+.alias OM_BRIGHT_YELLOW = 0xB
+.alias OM_BRIGHT_BLUE = 0xC
+.alias OM_BRIGHT_MAGENTA = 0xD
+.alias OM_BRIGHT_CYAN = 0xE
+.alias OM_BRIGHT_WHITE = 0xF
 
 .close_include_guard
 @@__om_end_included_file_here
 
-//$.extern(sub-routine, test-lib::__init__, 0x0045)
-
-.data = reserve(time1, time2, str, count)
-.data = load_string(str, "Ciao Ciccio")
+.data = reserve(time1, time2, screenx, screeny, rndx, rndy, rndc)
 
 :__main__:
-mem,Addr_Const,__om_fps,10
-mem,Addr_Const,__om_fps_delta,1000
-div,Addr_Addr,__om_fps_delta,__om_fps
+mem,Addr_Const,::__om_fps,30
+mem,Addr_Const,::__om_fps_delta,1000
+div,Addr_Addr,::__om_fps_delta,::__om_fps
 
-mem, Addr_Const, count, 0
+cmd, Const_Const, SetVideoMode, VIDEO_MODE_ASCII_GRID
+call, Const_Const, ::__om_load_screen_size__, 0
+call, Const_Const, ::__om_load_colors__, 0
+
+mem, Addr_Addr, screenx, ::%__om_screen_size[0]
+mem, Addr_Addr, screeny, ::%__om_screen_size[1]
+
 
 :loop:
 cmd,Const_Const,GetRunningTime,0
 mem,Addr_Reg,time1,R31
 
-cmd, Const_Addr, PrintStringToConsole, str
-cmd, Const_Const, PrintNewLineToConsole, 0
-call, Const_Const, ::__test_function_1, 0
-call, Const_Const, ::__test_function_2, 0
-call, Const_Const, ::__test_function_3, 0
-call, Const_Const, ostdlib::__test_function_1, 0
-call, Const_Const, ostdlib::__test_function_2, 0
-call, Const_Const, ostdlib::__test_function_3, 0
-inc, Single_Addr, count
+cmd,	Const_Const, RefreshScreen,	 0
+mem, Reg_Const, R30, 0
+mem, Reg_Addr, R31, screenx
+cmd, Const_Const, Random, rndx
+mem, Reg_Addr, R31, screeny
+cmd, Const_Const, Random, rndy
+mem, Reg_Const, R30, $.char('A')
+mem, Reg_Addr, R31, $.char('Z')
+cmd, Const_Const, Random, rndc
+call, Const_Const, ::__om_plot_char__, 5, Single_Addr, rndx, Single_Addr, rndy, Single_Addr, rndc, Single_Addr, ::Yellow, Single_Addr, ::Red
+cmd, Const_Const, Draw, 0
 cmd,Const_Const,GetRunningTime,0
 mem,Addr_Reg,time2,R31
 
 no_op
-call,Const_Const,__om_delay_on_time_diff,2,Single_Addr,time1,Single_Addr,time2
-cmp, Addr_Const, count, 5
-jmp, Single_Const, JMP_LESS_OR_EQUALS, loop
+call,Const_Const,::__om_delay_on_time_diff,2,Single_Addr,time1,Single_Addr,time2
+jmp, Single_Const, JMP_UNCONDITIONAL, loop
 ret, Single_Const, 0
 
 .close_include_guard
 @@__om_end_included_file_here
 :__load__:
-reserve,  Single_Const,  0x0002
-reserve,  Single_Const,  0x0004
-lda_str,                    0x4369,0x616F,0x2043,0x6963,0x6369,0x6F00
-mem,     Addr_Reg,    str,    R31
-call, Const_Const, test-lib::__init__, 0
-call, Const_Const, ostdlib::__init__, 0
+reserve,  Single_Const,  0x0007
+call, Const_Const, ostd::__init__, 0
 call,  Const_Const,  __main__,  0x0000
 end,  Single_Reg,   RV
-$.extern(sub-routine, test-lib::__init__, 0x0045)
-$.extern(sub-routine, ostdlib::__init__, 0x0045)
+$.extern(sub-routine, ostd::__init__, 0x02B3)

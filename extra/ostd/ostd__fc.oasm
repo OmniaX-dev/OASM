@@ -1,0 +1,665 @@
+@@__om_included_file_here(ostd.oasm)
+.include_guard(__ostd__oasm__)
+
+.include [gfx/base-video.oasm]
+@@__om_included_file_here(./gfx/base-video.oasm)
+.include_guard(__base_video__oasm__)
+
+$.export(ARRAY, %__om_video_plot_data)
+$.export(ARRAY, %__om_screen_size)
+$.export(SUB-ROUTINE, __om_plot_char__)
+$.export(SUB-ROUTINE, __om_load_screen_size__)
+$.export(SUB-ROUTINE, __om_load_colors__)
+$.export(RESERVE, Grey, Red, Green, Yellow, Blue, Magenta, Cyan, White)
+$.export(RESERVE, BrightGrey, BrightRed, BrightGreen, BrightYellow, BrightBlue, BrightMagenta, BrightCyan, BrightWhite)
+
+.include [colors.oh]
+@@__om_included_file_here(./gfx/colors.oh)
+.include_guard(__colors__oh__)
+
+.alias OM_GREY = 0x0
+.alias OM_RED = 0x1
+.alias OM_GREEN = 0x2
+.alias OM_YELLOW = 0x3
+.alias OM_BLUE = 0x4
+.alias OM_MAGENTA = 0x5
+.alias OM_CYAN = 0x6
+.alias OM_WHITE = 0x7
+.alias OM_BRIGHT_GREY = 0x8
+.alias OM_BRIGHT_RED = 0x9
+.alias OM_BRIGHT_GREEN = 0xA
+.alias OM_BRIGHT_YELLOW = 0xB
+.alias OM_BRIGHT_BLUE = 0xC
+.alias OM_BRIGHT_MAGENTA = 0xD
+.alias OM_BRIGHT_CYAN = 0xE
+.alias OM_BRIGHT_WHITE = 0xF
+
+.close_include_guard
+@@__om_end_included_file_here
+.include [../sys/system.oh]
+@@__om_included_file_here(./gfx/../sys/system.oh)
+.include_guard(__system__oh__)
+
+.alias __OM_STABLE = 0x0000
+.alias __OM_EXPERIMENTAL = 0x0001
+.alias __OM_DEV = 0x0002
+
+.ifdef __oasm_experimental
+@@__om_space__@@
+.elifdef __oasm_dev
+@@__om_space__@@
+.else
+.alias __OMX_VER = 0x0000
+.endif
+
+.macro Load(__addr, __const_val) mem, Addr_Const, $(__addr), $(__const_val)
+.macro LoadString(__addr, __string)	 lda_str, $(__string) "&#" mem, Addr_Reg, $(__addr), R31
+
+.macro ArrayAt(__arr, __index, __out_addr) mem, Addr_Const, $(__out_addr), $(__arr) "&#" add, Addr_Addr, $(__out_addr), $(__index)
+
+.close_include_guard
+@@__om_end_included_file_here
+.include [base-video.oh]
+@@__om_included_file_here(./gfx/base-video.oh)
+.include_guard(__base_video__oh__)
+
+.macro InitVideo(__video_mode) cmd, Const_Const, SetVideoMode, $(__video_mode) "&#" call, Const_Const, ::__om_load_screen_size__, 0 "&#" call, Const_Const, ::__om_load_colors__, 0
+.macro SetVideoMode(__video_mode) cmd, Const_Const, SetVideoMode, $(__video_mode)
+.macro PlotChar(__x, __y, __char, __bg_col, __fg_col) call, Const_Const, ::__om_plot_char__, 5, Single_Addr, $(__x), Single_Addr, $(__y), Single_Addr, $(__char), Single_Addr, $(__bg_col), Single_Addr, $(__fg_col)
+.macro GetScreenSize(__out_x, __out_y) mem, Addr_Addr, $(__out_x), ::%__om_screen_size[0] "&#" mem, Addr_Addr, $(__out_y), ::%__om_screen_size[1]
+.alias ClearScreen = cmd,	Const_Const, RefreshScreen,	 0
+.alias Draw = cmd, Const_Const, Draw, 0
+
+.close_include_guard
+@@__om_end_included_file_here
+
+.data = reserve(Grey, Red, Green, Yellow, Blue, Magenta, Cyan, White)
+.data = reserve(BrightGrey, BrightRed, BrightGreen, BrightYellow, BrightBlue, BrightMagenta, BrightCyan, BrightWhite)
+.data = array(__om_video_plot_data, 5)
+.data = array(__om_screen_size, 2)
+
+:__om_plot_char__:
+pop,	Single_Addr,	%__om_video_plot_data[4]
+pop,	Single_Addr,	%__om_video_plot_data[3]
+pop,	Single_Addr,	%__om_video_plot_data[2]
+pop,	Single_Addr,	%__om_video_plot_data[1]
+pop,	Single_Addr,	%__om_video_plot_data[0]
+
+cmd,	Const_Const,	PlotChar,		%__om_video_plot_data
+ret,	Single_Const,	0
+//End __om_plot_char__
+
+:__om_load_screen_size__:
+cmd,	Const_Const,	GetScreenW,				0
+mem,	Addr_Reg,		%__om_screen_size[0],	R31
+cmd,	Const_Const,	GetScreenH,				0
+mem,	Addr_Reg,		%__om_screen_size[1],	R31
+ret,	Single_Const,	0
+//End __om_load_screen_size__
+
+:__om_load_colors__:
+mem, Addr_Const, Grey, 0x0
+no_op
+mem, Addr_Const, Red, 0x1
+no_op
+mem, Addr_Const, Green, 0x2
+no_op
+mem, Addr_Const, Yellow, 0x3
+no_op
+mem, Addr_Const, Blue, 0x4
+no_op
+mem, Addr_Const, Magenta, 0x5
+no_op
+mem, Addr_Const, Cyan, 0x6
+no_op
+mem, Addr_Const, White, 0x7
+no_op
+mem, Addr_Const, BrightGrey, 0x8
+no_op
+mem, Addr_Const, BrightRed, 0x9
+no_op
+mem, Addr_Const, BrightGreen, 0xA
+no_op
+mem, Addr_Const, BrightYellow, 0xB
+no_op
+mem, Addr_Const, BrightBlue, 0xC
+no_op
+mem, Addr_Const, BrightMagenta, 0xD
+no_op
+mem, Addr_Const, BrightCyan, 0xE
+no_op
+mem, Addr_Const, BrightWhite, 0xF
+no_op
+ret, Single_Const, 0
+//end __om_load_colors__
+
+.close_include_guard
+@@__om_end_included_file_here
+.include [io/keyboard.oasm]
+@@__om_included_file_here(./io/keyboard.oasm)
+.include_guard(__keyboard__oasm__)
+
+$.export(SUB-ROUTINE, __om_load_keys__)
+$.export(ARRAY, %__om_key_list)
+
+.include [keys.oh]
+@@__om_included_file_here(./io/keys.oh)
+.include_guard(__keys__oh__)
+
+.alias                    __OM_KEYCODE_NO_KEY_PRESS            =                           0
+.alias                    __OM_KEYCODE_ENTER                    =                         10
+.alias                    __OM_KEYCODE_TAB                    =                            9
+.alias                    __OM_KEYCODE_BACKSPACE                =                        127
+.alias                    __OM_KEYCODE_ESCAPE                    =                        27
+.alias                    __OM_KEYCODE_UP_ARROW                =                      0x5B41
+.alias                    __OM_KEYCODE_DOWN_ARROW                =                    0x5B42
+.alias                    __OM_KEYCODE_RIGHT_ARROW            =                       0x5B43
+.alias                    __OM_KEYCODE_LEFT_ARROW                =                    0x5B44
+.alias                    __OM_KEYCODE_SPACE                    =                         32
+.alias                    __OM_KEYCODE_EXCLAMATION            =                  $.char('!')
+.alias                    __OM_KEYCODE_DOUBLE_QUOTE            =                 $.char('"')
+.alias                    __OM_KEYCODE_POUND                    =                $.char('#')
+.alias                    __OM_KEYCODE_DOLLAR                    =               $.char('$')
+.alias                    __OM_KEYCODE_PERCENT                =                  $.char('%')
+.alias                    __OM_KEYCODE_AMPERSAND                =                $.char('&')
+.alias                    __OM_KEYCODE_SINGLE_QUOTE            =                          39
+.alias                    __OM_KEYCODE_LEFT_PARENTHESIS        =                          40
+.alias                    __OM_KEYCODE_RIGHT_PARENTHESIS        =                         41
+.alias                    __OM_KEYCODE_ASTERISK                =                 $.char('*')
+.alias                    __OM_KEYCODE_PLUS                    =                 $.char('+')
+.alias                    __OM_KEYCODE_COMMA                    =                         44
+.alias                    __OM_KEYCODE_MINUS                    =                $.char('-')
+.alias                    __OM_KEYCODE_PERIOD                    =               $.char('.')
+.alias                    __OM_KEYCODE_SLASH                    =                $.char('/')
+.alias                    __OM_KEYCODE_NUM_0                    =                $.char('0')
+.alias                    __OM_KEYCODE_NUM_1                    =                $.char('1')
+.alias                    __OM_KEYCODE_NUM_2                    =                $.char('2')
+.alias                    __OM_KEYCODE_NUM_3                    =                $.char('3')
+.alias                    __OM_KEYCODE_NUM_4                    =                $.char('4')
+.alias                    __OM_KEYCODE_NUM_5                    =                $.char('5')
+.alias                    __OM_KEYCODE_NUM_6                    =                $.char('6')
+.alias                    __OM_KEYCODE_NUM_7                    =                $.char('7')
+.alias                    __OM_KEYCODE_NUM_8                    =                $.char('8')
+.alias                    __OM_KEYCODE_NUM_9                    =                $.char('9')
+.alias                    __OM_KEYCODE_COLON                    =                $.char(':')
+.alias                    __OM_KEYCODE_SEMICOLON                =                $.char(';')
+.alias                    __OM_KEYCODE_LESS_THAN                =                $.char('<')
+.alias                    __OM_KEYCODE_EQUALS                    =               $.char('=')
+.alias                    __OM_KEYCODE_GREATER_THAN            =                 $.char('>')
+.alias                    __OM_KEYCODE_QUESTION_MARK            =                $.char('?')
+.alias                    __OM_KEYCODE_AT_SIGN                =                  $.char('@')
+.alias                    __OM_KEYCODE_LEFT_SQUARE_BRACKET    =                  $.char('[')
+.alias                    __OM_KEYCODE_BACKSLASH                =                         92
+.alias                    __OM_KEYCODE_RIGHT_SQUARE_BRACKET    =                 $.char(']')
+.alias                    __OM_KEYCODE_CARET                    =                $.char('^')
+.alias                    __OM_KEYCODE_UNDERSCORE                =               $.char('_')
+.alias                    __OM_KEYCODE_GRAVE_ACCENT            =                          97
+.alias                    __OM_KEYCODE_LEFT_CURLY_BRACKET        =               $.char('{')
+.alias                    __OM_KEYCODE_VERTICAL_BAR            =                 $.char('|')
+.alias                    __OM_KEYCODE_RIGHT_CURLY_BRACKET    =                  $.char('}')
+.alias                    __OM_KEYCODE_TILDE                    =                $.char('~')
+.alias                    __OM_KEYCODE_a                        =                $.char('a')
+.alias                    __OM_KEYCODE_b                        =                $.char('b')
+.alias                    __OM_KEYCODE_c                        =                $.char('c')
+.alias                    __OM_KEYCODE_d                        =                $.char('d')
+.alias                    __OM_KEYCODE_e                        =                $.char('e')
+.alias                    __OM_KEYCODE_f                        =                $.char('f')
+.alias                    __OM_KEYCODE_g                        =                $.char('g')
+.alias                    __OM_KEYCODE_h                        =                $.char('h')
+.alias                    __OM_KEYCODE_i                        =                $.char('i')
+.alias                    __OM_KEYCODE_j                        =                $.char('j')
+.alias                    __OM_KEYCODE_k                        =                $.char('k')
+.alias                    __OM_KEYCODE_l                        =                $.char('l')
+.alias                    __OM_KEYCODE_m                        =                $.char('m')
+.alias                    __OM_KEYCODE_n                        =                $.char('n')
+.alias                    __OM_KEYCODE_o                        =                $.char('o')
+.alias                    __OM_KEYCODE_p                        =                $.char('p')
+.alias                    __OM_KEYCODE_q                        =                $.char('q')
+.alias                    __OM_KEYCODE_r                        =                $.char('r')
+.alias                    __OM_KEYCODE_s                        =                $.char('s')
+.alias                    __OM_KEYCODE_t                        =                $.char('t')
+.alias                    __OM_KEYCODE_u                        =                $.char('u')
+.alias                    __OM_KEYCODE_v                        =                $.char('v')
+.alias                    __OM_KEYCODE_w                        =                $.char('w')
+.alias                    __OM_KEYCODE_x                        =                $.char('x')
+.alias                    __OM_KEYCODE_y                        =                $.char('y')
+.alias                    __OM_KEYCODE_z                        =                $.char('z')
+.alias                    __OM_KEYCODE_A                        =                $.char('A')
+.alias                    __OM_KEYCODE_B                        =                $.char('B')
+.alias                    __OM_KEYCODE_C                        =                $.char('C')
+.alias                    __OM_KEYCODE_D                        =                $.char('D')
+.alias                    __OM_KEYCODE_E                        =                $.char('E')
+.alias                    __OM_KEYCODE_F                        =                $.char('F')
+.alias                    __OM_KEYCODE_G                        =                $.char('G')
+.alias                    __OM_KEYCODE_H                        =                $.char('H')
+.alias                    __OM_KEYCODE_I                        =                $.char('I')
+.alias                    __OM_KEYCODE_J                        =                $.char('J')
+.alias                    __OM_KEYCODE_K                        =                $.char('K')
+.alias                    __OM_KEYCODE_L                        =                $.char('L')
+.alias                    __OM_KEYCODE_M                        =                $.char('M')
+.alias                    __OM_KEYCODE_N                        =                $.char('N')
+.alias                    __OM_KEYCODE_O                        =                $.char('O')
+.alias                    __OM_KEYCODE_P                        =                $.char('P')
+.alias                    __OM_KEYCODE_Q                        =                $.char('Q')
+.alias                    __OM_KEYCODE_R                        =                $.char('R')
+.alias                    __OM_KEYCODE_S                        =                $.char('S')
+.alias                    __OM_KEYCODE_T                        =                $.char('T')
+.alias                    __OM_KEYCODE_U                        =                $.char('U')
+.alias                    __OM_KEYCODE_V                        =                $.char('V')
+.alias                    __OM_KEYCODE_W                        =                $.char('W')
+.alias                    __OM_KEYCODE_X                        =                $.char('X')
+.alias                    __OM_KEYCODE_Y                        =                $.char('Y')
+.alias                    __OM_KEYCODE_Z                        =                $.char('Z')
+
+//Key indexes for keys array
+.alias                    OM_KEY_NO_KEY_PRESS                =                0
+.alias                    OM_KEY_ENTER                    =                1
+.alias                    OM_KEY_TAB                        =                2
+.alias                    OM_KEY_BACKSPACE                =                3
+.alias                    OM_KEY_ESCAPE                    =                4
+.alias                    OM_KEY_UP_ARROW                    =                5
+.alias                    OM_KEY_DOWN_ARROW                =                6
+.alias                    OM_KEY_RIGHT_ARROW                =                7
+.alias                    OM_KEY_LEFT_ARROW                =                8
+.alias                    OM_KEY_SPACE                    =                9
+.alias                    OM_KEY_EXCLAMATION                =                10
+.alias                    OM_KEY_DOUBLE_QUOTE                =                11
+.alias                    OM_KEY_POUND                    =                12
+.alias                    OM_KEY_DOLLAR                    =                13
+.alias                    OM_KEY_PERCENT                    =                14
+.alias                    OM_KEY_AMPERSAND                =                15
+.alias                    OM_KEY_SINGLE_QUOTE                =                16
+.alias                    OM_KEY_LEFT_PARENTHESIS            =                17
+.alias                    OM_KEY_RIGHT_PARENTHESIS        =                18
+.alias                    OM_KEY_ASTERISK                    =                19
+.alias                    OM_KEY_PLUS                        =                20
+.alias                    OM_KEY_COMMA                    =                21
+.alias                    OM_KEY_MINUS                    =                22
+.alias                    OM_KEY_PERIOD                    =                23
+.alias                    OM_KEY_SLASH                    =                24
+.alias                    OM_KEY_NUM_0                    =                25
+.alias                    OM_KEY_NUM_1                    =                26
+.alias                    OM_KEY_NUM_2                    =                27
+.alias                    OM_KEY_NUM_3                    =                28
+.alias                    OM_KEY_NUM_4                    =                29
+.alias                    OM_KEY_NUM_5                    =                30
+.alias                    OM_KEY_NUM_6                    =                31
+.alias                    OM_KEY_NUM_7                    =                32
+.alias                    OM_KEY_NUM_8                    =                33
+.alias                    OM_KEY_NUM_9                    =                34
+.alias                    OM_KEY_COLON                    =                35
+.alias                    OM_KEY_SEMICOLON                =                36
+.alias                    OM_KEY_LESS_THAN                =                37
+.alias                    OM_KEY_EQUALS                    =                38
+.alias                    OM_KEY_GREATER_THAN                =                39
+.alias                    OM_KEY_QUESTION_MARK            =                40
+.alias                    OM_KEY_AT_SIGN                    =                41
+.alias                    OM_KEY_LEFT_SQUARE_BRACKET        =                42
+.alias                    OM_KEY_BACKSLASH                =                43
+.alias                    OM_KEY_RIGHT_SQUARE_BRACKET        =                44
+.alias                    OM_KEY_CARET                    =                45
+.alias                    OM_KEY_UNDERSCORE                =                46
+.alias                    OM_KEY_GRAVE_ACCENT                =                47
+.alias                    OM_KEY_LEFT_CURLY_BRACKET        =                48
+.alias                    OM_KEY_VERTICAL_BAR                =                49
+.alias                    OM_KEY_RIGHT_CURLY_BRACKET        =                50
+.alias                    OM_KEY_TILDE                    =                51
+.alias                    OM_KEY_a                        =                52
+.alias                    OM_KEY_b                        =                53
+.alias                    OM_KEY_c                        =                54
+.alias                    OM_KEY_d                        =                55
+.alias                    OM_KEY_e                        =                56
+.alias                    OM_KEY_f                        =                57
+.alias                    OM_KEY_g                        =                58
+.alias                    OM_KEY_h                        =                59
+.alias                    OM_KEY_i                        =                60
+.alias                    OM_KEY_j                        =                61
+.alias                    OM_KEY_k                        =                62
+.alias                    OM_KEY_l                        =                63
+.alias                    OM_KEY_m                        =                64
+.alias                    OM_KEY_n                        =                65
+.alias                    OM_KEY_o                        =                66
+.alias                    OM_KEY_p                        =                67
+.alias                    OM_KEY_q                        =                68
+.alias                    OM_KEY_r                        =                69
+.alias                    OM_KEY_s                        =                70
+.alias                    OM_KEY_t                        =                71
+.alias                    OM_KEY_u                        =                72
+.alias                    OM_KEY_v                        =                73
+.alias                    OM_KEY_w                        =                74
+.alias                    OM_KEY_x                        =                75
+.alias                    OM_KEY_y                        =                76
+.alias                    OM_KEY_z                        =                77
+.alias                    OM_KEY_A                        =                78
+.alias                    OM_KEY_B                        =                79
+.alias                    OM_KEY_C                        =                80
+.alias                    OM_KEY_D                        =                81
+.alias                    OM_KEY_E                        =                82
+.alias                    OM_KEY_F                        =                83
+.alias                    OM_KEY_G                        =                84
+.alias                    OM_KEY_H                        =                85
+.alias                    OM_KEY_I                        =                86
+.alias                    OM_KEY_J                        =                87
+.alias                    OM_KEY_K                        =                88
+.alias                    OM_KEY_L                        =                89
+.alias                    OM_KEY_M                        =                90
+.alias                    OM_KEY_N                        =                91
+.alias                    OM_KEY_O                        =                92
+.alias                    OM_KEY_P                        =                93
+.alias                    OM_KEY_Q                        =                94
+.alias                    OM_KEY_R                        =                95
+.alias                    OM_KEY_S                        =                96
+.alias                    OM_KEY_T                        =                97
+.alias                    OM_KEY_U                        =                98
+.alias                    OM_KEY_V                        =                99
+.alias                    OM_KEY_W                        =                100
+.alias                    OM_KEY_X                        =                101
+.alias                    OM_KEY_Y                        =                102
+.alias                    OM_KEY_Z                        =                103
+
+.close_include_guard
+@@__om_end_included_file_here
+.include [keyboard.oh]
+@@__om_included_file_here(./io/keyboard.oh)
+.include_guard(__keyboard__oh__)
+
+.alias InitKeyboard = call, Const_Const, ::__om_load_keys__, 0
+
+.close_include_guard
+@@__om_end_included_file_here
+
+.data = array(__om_key_list, 104)
+:__om_load_keys__:
+mem, Addr_Const, %__om_key_list[0], 0
+no_op
+mem, Addr_Const, %__om_key_list[1], 10
+no_op
+mem, Addr_Const, %__om_key_list[2], 9
+no_op
+mem, Addr_Const, %__om_key_list[3], 127
+no_op
+mem, Addr_Const, %__om_key_list[4], 27
+no_op
+mem, Addr_Const, %__om_key_list[5], 0x5B41
+no_op
+mem, Addr_Const, %__om_key_list[6], 0x5B42
+no_op
+mem, Addr_Const, %__om_key_list[7], 0x5B43
+no_op
+mem, Addr_Const, %__om_key_list[8], 0x5B44
+no_op
+mem, Addr_Const, %__om_key_list[9], 32
+no_op
+mem, Addr_Const, %__om_key_list[10], $.char('!')
+no_op
+mem, Addr_Const, %__om_key_list[11], $.char('"')
+no_op
+mem, Addr_Const, %__om_key_list[12], $.char('#')
+no_op
+mem, Addr_Const, %__om_key_list[13], $.char('$')
+no_op
+mem, Addr_Const, %__om_key_list[14], $.char('%')
+no_op
+mem, Addr_Const, %__om_key_list[15], $.char('&')
+no_op
+mem, Addr_Const, %__om_key_list[16], 39
+no_op
+mem, Addr_Const, %__om_key_list[17], 40
+no_op
+mem, Addr_Const, %__om_key_list[18], 41
+no_op
+mem, Addr_Const, %__om_key_list[19], $.char('*')
+no_op
+mem, Addr_Const, %__om_key_list[20], $.char('+')
+no_op
+mem, Addr_Const, %__om_key_list[21], 44
+no_op
+mem, Addr_Const, %__om_key_list[22], $.char('-')
+no_op
+mem, Addr_Const, %__om_key_list[23], $.char('.')
+no_op
+mem, Addr_Const, %__om_key_list[24], $.char('/')
+no_op
+mem, Addr_Const, %__om_key_list[25], $.char('0')
+no_op
+mem, Addr_Const, %__om_key_list[26], $.char('1')
+no_op
+mem, Addr_Const, %__om_key_list[27], $.char('2')
+no_op
+mem, Addr_Const, %__om_key_list[28], $.char('3')
+no_op
+mem, Addr_Const, %__om_key_list[29], $.char('4')
+no_op
+mem, Addr_Const, %__om_key_list[30], $.char('5')
+no_op
+mem, Addr_Const, %__om_key_list[31], $.char('6')
+no_op
+mem, Addr_Const, %__om_key_list[32], $.char('7')
+no_op
+mem, Addr_Const, %__om_key_list[33], $.char('8')
+no_op
+mem, Addr_Const, %__om_key_list[34], $.char('9')
+no_op
+mem, Addr_Const, %__om_key_list[35], $.char(':')
+no_op
+mem, Addr_Const, %__om_key_list[36], $.char(';')
+no_op
+mem, Addr_Const, %__om_key_list[37], $.char('<')
+no_op
+mem, Addr_Const, %__om_key_list[38], $.char('=')
+no_op
+mem, Addr_Const, %__om_key_list[39], $.char('>')
+no_op
+mem, Addr_Const, %__om_key_list[40], $.char('?')
+no_op
+mem, Addr_Const, %__om_key_list[41], $.char('@')
+no_op
+mem, Addr_Const, %__om_key_list[42], $.char('[')
+no_op
+mem, Addr_Const, %__om_key_list[43], 92
+no_op
+mem, Addr_Const, %__om_key_list[44], $.char(']')
+no_op
+mem, Addr_Const, %__om_key_list[45], $.char('^')
+no_op
+mem, Addr_Const, %__om_key_list[46], $.char('_')
+no_op
+mem, Addr_Const, %__om_key_list[47], 97
+no_op
+mem, Addr_Const, %__om_key_list[48], $.char('{')
+no_op
+mem, Addr_Const, %__om_key_list[49], $.char('|')
+no_op
+mem, Addr_Const, %__om_key_list[50], $.char('}')
+no_op
+mem, Addr_Const, %__om_key_list[51], $.char('~')
+no_op
+mem, Addr_Const, %__om_key_list[52], $.char('a')
+no_op
+mem, Addr_Const, %__om_key_list[53], $.char('b')
+no_op
+mem, Addr_Const, %__om_key_list[54], $.char('c')
+no_op
+mem, Addr_Const, %__om_key_list[55], $.char('d')
+no_op
+mem, Addr_Const, %__om_key_list[56], $.char('e')
+no_op
+mem, Addr_Const, %__om_key_list[57], $.char('f')
+no_op
+mem, Addr_Const, %__om_key_list[58], $.char('g')
+no_op
+mem, Addr_Const, %__om_key_list[59], $.char('h')
+no_op
+mem, Addr_Const, %__om_key_list[60], $.char('i')
+no_op
+mem, Addr_Const, %__om_key_list[61], $.char('j')
+no_op
+mem, Addr_Const, %__om_key_list[62], $.char('k')
+no_op
+mem, Addr_Const, %__om_key_list[63], $.char('l')
+no_op
+mem, Addr_Const, %__om_key_list[64], $.char('m')
+no_op
+mem, Addr_Const, %__om_key_list[65], $.char('n')
+no_op
+mem, Addr_Const, %__om_key_list[66], $.char('o')
+no_op
+mem, Addr_Const, %__om_key_list[67], $.char('p')
+no_op
+mem, Addr_Const, %__om_key_list[68], $.char('q')
+no_op
+mem, Addr_Const, %__om_key_list[69], $.char('r')
+no_op
+mem, Addr_Const, %__om_key_list[70], $.char('s')
+no_op
+mem, Addr_Const, %__om_key_list[71], $.char('t')
+no_op
+mem, Addr_Const, %__om_key_list[72], $.char('u')
+no_op
+mem, Addr_Const, %__om_key_list[73], $.char('v')
+no_op
+mem, Addr_Const, %__om_key_list[74], $.char('w')
+no_op
+mem, Addr_Const, %__om_key_list[75], $.char('x')
+no_op
+mem, Addr_Const, %__om_key_list[76], $.char('y')
+no_op
+mem, Addr_Const, %__om_key_list[77], $.char('z')
+no_op
+mem, Addr_Const, %__om_key_list[78], $.char('A')
+no_op
+mem, Addr_Const, %__om_key_list[79], $.char('B')
+no_op
+mem, Addr_Const, %__om_key_list[80], $.char('C')
+no_op
+mem, Addr_Const, %__om_key_list[81], $.char('D')
+no_op
+mem, Addr_Const, %__om_key_list[82], $.char('E')
+no_op
+mem, Addr_Const, %__om_key_list[83], $.char('F')
+no_op
+mem, Addr_Const, %__om_key_list[84], $.char('G')
+no_op
+mem, Addr_Const, %__om_key_list[85], $.char('H')
+no_op
+mem, Addr_Const, %__om_key_list[86], $.char('I')
+no_op
+mem, Addr_Const, %__om_key_list[87], $.char('J')
+no_op
+mem, Addr_Const, %__om_key_list[88], $.char('K')
+no_op
+mem, Addr_Const, %__om_key_list[89], $.char('L')
+no_op
+mem, Addr_Const, %__om_key_list[90], $.char('M')
+no_op
+mem, Addr_Const, %__om_key_list[91], $.char('N')
+no_op
+mem, Addr_Const, %__om_key_list[92], $.char('O')
+no_op
+mem, Addr_Const, %__om_key_list[93], $.char('P')
+no_op
+mem, Addr_Const, %__om_key_list[94], $.char('Q')
+no_op
+mem, Addr_Const, %__om_key_list[95], $.char('R')
+no_op
+mem, Addr_Const, %__om_key_list[96], $.char('S')
+no_op
+mem, Addr_Const, %__om_key_list[97], $.char('T')
+no_op
+mem, Addr_Const, %__om_key_list[98], $.char('U')
+no_op
+mem, Addr_Const, %__om_key_list[99], $.char('V')
+no_op
+mem, Addr_Const, %__om_key_list[100], $.char('W')
+no_op
+mem, Addr_Const, %__om_key_list[101], $.char('X')
+no_op
+mem, Addr_Const, %__om_key_list[102], $.char('Y')
+no_op
+mem, Addr_Const, %__om_key_list[103], $.char('Z')
+no_op
+ret, Single_Const, 0
+//end __om_load_keys__
+
+.close_include_guard
+@@__om_end_included_file_here
+.include [sys/timing.oasm]
+@@__om_included_file_here(./sys/timing.oasm)
+.include_guard(__timing__oasm__)
+
+$.export(RESERVE, __om_fps)
+$.export(RESERVE, __om_fps_delta)
+$.export(SUB-ROUTINE, __om_delay_on_time_diff)
+
+.include [system.oh]
+@@__om_included_file_here(./sys/system.oh)
+.include_guard(__system__oh__)
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+@@__om_space__@@
+.close_include_guard
+@@__om_end_included_file_here
+.include [timing.oh]
+@@__om_included_file_here(./sys/timing.oh)
+.include_guard(__timing__oh__)
+
+//FPS_Manager structure
+.alias __OM_FPS_DELTA_BASE = 1000
+
+.macro SetFPS(__fps) mem,Addr_Const,::__om_fps,$(__fps) "&#" mem,Addr_Const,::__om_fps_delta,1000 "&#" div,Addr_Addr,::__om_fps_delta,::__om_fps
+.macro CurrentTime(__out_addr) cmd,Const_Const,GetRunningTime,0 "&#" mem,Addr_Reg,$(__out_addr),R31
+.macro WaitForFrame(__time_1, __time_2) call,Const_Const,::__om_delay_on_time_diff,2,Single_Addr,$(__time_1),Single_Addr,$(__time_2)
+
+.close_include_guard
+@@__om_end_included_file_here
+
+.data = reserve(__om_fps, __om_fps_delta)
+
+//Function to sleep for the rest of the frame if it took less time than __om_fps_delta
+:__om_delay_on_time_diff:
+pop, Single_Reg, R29
+pop, Single_Reg, R28
+mem, Reg_Reg,	R27,R29
+
+sub,		Reg_Reg,			R27,					R28
+
+cmp,		Reg_Addr,			R27,					__om_fps_delta
+jmp,		Single_Const,		JMP_GREATER_OR_EQUALS,	__exceeded_frame_time
+
+mem,		Reg_Addr,			R28,					__om_fps_delta
+sub,		Reg_Reg,			R28,					R27
+mem,		Reg_Const,			R31,					TU_MILLISECONDS
+cmd,		Const_Reg,			Sleep,					R28
+ret,		Single_Const,		True
+:__exceeded_frame_time:
+ret, 		Single_Const, 		False
+//end __om_delay_on_time_diff
+
+.close_include_guard
+@@__om_end_included_file_here
+
+.close_include_guard
+@@__om_end_included_file_here
+:__init__:
+reserve,  Single_Const,  0x0008
+reserve,  Single_Const,  0x0008
+reserve,  Single_Const,  0x0005
+reserve,  Single_Const,  0x0002
+reserve,  Single_Const,  0x0068
+reserve,  Single_Const,  0x0002
+ret, Const_Const, 0

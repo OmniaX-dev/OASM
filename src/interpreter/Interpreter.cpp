@@ -104,6 +104,16 @@ namespace Omnia
 			outData = VirtualMachine::instance().getGPU().getScreenH();
 			return true;
 		}
+		bool EC_Random_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
+		{
+			hw::CPU& cpu = VirtualMachine::instance().getCPU();
+			BitEditor __min, __max;
+			if (!VirtualMachine::instance().getREG().read(eRegisters::R31, __max)) return false;
+			if (!VirtualMachine::instance().getREG().read(eRegisters::R30, __min)) return false;
+			word __rnd = (word)RANDOM(__min.val(), __max.val());
+			if (!VirtualMachine::instance().getRAM().write(cpu.offsetHeapAddress(param.val()), __rnd)) return false;
+			return true;
+		}
 		//----------------------------------------------------------------------------------------------------------
 
 
@@ -159,6 +169,7 @@ namespace Omnia
 			ECM::instance().addHandler((word)eComCodes::GetScreenW, __ec_getScreenW_cmd);
 			ECM::instance().addHandler((word)eComCodes::GetScreenH, __ec_getScreenH_cmd);
 			ECM::instance().addHandler((word)eComCodes::Draw, __ec_draw_cmd);
+			ECM::instance().addHandler((word)eComCodes::Random, __ec_random_cmd);
 
 			Flags::set(FLG__PRINT_ERROR_ON_PUSH);
 

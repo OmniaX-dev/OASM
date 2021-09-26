@@ -78,6 +78,11 @@ namespace Omnia
             public:
                 bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
         };
+		class EC_Random_cmd : public ExtComHandler
+        {
+            public:
+                bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
+        };
 		//----------------------------------------------------------------------------------------------------------
 
 
@@ -115,6 +120,7 @@ namespace Omnia
 				EC_GetScreenW_cmd __ec_getScreenW_cmd;
 				EC_GetScreenH_cmd __ec_getScreenH_cmd;
 				EC_Draw_cmd __ec_draw_cmd;
+				EC_Random_cmd __ec_random_cmd;
 
 				friend class Debugger;
 		};
