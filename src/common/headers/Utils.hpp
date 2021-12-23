@@ -336,6 +336,7 @@ namespace Omnia
             GetScreenH             =    0x0010,
             Draw                   =    0x0011,
             Random                 =    0x0012,
+            GetAsyncKey            =    0x0013,
 
             p_TimeDiff_load        =    0xFFFF,
             p_TimeDiff_calc        =    0xFFFE

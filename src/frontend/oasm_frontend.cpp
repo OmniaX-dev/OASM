@@ -36,7 +36,7 @@ int main(int argc, char** argv)
 #elif defined(__COMPILE_VM__)  //Interpreter frontend
 	Omnia::common::Utils::init();
 
-	Omnia::common::StringBuilder __ver("oasm_as: version ");
+	Omnia::common::StringBuilder __ver("oasm_vm: version ");
 	__ver.add((long int)Omnia::eVersion::Major).add(".").add((long int)Omnia::eVersion::Minor)
 	.add(".").add((long int)Omnia::eVersion::Build);
 

@@ -1,36 +1,161 @@
-.include_guard(__use_lib__oasm__)
+.include_guard(__snake__oasm__)
 
 .command(request, ALL=1536)
 
 .include [sys/system.oh]
 .include [sys/timing.oh]
 .include [gfx/base-video.oh]
-.include [gfx/colors.oh]
+.include [io/keyboard.oh]
 
-.data = reserve(time1, time2, screenx, screeny, rndx, rndy, rndc)
+.alias DIR_LEFT = 0
+.alias DIR_RIGHT = 1
+.alias DIR_UP = 2
+.alias DIR_DOWN = 3
+
+.alias SNAKE_SIZE = 5
+
+.data = reserve(time1, time2, screenx, screeny, x, y, c, key, direction, delay, tmp_sq_1, tmp_sq_2, index, index_sh, array_ptr)
+.data = array(snake_x, #SNAKE_SIZE)
+.data = array(snake_y, #SNAKE_SIZE)
+
+:shift_array:
+	pop, Single_Addr, array_ptr
+	@Load(index, 1)
+	@Load(index_sh, 0)
+	:shift_loop:
+		@ArrayAt(array_ptr, index_sh, tmp_sq_1)
+		@ArrayAt(array_ptr, index, tmp_sq_2)
+		mem, Addr_Addr, tmp_sq_1, tmp_sq_2
+
+		cmd, Const_Addr, PrintIntToConsole, index_sh
+		cmd, Const_Const, PrintNewLineToConsole, 0
+		cmd, Const_Addr, PrintIntToConsole, index
+		cmd, Const_Const, PrintNewLineToConsole, 0
+		cmd, Const_Const, PrintNewLineToConsole, 0
+
+		inc, Single_Addr, index
+		inc, Single_Addr, index_sh
+		cmp, Addr_Const, index, #SNAKE_SIZE
+		jmp, Single_Const, JMP_LESS, shift_loop
+	cmd, Const_Const, PrintNewLineToConsole, 0
+	cmd, Const_Const, PrintNewLineToConsole, 0
+	ret, Single_Const, 0
+//End shift_array
+
+:render_snake:
+	@Load(index, 0)
+	:render_snake_loop:
+		@ArrayAt(%snake_x, index, tmp_sq_1)
+		@ArrayAt(%snake_y, index, tmp_sq_2)
+		@PlotDouble(tmp_sq_1, tmp_sq_2, c, ::Blue, ::Blue)
+
+		inc, Single_Addr, index
+		cmp, Addr_Const, index, #SNAKE_SIZE
+		jmp, Single_Const, JMP_LESS, render_snake_loop
+	ret, Single_Const, 0
+//End render_snake
 
 :__main__:
 	@SetFPS(30)
-	@InitVideo(VIDEO_MODE_ASCII_GRID)
+	//@InitVideo(VIDEO_MODE_ASCII_GRID)
+	#InitKeyboard
 	@GetScreenSize(screenx, screeny)
+	@Load(c, 0x20)
+	@Load(x, 19)
+	@Load(y, 10)
+	@Load(delay, 200)
+	@Load(direction, #DIR_RIGHT)
+	@Load(tmp_sq_1, 0)
+	@Load(tmp_sq_2, 0)
+	@Load(index, 0)
+	@Load(index_sh, 0)
+	@Load(%snake_x[0], 10)
+	@Load(%snake_y[0], 10)
+	@Load(%snake_x[1], 12)
+	@Load(%snake_y[1], 10)
+	@Load(%snake_x[2], 14)
+	@Load(%snake_y[2], 10)
+	@Load(%snake_x[3], 16)
+	@Load(%snake_y[3], 10)
+	@Load(%snake_x[4], 18)
+	@Load(%snake_y[4], 10)
 
 	:loop:
 		@CurrentTime(time1)
-			#ClearScreen
-			mem, Reg_Const, R30, 0
-			mem, Reg_Addr, R31, screenx
-			cmd, Const_Const, Random, rndx
-			mem, Reg_Addr, R31, screeny
-			cmd, Const_Const, Random, rndy
-			mem, Reg_Const, R30, $.char('A')
-			mem, Reg_Addr, R31, $.char('Z')
-			cmd, Const_Const, Random, rndc
-			@PlotChar(rndx, rndy, rndc, ::Yellow, ::Red)
-			#Draw
+			//#ClearScreen
+			call, Const_Const, render_snake, 0
+			//#Draw
+			mem, Reg_Const, R31, TU_MILLISECONDS
+			call, Const_Const, shift_array, 1, Single_Addr, %snake_x
+			call, Const_Const, shift_array, 1, Single_Addr, %snake_y
+			cmd, Const_Addr, Sleep, delay
 		@CurrentTime(time2)
 		no_op
 		@WaitForFrame(time1, time2)
-	jmp, Single_Const, JMP_UNCONDITIONAL, loop
+		no_op
+		@GetAsyncKey(key)
+
+		//ESCAPE KEY TO EXIT
+		cmp, Addr_Addr, key, @VKey(#OM_KEY_ESCAPE)
+			jmp, Single_Const, JMP_EQUALS, end_loop
+		//------------------
+
+		//KEY HANDLERS
+		cmp, Addr_Addr, key, @VKey(#OM_KEY_UP_ARROW)
+		jmp, Single_Const, JMP_NOT_EQUALS, if_key_is_down_arrow
+			@Load(direction, #DIR_UP)
+			jmp, Single_Const, JMP_UNCONDITIONAL, end_if
+		:if_key_is_down_arrow:
+		cmp, Addr_Addr, key, @VKey(#OM_KEY_DOWN_ARROW)
+		jmp, Single_Const, JMP_NOT_EQUALS, if_key_is_left_arrow
+			@Load(direction, #DIR_DOWN)
+			jmp, Single_Const, JMP_UNCONDITIONAL, end_if
+		:if_key_is_left_arrow:
+		cmp, Addr_Addr, key, @VKey(#OM_KEY_LEFT_ARROW)
+		jmp, Single_Const, JMP_NOT_EQUALS, if_key_is_right_arrow
+			@Load(direction, #DIR_LEFT)
+			jmp, Single_Const, JMP_UNCONDITIONAL, end_if
+		:if_key_is_right_arrow:
+		cmp, Addr_Addr, key, @VKey(#OM_KEY_RIGHT_ARROW)
+		jmp, Single_Const, JMP_NOT_EQUALS, end_if
+			@Load(direction, #DIR_RIGHT)
+			jmp, Single_Const, JMP_UNCONDITIONAL, end_if
+		:end_if:
+		//------------
+
+
+		//DIRECTIONAL MOVEMENT
+		cmp, Addr_Const, direction, #DIR_UP
+		jmp, Single_Const, JMP_NOT_EQUALS, if_dir_is_right
+			dec, Single_Addr, y
+			jmp, Single_Const, JMP_UNCONDITIONAL, end_if_2
+		:if_dir_is_right:
+
+		cmp, Addr_Const, direction, #DIR_RIGHT
+		jmp, Single_Const, JMP_NOT_EQUALS, if_dir_is_left
+			add, Addr_Const, x, 2
+			jmp, Single_Const, JMP_UNCONDITIONAL, end_if_2
+		:if_dir_is_left:
+
+		cmp, Addr_Const, direction, #DIR_LEFT
+		jmp, Single_Const, JMP_NOT_EQUALS, if_dir_is_down
+			sub, Addr_Const, x, 2
+			jmp, Single_Const, JMP_UNCONDITIONAL, end_if_2
+		:if_dir_is_down:
+
+		cmp, Addr_Const, direction, #DIR_DOWN
+		jmp, Single_Const, JMP_NOT_EQUALS, end_if_2
+			inc, Single_Addr, y
+			jmp, Single_Const, JMP_UNCONDITIONAL, end_if_2
+		:end_if_2:
+		//--------------------
+
+		mem, Addr_Addr, %snake_x[4], x
+		mem, Addr_Addr, %snake_y[4], y
+
+		jmp, Single_Const, JMP_UNCONDITIONAL, loop
+	:end_loop:
 ret, Single_Const, 0
+//End __main__
 
 .close_include_guard

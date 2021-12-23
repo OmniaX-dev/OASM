@@ -35,6 +35,8 @@
 /home/sylar/Git Repos/OASM/src/../Build//ostd/ostd__fc.oasm
 /home/sylar/Git Repos/OASM/src/../Build//ostd/ostd.oslib
 /home/sylar/Git Repos/OASM/src/../Build//ostd/build-ostd
+/home/sylar/Git Repos/OASM/src/../Build/examples/random.oasm
+/home/sylar/Git Repos/OASM/src/../Build/examples/fibonacci.oasm
 /home/sylar/Git Repos/OASM/src/../Build/examples/use-lib.oasm
 /home/sylar/Git Repos/OASM/src/../Build/examples/test-lib.oasm
 /home/sylar/Git Repos/OASM/src/../Build/examples/fps.oasm

@@ -13,6 +13,9 @@
 *** Add option to save oasm code before final assemble step
 *** Add info when using the "assemble" top-level command
 *** Unhide cursor on exit
+*** Move assembler commands execution to separate loop (to avoid tokenization of commas inside the command)
+*** Fix bug where an error occurs on the <end> instruction of "oasm_test_1" (and other scripts too) (hacked disableSafeMode before executing tick to solve this temporarily)
+*** Fix bug where call-tree shows subroutine calls twice (seems this only happens in run-mode but not in step-mode)
 
 
 
@@ -20,18 +23,17 @@
 -	Add offset to data-view in debugger
 -	clear screen on exit
 -	Remove __MINOR_VER__ and __MAJOR_VER__ from Utils.hpp (move to source file)
--	Move assembler commands execution to separate loop (to avoid tokenization of commas inside the command)
--	Make .def, .undef, .ifdef, ifndef, only effective if inside vali block
+-	Make .def, .undef, .ifdef, ifndef, only effective if inside valid block
+-	Add reset method to keyboard
 
+%	Fix bug in createExecutable(...): if no reserve (or label) is referenced when compiling a lib, there will be an error when linking with that lib because the linker will try to read the ref count from the header block of the lib
 %	Fix bug where two macro calls one after the other causes assembler error
-%	Fix bug where an error occurs on the <end> instruction of "oasm_test_1" (and other scripts too) (hacked disableSafeMode before executing tick to solve this temporarily)
 %	Fix bug when using <quit> command in top-level prompt
 %	Fix bug when running a different version script without --allow-diff-ver
 %	Fix bug where SourceCodeView handles inproperly the case of showing the last section of the source code
 %	Fix bug where SourceCodeView increments current line when using a command
 %	Fix bug where SourceCodeView doesn't show break-points in small view (only works when showing full code)
 %	Fix bug where long source doesn't show in debugger (probably due to video mode)
-%	Fix bug where call-tree shows subroutine calls twice (seems this only happens in run-mode but not in step-mode)
 %	Fix VideoMode in debugger
 
 

@@ -3,6 +3,7 @@
 
 #include "Common.hpp"
 #include "IOManager.hpp"
+#include "Keyboard.hpp"
 
 namespace Omnia
 {
@@ -83,6 +84,11 @@ namespace Omnia
             public:
                 bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
         };
+		class EC_GetAsyncKey_cmd : public ExtComHandler
+        {
+            public:
+                bool handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData);
+        };
 		//----------------------------------------------------------------------------------------------------------
 
 
@@ -121,6 +127,7 @@ namespace Omnia
 				EC_GetScreenH_cmd __ec_getScreenH_cmd;
 				EC_Draw_cmd __ec_draw_cmd;
 				EC_Random_cmd __ec_random_cmd;
+				EC_GetAsyncKey_cmd __ec_getAsyncKey_cmd;
 
 				friend class Debugger;
 		};
@@ -147,14 +154,14 @@ namespace Omnia
 					bool pushToStack(BitEditor __data);
 					MemAddress offsetHeapAddress(MemAddress __local_addr);
 					MemAddress offsetCodeAddress(MemAddress __local_addr);
-					uint8 getIPC(void) { return m_ipc; }
-					void setIPC(uint8 ipc) { m_ipc = ipc; }
+					inline uint8 getIPC(void) { return m_ipc; }
+					inline void setIPC(uint8 ipc) { m_ipc = ipc; }
 					bool isBreakPoint(MemAddress __addr, uint8 __inst_size);
 
 					bool clock_tick(void);
 
-					bool __break_point_signal(void) { return m_break_point_signal; }
-					MemAddress __break_point_address(void) { return m_break_point_addr; }
+					inline bool __break_point_signal(void) { return m_break_point_signal; }
+					inline MemAddress __break_point_address(void) { return m_break_point_addr; }
 
 					inline void setStepExecution(bool __se) { m_step_execution = __se; }
 					inline bool stepExecutionEnabled(void) { return m_step_execution; }
@@ -391,6 +398,7 @@ namespace Omnia
 				inline static hw::CPU& getCPU(void) { return VirtualMachine::m_cpu; }
 				inline static hw::GPU& getGPU(void) { return VirtualMachine::m_gpu; }
 				Process& getCurrentProcess(void);
+				inline static Keyboard& getKeyboardHandler(void) { return VirtualMachine::m_keyboard; }
 
 				//TODO: temp
 				inline void setCurrentProc(Process& proc) { m_currentProc = &proc; }
@@ -402,6 +410,7 @@ namespace Omnia
 				inline static hw::GPU& m_gpu = hw::GPU::instance();
 				inline static hw::RAM& m_ram = hw::RAM::instance();
 				inline static hw::REG& m_reg = hw::REG::instance();
+				inline static Keyboard m_keyboard = Keyboard();
 				static VirtualMachine* s_instance;
 
 				friend class Debugger;

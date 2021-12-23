@@ -943,6 +943,7 @@ namespace Omnia
             m_extern_subroutines.clear();
             m_extern_links.clear();
             m_slib_reserve_addresses.clear();
+            m_slib_label_addresses.clear();
             m_export_to_static_lib = false;
 			if (argc > 1)
 			{
@@ -1094,6 +1095,14 @@ namespace Omnia
                                 }
                             }
 
+                            word __lbl_count = __lib_code[0].val();
+                            STDVEC_REMOVE(__lib_code, 0);
+                            for (MemAddress __addr = 0; __addr < __lbl_count; __addr++)
+                            {
+                                __slib.labelRefs.push_back(__lib_code[0]);
+                                STDVEC_REMOVE(__lib_code, 0);
+                            }
+
                             __slib.reserveCount = __lib_code[0].val();
                             STDVEC_REMOVE(__lib_code, 0);
                             word __ref_count = __lib_code[0].val();
@@ -1145,6 +1154,20 @@ namespace Omnia
                 __program.insert(__program.begin(), PreProcessor::instance().m_nextReserve);
                 __program.insert(__program.begin() + 1, m_slib_reserve_addresses.size());
                 __program.insert(__program.begin() + 2, m_slib_reserve_addresses.begin(), m_slib_reserve_addresses.end());
+            }
+            else if (p__build_static_lib)
+            {
+                __program.insert(__program.begin(), (word)0);
+                __program.insert(__program.begin() + 1,(word)0);
+            }
+            if (p__build_static_lib && m_slib_label_addresses.size() > 0)
+            {
+                __program.insert(__program.begin(), m_slib_label_addresses.size());
+                __program.insert(__program.begin() + 1, m_slib_label_addresses.begin(), m_slib_label_addresses.end());
+            }
+            else if (p__build_static_lib)
+            {
+                __program.insert(__program.begin(), (word)0);
             }
             TMemoryList __temp;
             if (p__build_static_lib)
@@ -1255,6 +1278,10 @@ namespace Omnia
                 for (auto& __ref : lib.reserveRefs)
                 {
                     lib.code[__ref.val()] += (word)__tmp_res_count;
+                }
+                for (auto& __lbl : lib.labelRefs)
+                {
+                    lib.code[__lbl.val()] += (word)lib.baseAddress;
                 }
                 __code.insert(__code.end(), lib.code.begin(), lib.code.end());
                 __tmp_res_count += lib.reserveCount;
@@ -1708,6 +1735,8 @@ namespace Omnia
 					else if (isLabel(__data.cpp(), __addr))
 					{
 						__new_line.add(Utils::intToHexStr(__addr)).add(",");
+                        if (p__build_static_lib)
+                            m_slib_label_addresses.push_back(__cur_addr - 1);
 					}
                     else if (__data.contains("::"))
                     {

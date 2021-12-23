@@ -114,6 +114,18 @@ namespace Omnia
 			if (!VirtualMachine::instance().getRAM().write(cpu.offsetHeapAddress(param.val()), __rnd)) return false;
 			return true;
 		}
+		bool EC_GetAsyncKey_cmd::handleCommand(word code, BitEditor param, IOReciever& iomgr, BitEditor& outData)
+		{
+			hw::CPU& cpu = VirtualMachine::instance().getCPU();
+			Keyboard& kbh = VirtualMachine::getKeyboardHandler();
+			kbh.disableCommandBuffer();
+			kbh.disableOutput();
+			eKeys key = kbh.getPressedKey();
+			kbh.enableCommandBuffer();
+			kbh.enableOutput();
+			if (!VirtualMachine::instance().getRAM().write(cpu.offsetHeapAddress(param.val()), (word)key)) return false;
+			return true;
+		}
 		//----------------------------------------------------------------------------------------------------------
 
 
@@ -170,6 +182,7 @@ namespace Omnia
 			ECM::instance().addHandler((word)eComCodes::GetScreenH, __ec_getScreenH_cmd);
 			ECM::instance().addHandler((word)eComCodes::Draw, __ec_draw_cmd);
 			ECM::instance().addHandler((word)eComCodes::Random, __ec_random_cmd);
+			ECM::instance().addHandler((word)eComCodes::GetAsyncKey, __ec_getAsyncKey_cmd);
 
 			Flags::set(FLG__PRINT_ERROR_ON_PUSH);
 

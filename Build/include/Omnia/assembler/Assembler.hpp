@@ -126,6 +126,7 @@ namespace Omnia
 				TMemoryList code;
 				MemAddress baseAddress;
 				TMemoryList reserveRefs;
+				TMemoryList labelRefs;
 				word reserveCount;
 				bool debugTable;
 				std::vector<tExternSymbol> externSymbols;
@@ -187,6 +188,7 @@ namespace Omnia
 				std::vector<tExternSubroutine> m_extern_subroutines;
 				std::map<MemAddress, OmniaString> m_extern_links;
 				std::vector<MemAddress> m_slib_reserve_addresses;
+				std::vector<MemAddress> m_slib_label_addresses;
 				std::vector<tExternSymbol> m_exported_symbols;
 				std::vector<OmniaString> m_extra_code;
 
@@ -385,7 +387,7 @@ namespace Omnia
 					{ "GetRunningTime", (word)eComCodes::GetRunningTime },
 					{ "TimeDiff", (word)eComCodes::TimeDiff },
 					{ "TD_LOAD_TIME", (word)eComCodes::p_TimeDiff_load },
-					{ "TD_GET_DIFF", (word)eComCodes::p_TimeDiff_load },
+					{ "TD_GET_DIFF", (word)eComCodes::p_TimeDiff_calc },
 					{ "SetVideoMode", (word)eComCodes::SetVideoMode },
 					{ "RefreshScreen", (word)eComCodes::RefreshScreen },
 					{ "PlotChar", (word)eComCodes::PlotChar },
@@ -393,6 +395,7 @@ namespace Omnia
 					{ "GetScreenH", (word)eComCodes::GetScreenH },
 					{ "Draw", (word)eComCodes::Draw },
 					{ "Random", (word)eComCodes::Random },
+					{ "GetAsyncKey", (word)eComCodes::GetAsyncKey },
 
 					{ "TU_SECONDS", (word)eTimeUnits::Seconds },
 					{ "TU_MILLISECONDS", (word)eTimeUnits::Milliseconds },

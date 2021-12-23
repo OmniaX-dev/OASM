@@ -1,0 +1,97 @@
+.include_guard(__use_lib__oasm__) //Used to ensure that a file gets included only once
+
+//This command is used to request how big the VirtualMemory assigned to this process needs to be
+//Using the 'ALL' parameter, you are setting the same value for Stack and Heap
+.command(request, ALL=1536)
+
+
+//In this next section we will find all the include directives
+//In this case, all of this includes are part of the standard library (ostd)
+//And can only be used if the code is linked against the ostd.oslib file
+
+//System header, containing useful functionality
+.include [sys/system.oh]
+
+//Timing header, containing functions to handle the timing of your code
+.include [sys/timing.oh]
+
+//Basic Video header, containing basic handling for Simple Video Modes (ASCII_GRID, NORMAL_TEXT)
+.include [gfx/base-video.oh]
+
+//Colors header, containing basic definitions for console colors used in VIDEO_MODE_ASCII_GRID
+.include [gfx/colors.oh]
+
+//Keyboard header, containing basic keyboard functionality
+.include [io/keyboard.oh]
+
+//Reserve some memory cells as variable names
+.data = reserve(time1, time2, screenx, screeny, rndx, rndy, rndc, key)
+
+//Process entry point
+:__main__:
+	//Set the amount of times per second that the code should run, when using the 'WaitForFrame(...)' macro
+	@SetFPS(10)
+
+	//Initialize and switch to VIDEO_MODE_ASCII_GRID
+	@InitVideo(VIDEO_MODE_ASCII_GRID)
+
+	//Store the console width and console height (in number of characters)
+	@GetScreenSize(screenx, screeny)
+
+	//This alias is used to initialize the keyboard system
+	#InitKeyboard
+
+	:loop:
+		//This macro stores the current time in milliseconds, inside a variable
+		@CurrentTime(time1)
+			//This alias is used to clear the console
+			#ClearScreen
+
+			//------Setup random coords and character-----
+			mem, Reg_Const, R30, 0
+			mem, Reg_Addr, R31, screenx
+			cmd, Const_Const, Random, rndx
+			mem, Reg_Addr, R31, screeny
+			cmd, Const_Const, Random, rndy
+			mem, Reg_Const, R30, $.char('A')
+			mem, Reg_Const, R31, $.char('Z')
+			cmd, Const_Const, Random, rndc
+			//--------------------------------------------
+
+			//This macro is used to put a character on the screen at the given coordinates
+			//and of the given foreground and background colors
+			//This macro only works in VIDEO_MODE_ASCII_GRID
+			@PlotDouble(rndx, rndy, rndc, ::Yellow, ::Red)
+
+			//Since VIDEO_MODE_ASCII_GRID is buffered, this macro is used to
+			//draw the video-buffer to the screen
+			#Draw
+		@CurrentTime(time2)
+		no_op //This is due to a bug
+
+		//This macro takes two time stamps, and calculates how long it needs to wait (if it needs to)
+		//based on the value set with the SetFPS(...) macro
+		@WaitForFrame(time1, time2)
+		no_op //This is due to a bug
+
+		//This macro puts the current key press into a variable, if no key is pressed 
+		//it will return the value of __OM_KEYCODE_NO_KEY_PRESS which can also be read
+		//with the VKey(...) macro using the OM_KEY_NO_KEY_PRESS index
+		@GetAsyncKey(key)
+
+		//The VKey(...) macro returns a key-code from a key-index
+		//to see a list of all key-indexes open the ostd/io/keys.oh header
+		cmp, Addr_Addr, key, @VKey(#OM_KEY_ESCAPE) 	//Compare the value from the key just read
+													//to the key-code for the ESC key
+		jmp, Single_Const, JMP_EQUALS, end_loop		//If they are equal, exit the loop
+
+	//Unconditional jump to achieve an infinite loop
+	jmp, Single_Const, JMP_UNCONDITIONAL, loop
+:end_loop:
+
+//Return value for the __main__ function
+ret, Single_Const, 0x0000
+//End __main__
+
+
+.close_include_guard
