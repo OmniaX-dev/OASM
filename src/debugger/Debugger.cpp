@@ -330,7 +330,8 @@ namespace Omnia
 				{
 					m_mode = eDebuggerMode::Normal;
 					message("Running process...", eMsgType::Special, true, true, true);
-					__err_code = Interpreter::instance().run(4, new char*[]{(char*)"dbg-vm", (char*)"--debugger-internal-call", (char*)"--input-file", (char*)p__input_file_path.c_str()});
+					const uint8 n_params = 4;
+					__err_code = Interpreter::instance().run(n_params, new char*[n_params]{(char*)"dbg-vm", (char*)"--debugger-internal-call", (char*)"--input-file", (char*)p__input_file_path.c_str()});
 					if (__err_code != D__NO_ERROR)
 					{
 						//TODO: Error
@@ -342,7 +343,8 @@ namespace Omnia
 				{
 					cmd__step = true;
 					m_mode = eDebuggerMode::StepByStep;
-					__err_code = Interpreter::instance().run(4, new char*[]{(char*)"dbg-vm", (char*)"--debugger-internal-call", (char*)"--input-file", (char*)p__input_file_path.c_str()});
+					const uint8 n_params = 4;
+					__err_code = Interpreter::instance().run(n_params, new char*[n_params]{(char*)"dbg-vm", (char*)"--debugger-internal-call", (char*)"--input-file", (char*)p__input_file_path.c_str()});
 					if (__err_code != D__NO_ERROR)
 					{
 						//TODO: Error

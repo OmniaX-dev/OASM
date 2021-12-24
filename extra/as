@@ -1,3 +1,0 @@
-#!/bin/bash -v
-
-./oasm-as -i examples/$1.oasm -dt -sc -SC -I ostd

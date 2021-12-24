@@ -7,6 +7,7 @@ namespace Omnia
 	{
 		Keyboard::Keyboard(void)
 		{
+#ifndef _WIN32
 			tcgetattr(0, &initial_settings);
 			new_settings = initial_settings;
 			new_settings.c_lflag &= ~ICANON;
@@ -16,6 +17,7 @@ namespace Omnia
 			new_settings.c_cc[VTIME] = 0;
 			tcsetattr(0, TCSANOW, &new_settings);
 			peek_character = -1;
+#endif
 			
 			m_cmd = "";
 			m_output_enabled = true;
@@ -24,9 +26,12 @@ namespace Omnia
 			
 		Keyboard::~Keyboard(void)
 		{
+#ifndef _WIN32
 			tcsetattr(0, TCSANOW, &initial_settings);
+#endif
 		}
-			
+
+#ifndef _WIN32			
 		int Keyboard::kbhit(void)
 		{
 			unsigned char ch;
@@ -59,6 +64,7 @@ namespace Omnia
 				read(0, &ch, 1);
 			return ch;
 		}
+#endif
 		
 		std::string Keyboard::getKeyBuffer(void)
 		{

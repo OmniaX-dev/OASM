@@ -25,11 +25,18 @@
  set(CMAKE_BUILD_TYPE Debug)
 
  include_directories(assembler/headers debugger/headers common/headers interpreter/headers)
-
- target_link_libraries(oasm-vm -lcurses)
- target_link_libraries(oasm-as -lcurses)
- target_link_libraries(oasm-dbg -lcurses)
- target_link_libraries(oasm-lib -lcurses)
+if (WIN32)
+	 target_link_libraries(oasm-vm -lncursesw)
+	 target_link_libraries(oasm-as -lncursesw)
+	 target_link_libraries(oasm-dbg -lncursesw)
+	 target_link_libraries(oasm-lib -lncursesw)
+endif (WIN32)
+if (UNIX)
+     target_link_libraries(oasm-vm -lcurses)
+	 target_link_libraries(oasm-as -lcurses)
+	 target_link_libraries(oasm-dbg -lcurses)
+	 target_link_libraries(oasm-lib -lcurses)
+endif (UNIX)
 
  target_link_libraries(oasm-vm oasm-lib)
  target_link_libraries(oasm-as oasm-lib)
@@ -56,11 +63,18 @@ COMMAND ${CMAKE_COMMAND} -E copy_directory
 	${CMAKE_SOURCE_DIR}/../extra/ $<TARGET_FILE_DIR:oasm-dbg>
 VERBATIM
 )
-
-add_custom_command ( OUTPUT build.nr
-	COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/inc_bnr
-	WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
-)
+if (WIN32)
+	add_custom_command ( OUTPUT build.nr
+		COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/inc_bnr.exe
+		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+	)
+endif (WIN32)
+if (UNIX)
+	add_custom_command ( OUTPUT build.nr
+		COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/inc_bnr
+		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
+	)
+endif (UNIX)
 
 add_custom_target(
   IncBnr ALL

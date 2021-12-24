@@ -60,23 +60,23 @@ namespace Omnia
                 __static_lib_defs.push_back("");
                 __static_lib_defs.push_back("");
 
-                bool __export = false;
+                bool __export_ = false;
                 for (auto& line : finalCode)
                 {
                     line = line.trim();
-                    if (!__export && line.equals("@@_export_start"))
+                    if (!__export_ && line.equals("@@_export_start"))
                     {
-                        __export = true;
+                        __export_ = true;
                         continue;
                     }
-                    else if (__export && line.equals("@@_export_end"))
+                    else if (__export_ && line.equals("@@_export_end"))
                     {
                         __static_lib_defs.push_back("");
                         __static_lib_defs.push_back("");
-                        __export = false;
+                        __export_ = false;
                         continue;
                     }
-                    else if (__export)
+                    else if (__export_)
                     {
                         __static_lib_defs.push_back(line);
                         continue;
@@ -1069,13 +1069,13 @@ namespace Omnia
                             __lib_init_addr = __lib_code[0].val();
                             STDVEC_REMOVE(__lib_code, 0);
 
-                            word __export_cnt = __lib_code[0].val();
+                            word __export__cnt = __lib_code[0].val();
                             STDVEC_REMOVE(__lib_code, 0);
                             
-                            if (__export_cnt > 0)
+                            if (__export__cnt > 0)
                             {
                                 TMemoryList __tmp_str_stream;
-                                for (uint16 i = 0; i < __export_cnt; i++)
+                                for (uint16 i = 0; i < __export__cnt; i++)
                                 {
                                     tExternSymbol __sym;
                                     __sym.type = (eExternSymType)__lib_code[0].val();

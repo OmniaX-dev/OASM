@@ -3,6 +3,7 @@
 
 #ifdef _WIN32
 	#define WINDOWS_OS
+	#define _WIN32_WINNT 0x0501
 #else
 	#define LINUX_OS
 #endif

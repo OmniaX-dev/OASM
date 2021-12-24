@@ -1,3 +1,0 @@
-#!/bin/bash -v
-
-./oasm-dbg -i examples/$1.oex --allow-diff-ver

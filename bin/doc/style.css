@@ -72,6 +72,7 @@ div.table-title-row {
 	color: rgb(37, 37, 37);
 	display: flex;
 	border-bottom: 2px solid rgb(80, 80, 80);
+	border-top: 2px solid rgb(80, 80, 80);
 }
 
 div.table-title {
@@ -85,6 +86,10 @@ div.table-title {
 
 div.table-title-row > div.table-element {
 	font-weight: bold;
+}
+
+div.table-title-row.table-title {
+	border-top: none;
 }
 
 div.table-row {
@@ -103,6 +108,10 @@ div.desc-row {
 	visibility: hidden;
 	background-color: rgb(240, 230, 140);
 	color: rgb(60, 60, 60);
+}
+
+div.desc-container {
+	padding: 10px;
 }
  
 div.table-element {
@@ -141,4 +150,19 @@ div.top-bar-button {
 div.top-bar-button:hover {
 	background-color: rgb(62, 168, 62);
 	color: #DDDDDD
+}
+
+p.addr-mode-keyword {
+	color: blue;
+	font-weight: bold;
+	font-style: italic;
+}
+
+div.table-description {
+	width: auto;
+	padding: 10px;
+	font-size: 16px;
+	background-color: wheat;
+	color: rgb(30, 30, 30);
+	font-style: italic;
 }

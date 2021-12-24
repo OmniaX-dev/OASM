@@ -29,9 +29,29 @@
 			</div>
 		</div>
 
-		<div class="table-container" id="addressing-modes-table" style="width: 80%;">
+		<div class="table-container" id="addressing-modes-table" style="width: 95%;">
 			<!-- TITLE ROW -->
 			<div class="table-title-row table-title">Addressing Modes</div>
+			<div class="table-description">
+				An Addressing Mode is a parameter passed to many instructions.
+				It is used to define how the VirtualCPU treats the operands (there is usually 1 or 2) when executing an instruction.
+				<br /><br />
+				There are 6 types of operands:<br />
+				~<p style="margin-left: 5px; width: 70px;" class="value">const</p>The value gets treated as a literal value
+				<br />
+				~<p style="margin-left: 5px; width: 70px;" class="addr">addr</p>The value gets treated as a Memory-Cell address
+				<br />
+				~<p style="margin-left: 5px; width: 70px;" class="reg">reg</p>The value gets treated as a Register address
+				<br />
+				~<p style="margin-left: 5px; width: 70px;" class="i-addr">[addr]</p>The value gets dereferenced from memory and than treated as a Memory-Cell
+				<br />
+				~<p style="margin-left: 5px; width: 70px;" class="i-reg">[reg]</p>The value gets dereferenced from a register and than treated as a Memory-Cell
+				<br />
+				~<p style="margin-left: 5px; width: 70px;" class="ref">&addr</p>The Address of the Memory-Cell gets treated as a literal value
+				<br />
+				<br />
+				You can't have an operand treated as a Register pointer.
+			</div>
 			<div class="table-title-row">
 				<div class="table-element addr-header-id">#</div>
 				<div class="table-element addr-header-mode">Mode</div>

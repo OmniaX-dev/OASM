@@ -1,7 +1,11 @@
 #ifndef __KEYBOARD_HPP__
 #define __KEYBOARD_HPP__
-    
-#include <termios.h>
+   
+#ifndef _WIN32
+	#include <termios.h>
+#else
+	#include <conio.h>
+#endif
 #include <vector>
 #include <iostream>
 
@@ -80,13 +84,18 @@ namespace Omnia
 			private:
 				std::string getKeyBuffer(void);
 				std::string flushKeyBuffer(void);
+				
+#ifndef _WIN32
 				int kbhit(void);
 				int getch(void);
+#endif
 				
 
 			private:
+#ifndef _WIN32
 				struct termios initial_settings, new_settings;
 				int peek_character;
+#endif
 				std::vector<eKeys> m_key_buff;
 				std::string m_cmd;
 				bool m_output_enabled;

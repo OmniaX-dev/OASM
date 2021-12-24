@@ -1,3 +1,0 @@
-#!/bin/bash -v
-
-./oasm-vm -i examples/$1.oex

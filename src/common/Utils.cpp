@@ -2,7 +2,11 @@
 #include "Interpreter.hpp"
 #include "IOManager.hpp"
 #include <chrono>
+#ifndef WINDOWS_OS
 #include <thread>
+#else
+#include "mingw-std-threads/mingw.thread.h"
+#endif
 
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
@@ -456,7 +460,7 @@ namespace Omnia
 
 		void Utils::moveConsoleCursor(int x, int y)
 		{
-			COORD p = { x, y };
+			COORD p = { (short)x, (short)y };
 			SetConsoleCursorPosition( GetStdHandle( STD_OUTPUT_HANDLE ), p );
 		}
 

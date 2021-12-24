@@ -440,25 +440,28 @@ $(function(){
 
 	addAddressingMode("0000",
 		[new InstOperand(IOps.Addr), new InstOperand(IOps.ConstVal)],
-	"const_val to addr", "Test Long Desc");
+	"operand1 as Memory-cell pointer, operand2 as Literal Value", " <div class=\"desc-container\">\
+	This mode treats the second operand as a literal value, and the first operand as a Memory-Cell.<br/>\
+	<p style=\"font-weight: bold; padding-right: 10px; padding-top: 20px; font-style: italic;\">The keyword for this mode is </p><p class=\"addr-mode-keyword\">Addr_Const</p>\
+	</div>");
 	addAddressingMode("0001",
 		[new InstOperand(IOps.IAddr), new InstOperand(IOps.ConstVal)],
-	"const_val to mem pointed by addr content", "Test Long Desc");
+	"operand1 as dereferenced Memory-cell, operand2 as Literal Value", "Test Long Desc");
 	addAddressingMode("0002",
 		[new InstOperand(IOps.Reg), new InstOperand(IOps.ConstVal)],
-	"const_val to reg", "Test Long Desc");
+	"operand1 as Register, operand2 as Literal Value", "Test Long Desc");
 	addAddressingMode("0003",
 		[new InstOperand(IOps.IReg), new InstOperand(IOps.ConstVal)],
-	"const_val to mem pointed by reg content", "Test Long Desc");
+	"operand1 as dereferenced Pointer, operand2 as Literal Value", "Test Long Desc");
 	
 	addSeparator("addressing-modes-table");
 
 	addAddressingMode("0004",
 		[new InstOperand(IOps.Addr), new InstOperand(IOps.Addr)],
-	"addr2 content to addr1", "Test Long Desc");
+	"operand1 as Memory-cell pointer, operand2 as Memory-cell pointer", "Test Long Desc");
 	addAddressingMode("0005",
 		[new InstOperand(IOps.IAddr), new InstOperand(IOps.Addr)],
-	"addr2 content to mem pointed by addr1 content", "Test Long Desc");
+	"operand1 as dereferenced Memory-cell, operand2 as Memory-cell pointer", "Test Long Desc");
 	addAddressingMode("0006",
 		[new InstOperand(IOps.Reg), new InstOperand(IOps.Addr)],
 	"addr content to reg", "Test Long Desc");
