@@ -15,4 +15,7 @@
 *.mod
 *.smod
 
+/bin
+/Build
+
 /.project
