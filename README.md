@@ -28,4 +28,8 @@ Reboot your system
 open a command prompt inside the root directory of the project
 
 **Step 8:**
-execute 'run-cmake.bat'
+execute this command:
+```
+run-cmake.bat
+```
+
