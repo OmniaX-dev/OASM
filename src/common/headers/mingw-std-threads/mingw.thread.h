@@ -41,9 +41,9 @@
 #include "mingw.invoke.h"
 
 #if (defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-#pragma message "The Windows API that MinGW-w32 provides is not fully compatible\
+/*#pragma message "The Windows API that MinGW-w32 provides is not fully compatible\
  with Microsoft's API. We'll try to work around this, but we can make no\
- guarantees. This problem does not exist in MinGW-w64."
+ guarantees. This problem does not exist in MinGW-w64."*/
 #include <windows.h>    //  No further granularity can be expected.
 #else
 #include <synchapi.h>   //  For WaitForSingleObject
@@ -336,12 +336,12 @@ using namespace mingw_stdthread::this_thread;
 }
 #elif !defined(MINGW_STDTHREAD_REDUNDANCY_WARNING)  //  Skip repetition
 #define MINGW_STDTHREAD_REDUNDANCY_WARNING
-#pragma message "This version of MinGW seems to include a win32 port of\
+/*#pragma message "This version of MinGW seems to include a win32 port of\
  pthreads, and probably already has C++11 std threading classes implemented,\
  based on pthreads. These classes, found in namespace std, are not overridden\
  by the mingw-std-thread library. If you would still like to use this\
  implementation (as it is more lightweight), use the classes provided in\
- namespace mingw_stdthread."
+ namespace mingw_stdthread."*/
 #endif
 
 //    Specialize hash for this implementation's thread::id, even if the

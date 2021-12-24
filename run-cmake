@@ -1,8 +1,12 @@
 #/bin/bash
 
-#cd bin
-#./reset
-#cd ..
+if [ -d "./bin" ] 
+then
+	cd bin
+	./reset
+	cd ..
+fi
+
 cmake -B bin -S src
 cd bin
 make install

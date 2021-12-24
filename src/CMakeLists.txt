@@ -87,6 +87,7 @@ add_custom_target(
 
 install(TARGETS oasm-vm oasm-as oasm-dbg oasm-lib DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../Build/bin)
 install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../extra/termcolor-LICENSE DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../Build/bin)
+install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/../extra/mingw-std-threads-LICENSE DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../Build/bin)
 install(FILES ${as_HEADERS} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../Build/include/Omnia/assembler)
 install(FILES ${vm_HEADERS} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../Build/include/Omnia/interpreter)
 install(FILES ${dbg_HEADERS} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/../Build/include/Omnia/debugger)
