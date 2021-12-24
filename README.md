@@ -6,10 +6,10 @@ Compile instructions on Windows
 download MSYS2 from https://www.msys2.org/ and install it
 
 **Step 2:**
-run MSYS2, and in the terminal run:\
+run MSYS2, and in the terminal run:
 ```
-pacman -Syuu\
-pacman -S mingw-w64-x86_64-toolchain base-devel\
+pacman -Syuu
+pacman -S mingw-w64-x86_64-toolchain base-devel
 ```
 
 **Step 3:**
