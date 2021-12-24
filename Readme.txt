@@ -1,11 +1,6 @@
 
 clona il repository https://github.com/Sylar39/OASM.git
 
-in un terminale, entra nella cartella OASM
-esegui:
-	git checkout cmake-integration 
-(Perchè devo ancora integrare il branch)
-
 per compilare il progetto su Linux, devi avere 'cmake', 'g++' e 'make' installati, e nella variabile <PATH> di sistema
 poi semplicemente, in un terminale nella cartella OASM esegui:
 	./run-cmake
