@@ -1,7 +1,0 @@
- .include_guard(__ostd__oasm__)
- 
- .include [gfx/base-video.oasm]
- .include [io/keyboard.oasm]
- .include [sys/timing.oasm]
- 
- .close_include_guard

@@ -1,9 +1,0 @@
-.include_guard(__keyboard__oh__) 
-
-.include [keys.oh]
-
-.alias InitKeyboard = call, Const_Const, ::__om_load_keys__, 0
-.macro GetAsyncKey(__out_key) cmd, Const_Const, GetAsyncKey, $(__out_key)
-.macro VKey(__key_index) ::%__om_key_list[$(__key_index)]
-
-.close_include_guard
