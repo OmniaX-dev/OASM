@@ -3,6 +3,10 @@
 
  file (STRINGS "build.nr" BUILD_NUMBER)
  set(CMAKE_CXX_STANDARD 17)
+ 
+ set(bin_dir "bin")
+ 
+ file(MAKE_DIRECTORY ${bin_dir})
 
  include(assembler/CMakeLists.txt)
  include(debugger/CMakeLists.txt)
