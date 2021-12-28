@@ -29,6 +29,11 @@ $(function(){
 		"ShortDescription": "%_SHORT_DESCRIPTION_%",
 		"Description": "%_DESCRIPTION_%"
 	};
+	var DbgParamtemplate = {
+		"Parameter": "%_PARAMETER_%",
+		"ShortDescription": "%_SHORT_DESCRIPTION_%",
+		"Description": "%_DESCRIPTION_%"
+	};
 	var FlagsTemplate = {
 		"ID": "%__ID__%",
 		"Flags": "%_FLAGS_%",
@@ -63,6 +68,15 @@ $(function(){
 			<div class=\"table-element\">" + AddrModetemplate.Description + "</div> \
 		</div></div> \
 	";
+	var dbg_param_template = "\
+		<div class=\"hover-row-container\"><div class=\"table-row hover-row\"> \
+		<div class=\"table-element dbg-elem-desc\"><p style=\"color: darkred; font-weight: bold;\">" + DbgParamtemplate.Parameter + "</p></div> \
+			<div class=\"table-element dbg-elem-param\">" + DbgParamtemplate.ShortDescription + "</div> \
+		</div> \
+		<div class=\"table-row desc-row\"> \
+			<div class=\"table-element\">" + DbgParamtemplate.Description + "</div> \
+		</div></div> \
+	";
 	var flags_template = "\
 		<div class=\"hover-row-container\"><div class=\"table-row hover-row\"> \
 			<div class=\"table-element flg-elem-id\">" + FlagsTemplate.ID + "</div> \
@@ -95,6 +109,7 @@ $(function(){
 	var instruction_table_size = 0;
 	var addressing_mode_table_size = 0;
 	var flags_table_size = 0;
+	var dbg_param_table_size = 0;
 
 // ----------------------------------------------------------------------------------------
 
@@ -171,6 +186,19 @@ $(function(){
 			ops += ops_list[i].get() + ", ";
 		ops = ops.slice(0, -2) + ")";
 		$("div#addressing-modes-table").append(createAddrModeRow(++addressing_mode_table_size, mode, ops, shortDesc, description));
+	}
+
+	function createDbgParamRow(parameter, shortDesc, description)
+	{
+		var addr_row = dbg_param_template.replaceAll(DbgParamtemplate.Parameter, parameter);
+		addr_row = addr_row.replaceAll(DbgParamtemplate.ShortDescription, shortDesc);
+		addr_row = addr_row.replaceAll(DbgParamtemplate.Description, description);
+		return addr_row;
+	}
+
+	function addDbgParam(parameter, shortDesc, description)
+	{
+		$("div#debugger-table").append(createDbgParamRow(parameter, shortDesc, description));
 	}
 
 	function addSeparator(table) {
@@ -628,6 +656,9 @@ $(function(){
 	addFlags("00000000 00001000", "0008", "add_str", "single character (integer) op2", "Test long desc");
 
 
+	addDbgParam("-br, break-point", "Used to add breakpoint", "{addr/label-symbol}")
+
+
 	$("div.table-container").hide();
 	$("div#instruction-table").show();
 // ----------------------------------------------------------------------------------------
@@ -737,6 +768,11 @@ $(function(){
 	$("div#reg-layout-btn").mousedown(function(evt) {
 		$("div.table-container").hide();
 		$("div#register-layout-table").show();
+	});
+
+	$("div#debugger-btn").mousedown(function(evt) {
+		$("div.table-container").hide();
+		$("div#debugger-table").show();
 	});
 // ------------------------------------------------------------------------------------------
 });

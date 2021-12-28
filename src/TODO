@@ -35,7 +35,7 @@
 %	Fix bug where SourceCodeView doesn't show break-points in small view (only works when showing full code)
 %	Fix bug where long source doesn't show in debugger (probably due to video mode)
 %	Fix VideoMode in debugger
-
+%	Fix "Generated executable file" when compiling a sttic library
 
  
 

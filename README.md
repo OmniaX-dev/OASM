@@ -1,6 +1,6 @@
 # OASM Scripting language
 
-Compile instructions on Windows
+**Compile instructions on Windows**
 
 **Step 1:**
 download MSYS2 from https://www.msys2.org/ and install it

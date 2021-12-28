@@ -1,11 +1,12 @@
-#version(0.3.2891)
+#version(0.3.2985)
 .label __om_plot_char__ = 0x0000
 .label __om_load_screen_size__ = 0x0016
 .label __om_load_colors__ = 0x0029
 .label __om_load_keys__ = 0x007C
 .label __om_delay_on_time_diff = 0x0287
 .label __exceeded_frame_time = 0x02B0
-.label __init__ = 0x02B3
+.label rand_range = 0x02B4
+.label __init__ = 0x02C1
 .data Grey = 0x0000
 .data Red = 0x0001
 .data Green = 0x0002
@@ -27,6 +28,7 @@
 .data %__om_key_list = 0x0017
 .data __om_fps = 0x007F
 .data __om_fps_delta = 0x0080
+.data __om_tmp_rnd = 0x0081
 .source = { 
 		0x0000:pop,	Single_Addr,	%__om_video_plot_data[4]
 		0x0003:pop,	Single_Addr,	%__om_video_plot_data[3]
@@ -294,11 +296,17 @@
 		0x02A9:cmd,		Const_Reg,			Sleep,					R28
 		0x02AD:ret,		Single_Const,		True
 		0x02B0:ret, 		Single_Const, 		False
-		0x02B3:reserve,  Single_Const,  0x0008
-		0x02B6:reserve,  Single_Const,  0x0008
-		0x02B9:reserve,  Single_Const,  0x0005
-		0x02BC:reserve,  Single_Const,  0x0002
-		0x02BF:reserve,  Single_Const,  0x0068
-		0x02C2:reserve,  Single_Const,  0x0002
-		0x02C5:ret, Const_Const, 0
+		0x02B3:no_op
+		0x02B4:pop, Single_Reg, R31
+		0x02B7:pop, Single_Reg, R30
+		0x02BA:cmd, Const_Const, Random, __om_tmp_rnd
+		0x02BE:ret, Single_Addr, __om_tmp_rnd
+		0x02C1:reserve,  Single_Const,  0x0008
+		0x02C4:reserve,  Single_Const,  0x0008
+		0x02C7:reserve,  Single_Const,  0x0005
+		0x02CA:reserve,  Single_Const,  0x0002
+		0x02CD:reserve,  Single_Const,  0x0068
+		0x02D0:reserve,  Single_Const,  0x0002
+		0x02D3:reserve,  Single_Const,  0x0001
+		0x02D6:ret, Const_Const, 0
 }

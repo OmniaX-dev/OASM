@@ -3,5 +3,6 @@
  .include [gfx/base-video.oasm]
  .include [io/keyboard.oasm]
  .include [sys/timing.oasm]
+ .include [sys/system.oasm]
  
  .close_include_guard

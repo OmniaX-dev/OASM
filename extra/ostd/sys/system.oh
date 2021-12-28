@@ -16,5 +16,6 @@
 .macro LoadString(__addr, __string)	 lda_str, $(__string) "&#" mem, Addr_Reg, $(__addr), R31
 
 .macro ArrayAt(__arr, __index, __out_addr) mem, Addr_Const, $(__out_addr), $(__arr) "&#" add, Addr_Addr, $(__out_addr), $(__index)
+.macro Random(__min, __max) call Const_Const, ::rand_range, 2, $(__min), $(__max)
 
 .close_include_guard

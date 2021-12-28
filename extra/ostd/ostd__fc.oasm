@@ -56,6 +56,7 @@ $.export(RESERVE, BrightGrey, BrightRed, BrightGreen, BrightYellow, BrightBlue, 
 .macro LoadString(__addr, __string)	 lda_str, $(__string) "&#" mem, Addr_Reg, $(__addr), R31
 
 .macro ArrayAt(__arr, __index, __out_addr) mem, Addr_Const, $(__out_addr), $(__arr) "&#" add, Addr_Addr, $(__out_addr), $(__index)
+.macro Random(__min, __max) call Const_Const, ::rand_range, 2, $(__min), $(__max)
 
 .close_include_guard
 @@__om_end_included_file_here
@@ -90,6 +91,7 @@ $.export(RESERVE, BrightGrey, BrightRed, BrightGreen, BrightYellow, BrightBlue, 
 .macro InitVideo(__video_mode) cmd, Const_Const, SetVideoMode, $(__video_mode) "&#" call, Const_Const, ::__om_load_screen_size__, 0 "&#" call, Const_Const, ::__om_load_colors__, 0
 .macro SetVideoMode(__video_mode) cmd, Const_Const, SetVideoMode, $(__video_mode)
 .macro PlotChar(__x, __y, __char, __bg_col, __fg_col) call, Const_Const, ::__om_plot_char__, 5, Single_Addr, $(__x), Single_Addr, $(__y), Single_Addr, $(__char), Single_Addr, $(__bg_col), Single_Addr, $(__fg_col)
+.macro PlotDouble(__x, __y, __char, __bg_col, __fg_col) call, Const_Const, ::__om_plot_char__, 5, Single_Addr, $(__x), Single_Addr, $(__y), Single_Addr, $(__char), Single_Addr, $(__bg_col), Single_Addr, $(__fg_col) "&#" inc, Single_Addr, $(__x) "&#" call, Const_Const, ::__om_plot_char__, 5, Single_Addr, $(__x), Single_Addr, $(__y), Single_Addr, $(__char), Single_Addr, $(__bg_col), Single_Addr, $(__fg_col) "&#" dec, Single_Addr, $(__x)
 .macro GetScreenSize(__out_x, __out_y) mem, Addr_Addr, $(__out_x), ::%__om_screen_size[0] "&#" mem, Addr_Addr, $(__out_y), ::%__om_screen_size[1]
 .alias ClearScreen = cmd,	Const_Const, RefreshScreen,	 0
 .alias Draw = cmd, Const_Const, Draw, 0
@@ -856,6 +858,7 @@ $.export(SUB-ROUTINE, __om_delay_on_time_diff)
 @@__om_space__@@
 @@__om_space__@@
 @@__om_space__@@
+@@__om_space__@@
 .close_include_guard
 @@__om_end_included_file_here
 .include [timing.oh]
@@ -896,6 +899,24 @@ ret, 		Single_Const, 		False
 
 .close_include_guard
 @@__om_end_included_file_here
+.include [sys/system.oasm]
+@@__om_included_file_here(./sys/system.oasm)
+.include_guard(__system_oasm__)
+
+$.export(SUB-ROUTINE, rand_range)
+
+.data = reserve(__om_tmp_rnd)
+
+no_op
+:rand_range:
+pop, Single_Reg, R31
+pop, Single_Reg, R30
+cmd, Const_Const, Random, __om_tmp_rnd
+ret, Single_Addr, __om_tmp_rnd
+//ENd rand_range
+
+.close_include_guard
+@@__om_end_included_file_here
 
 .close_include_guard
 @@__om_end_included_file_here
@@ -906,4 +927,5 @@ reserve,  Single_Const,  0x0005
 reserve,  Single_Const,  0x0002
 reserve,  Single_Const,  0x0068
 reserve,  Single_Const,  0x0002
+reserve,  Single_Const,  0x0001
 ret, Const_Const, 0

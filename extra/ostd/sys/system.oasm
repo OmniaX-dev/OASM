@@ -1,0 +1,14 @@
+.include_guard(__system_oasm__)
+
+$.export(SUB-ROUTINE, rand_range)
+
+.data = reserve(__om_tmp_rnd)
+
+:rand_range:
+	pop, Single_Reg, R31
+	pop, Single_Reg, R30
+	cmd, Const_Const, Random, __om_tmp_rnd
+	ret, Single_Addr, __om_tmp_rnd
+//ENd rand_range
+
+.close_include_guard

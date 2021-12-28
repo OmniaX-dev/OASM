@@ -172,6 +172,27 @@ div.flg-header-sdesc {
 
 
 
+div.dbg-elem-param {
+	flex: none;
+	width: 400px;
+	color: rgb(150, 150, 150);
+}
+div.dbg-header-param {
+	flex: none;
+	width: 400px;
+}
+div.dbg-elem-desc {
+	flex: none;
+	width: 400px;
+	color: rgb(150, 150, 150);
+}
+div.dbg-header-desc {
+	flex: none;
+	width: 400px;
+}
+
+
+
 
 div.table-reg-elem {
 	border-right: 1px solid rgb(40, 40, 40);

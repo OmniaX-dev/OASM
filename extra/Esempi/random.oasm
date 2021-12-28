@@ -48,14 +48,12 @@
 			#ClearScreen
 
 			//------Setup random coords and character-----
-			mem, Reg_Const, R30, 0
-			mem, Reg_Addr, R31, screenx
-			cmd, Const_Const, Random, rndx
-			mem, Reg_Addr, R31, screeny
-			cmd, Const_Const, Random, rndy
-			mem, Reg_Const, R30, $.char('A')
-			mem, Reg_Const, R31, $.char('Z')
-			cmd, Const_Const, Random, rndc
+			call, Const_Const, ostd::rand_range, 2, Single_Const,0, Single_Addr,screenx
+			mem, Addr_Reg, rndx, RV
+			call, Const_Const, ostd::rand_range, 2, Single_Const,0, Single_Addr,screeny
+			mem, Addr_Reg, rndy, RV
+			call, Const_Const, ostd::rand_range, 2, Single_Const,$.char('A'), Single_Const,$.char('Z')
+			mem, Addr_Reg, rndc, RV
 			//--------------------------------------------
 
 			//This macro is used to put a character on the screen at the given coordinates
